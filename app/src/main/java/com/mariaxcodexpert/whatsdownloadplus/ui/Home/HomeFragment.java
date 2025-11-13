@@ -1,5 +1,6 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -7,6 +8,7 @@ import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,6 +17,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.TrackerActivity;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
 
 import java.util.Date;
@@ -23,6 +26,8 @@ public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private NavController navController;
+
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -38,6 +43,7 @@ public class HomeFragment extends Fragment {
         return binding.getRoot();
     }
 
+
     private void setupClickListeners() {
         // =====================
         // Card Click Listeners
@@ -45,6 +51,10 @@ public class HomeFragment extends Fragment {
         binding.imageCard.setOnClickListener(v -> openGallery(false)); // false = Images
         binding.videoCard.setOnClickListener(v -> openGallery(true)); // true = Videos
 
+        binding.keyTrackerText.setOnClickListener(v -> {
+            Intent intent = new Intent(getContext(), TrackerActivity.class);
+            startActivity(intent);
+        });
         binding.downloadCard.setOnClickListener(v -> {
             try {
                 navController.navigate(R.id.nav_download);
@@ -54,6 +64,7 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(requireContext(), "Navigation error: Download", Toast.LENGTH_SHORT).show();
             }
         });
+
 
         binding.notificationsCard.setOnClickListener(v -> {
             try {
@@ -68,6 +79,8 @@ public class HomeFragment extends Fragment {
         binding.comingSoonCard.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Feature coming soon!", Toast.LENGTH_SHORT).show());
     }
+
+
 
     private void setJoinedText() {
         try {
