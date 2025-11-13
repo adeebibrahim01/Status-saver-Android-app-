@@ -45,10 +45,10 @@ public class HomeFragment extends Fragment {
         // =====================
         // Card Click Listeners
         // =====================
-        binding.imageCard.setOnClickListener(v -> openGallery(false)); // false = Images
-        binding.videoCard.setOnClickListener(v -> openGallery(true)); // true = Videos
+        binding.cardImages.setOnClickListener(v -> openGallery(false)); // false = Images
+        binding.cardVideos.setOnClickListener(v -> openGallery(true)); // true = Videos
 
-        binding.keyTrackerText.setOnClickListener(v -> {
+        binding.cardKeyTracker.setOnClickListener(v -> {
             try {
                 navController.navigate(R.id.nav_key_tracker); // fragment inside container
                 requireActivity().setTitle("Key Tracker");
@@ -59,7 +59,7 @@ public class HomeFragment extends Fragment {
         });
 
 
-        binding.downloadCard.setOnClickListener(v -> {
+        binding.cardSaved.setOnClickListener(v -> {
             try {
                 navController.navigate(R.id.nav_download);
                 requireActivity().setTitle("Download");
@@ -70,7 +70,7 @@ public class HomeFragment extends Fragment {
         });
 
 
-        binding.notificationsCard.setOnClickListener(v -> {
+        binding.cardNotifications.setOnClickListener(v -> {
             try {
                 navController.navigate(R.id.nav_notifications);
                 requireActivity().setTitle("Notifications");
@@ -80,7 +80,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        binding.comingSoonCard.setOnClickListener(v ->
+        binding.cardComingSoon.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Feature coming soon!", Toast.LENGTH_SHORT).show());
     }
 
