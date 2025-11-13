@@ -1,44 +1,56 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.tracker;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationAdapter;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationDatabaseHelper;
-import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationModel;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class TrackerFragment extends Fragment {
 
     private static final String PREFS_NAME = "tracker_prefs";
     private static final String KEYWORDS_SET = "keywords_set";
+    private static final String KEY_ACTIVE = "active_keyword";
 
     private RecyclerView recyclerView;
+    private TextView emptyStateText;
     private FloatingActionButton fabAddKeyword;
-    private NotificationAdapter adapter;
+    private trackingAdapter adapter;
     private NotificationDatabaseHelper dbHelper;
-    private List<NotificationModel> displayedList = new ArrayList<>();
-    private Set<String> keywordSet = new HashSet<>();
+
+    private final List<trackingModel> displayedList = new ArrayList<>();
+    private final List<String> keywordList = new ArrayList<>();
+    private final Set<String> keywordSet = new HashSet<>();
     private String activeKeyword = "";
 
     @Nullable
@@ -48,140 +60,213 @@ public class TrackerFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_tracker, container, false);
-
         recyclerView = root.findViewById(R.id.recyclerViewTracker);
+        emptyStateText = root.findViewById(R.id.textEmptyState);
         fabAddKeyword = root.findViewById(R.id.fabAddFilter);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         dbHelper = new NotificationDatabaseHelper(requireContext());
 
-        // Load saved keywords
-        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        keywordSet = prefs.getStringSet(KEYWORDS_SET, new HashSet<>());
+        loadSavedKeywords();
 
-        // Initial load: if any keywords exist, show first one by default
-        if (!keywordSet.isEmpty()) {
-            activeKeyword = keywordSet.iterator().next();
-            Toast.makeText(getContext(), "Tracking: " + activeKeyword, Toast.LENGTH_SHORT).show();
+        if (!keywordList.isEmpty()) {
+            SharedPreferences prefs = requireContext()
+                    .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            activeKeyword = prefs.getString(KEY_ACTIVE, keywordList.get(0));
         }
+
+        adapter = new trackingAdapter(new ArrayList<>());
+        recyclerView.setAdapter(adapter);
+        adapter.setHighlightKeyword(activeKeyword);
 
         loadNotifications();
 
-        fabAddKeyword.setOnClickListener(v -> showKeywordDialog());
+        fabAddKeyword.setOnClickListener(v -> {
+            fabAddKeyword.animate().rotationBy(360f).setDuration(400).start();
+            showKeywordBottomSheet();
+        });
 
         return root;
     }
 
-    private void showKeywordDialog() {
-        View dialogView = LayoutInflater.from(getContext())
-                .inflate(R.layout.dialog_tracker_keywords, null);
-
-        EditText editTextNewKeyword = dialogView.findViewById(R.id.editTextNewKeyword);
-        RecyclerView recyclerViewKeywords = dialogView.findViewById(R.id.recyclerViewKeywords);
-        recyclerViewKeywords.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        List<String> keywordList = new ArrayList<>(keywordSet);
-
-        AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Manage Keywords")
-                .setView(dialogView)
-                .setPositiveButton("Add", null) // We override later
-                .setNegativeButton("Cancel", (d, which) -> d.dismiss())
-                .create();
-
-        KeywordAdapter keywordAdapter = new KeywordAdapter(keywordList, keyword -> {
-            // On keyword click: set active, save, close dialog
-            activeKeyword = keyword;
-
-            // Save selected keyword
-            SharedPreferences.Editor editor = requireContext()
-                    .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit();
-            editor.putStringSet(KEYWORDS_SET, new HashSet<>(keywordSet));
-             // ensure all keywords saved
-            editor.apply();
-
-            loadNotifications();
-            Toast.makeText(getContext(), "Tracking: " + activeKeyword, Toast.LENGTH_SHORT).show();
-
-            dialog.dismiss(); // close popup immediately
-        });
-
-        recyclerViewKeywords.setAdapter(keywordAdapter);
-
-        dialog.setOnShowListener(d -> {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-                String newKeyword = editTextNewKeyword.getText().toString().trim();
-                if (!newKeyword.isEmpty() && !keywordSet.contains(newKeyword)) {
-                    keywordSet.add(newKeyword);
-
-                    // Save keywords
-                    SharedPreferences.Editor editor = requireContext()
-                            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                            .edit();
-                    editor.putStringSet(KEYWORDS_SET, new java.util.HashSet<>(keywordSet));
-                    editor.apply();
-
-                    // Update adapter
-                    keywordList.clear();
-                    keywordList.addAll(keywordSet);
-                    keywordAdapter.notifyDataSetChanged();
-
-                    activeKeyword = newKeyword;
-                    loadNotifications();
-                    Toast.makeText(getContext(), "Tracking: " + newKeyword, Toast.LENGTH_SHORT).show();
-
-                    dialog.dismiss(); // close popup after adding new keyword
-                } else {
-                    Toast.makeText(getContext(), "Keyword already exists or empty", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-
-        dialog.show();
+    private void loadSavedKeywords() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        Set<String> savedSet = prefs.getStringSet(KEYWORDS_SET, new HashSet<>());
+        keywordSet.clear();
+        if (savedSet != null) keywordSet.addAll(savedSet);
+        keywordList.clear();
+        keywordList.addAll(keywordSet);
     }
 
+    private void saveKeywords() {
+        SharedPreferences.Editor editor = requireContext()
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
+        editor.putStringSet(KEYWORDS_SET, new HashSet<>(keywordList));
+        editor.putString(KEY_ACTIVE, activeKeyword);
+        editor.apply();
+    }
 
-    public void loadNotifications() {
+    private void showKeywordBottomSheet() {
+        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
+        View sheetView = LayoutInflater.from(getContext()).inflate(R.layout.sheet_add_keyword, null);
+
+        EditText edtKeyword = sheetView.findViewById(R.id.inputKeyword);
+        RecyclerView keywordsRecycler = sheetView.findViewById(R.id.sheetRecyclerKeywords);
+        keywordsRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        List<String> adapterList = new ArrayList<>(keywordList);
+        final KeywordAdapter[] keywordAdapterHolder = new KeywordAdapter[1];
+
+        keywordAdapterHolder[0] = new KeywordAdapter(adapterList, new KeywordAdapter.OnKeywordAction() {
+            @Override
+            public void onSelect(String keyword) {
+                edtKeyword.setText(keyword);
+                activeKeyword = keyword;
+                saveKeywords();
+                adapter.setHighlightKeyword(activeKeyword);
+                loadNotifications();
+            }
+
+            @Override
+            public void onEdit(int pos, String updated) {
+                if (updated == null || updated.trim().isEmpty()) return;
+                adapterList.set(pos, updated.trim());
+                keywordList.clear();
+                keywordList.addAll(adapterList);
+                saveKeywords();
+                adapter.setHighlightKeyword(activeKeyword);
+                loadNotifications();
+            }
+
+            @Override
+            public void onDelete(int pos) {
+                if (pos < 0 || pos >= adapterList.size()) return;
+                String removed = adapterList.remove(pos);
+                keywordList.clear();
+                keywordList.addAll(adapterList);
+
+                if (removed.equals(activeKeyword)) {
+                    activeKeyword = keywordList.isEmpty() ? "" : keywordList.get(0);
+                    adapter.setHighlightKeyword(activeKeyword);
+                    loadNotifications();
+                }
+
+                saveKeywords();
+                keywordAdapterHolder[0].notifyItemRemoved(pos);
+                Toast.makeText(getContext(), "Keyword deleted", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onReorder(List<String> newOrder) {
+                keywordList.clear();
+                keywordList.addAll(newOrder);
+                saveKeywords();
+            }
+        });
+
+        keywordsRecycler.setAdapter(keywordAdapterHolder[0]);
+
+        sheetView.findViewById(R.id.btnSaveKeyword).setOnClickListener(v -> {
+            String kw = edtKeyword.getText().toString().trim();
+            if (!kw.isEmpty() && !keywordList.contains(kw)) {
+                keywordList.add(0, kw);
+                adapterList.clear(); adapterList.addAll(keywordList);
+                keywordAdapterHolder[0].notifyDataSetChanged();
+
+                activeKeyword = kw;
+                saveKeywords();
+                adapter.setHighlightKeyword(activeKeyword);
+                loadNotifications();
+
+                edtKeyword.setText("");
+            } else if (!kw.isEmpty()) {
+                // Keyword exists, select it
+                activeKeyword = kw;
+                saveKeywords();
+                adapter.setHighlightKeyword(activeKeyword);
+                loadNotifications();
+            }
+        });
+
+        sheetView.findViewById(R.id.btnExport).setOnClickListener(v -> exportMessagesToFile());
+
+        sheet.setContentView(sheetView);
+        sheet.show();
+    }
+
+    private void loadNotifications() {
         displayedList.clear();
-        if (activeKeyword.isEmpty()) return;
+        if (activeKeyword == null || activeKeyword.isEmpty()) {
+            adapter.updateList(displayedList);
+            emptyStateText.setVisibility(View.VISIBLE);
+            return;
+        }
 
         Cursor cursor = dbHelper.getAllNotifications();
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                String sender = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_SENDER));
-                String message = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_MESSAGE));
-                long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_TIMESTAMP));
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    do {
+                        String sender = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_SENDER));
+                        String message = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_MESSAGE));
+                        long ts = cursor.getLong(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_TIMESTAMP));
 
-                // Only add messages containing the active keyword
-                if (message.toLowerCase().contains(activeKeyword.toLowerCase())) {
-                    displayedList.add(new NotificationModel(sender, message, timestamp));
+                        if (message != null && message.toLowerCase().contains(activeKeyword.toLowerCase())) {
+                            // Highlight the keyword using HTML
+                            String escapedKeyword = TextUtils.htmlEncode(activeKeyword);
+                            String highlightedMessage = message.replaceAll("(?i)" + java.util.regex.Pattern.quote(activeKeyword),
+                                    "<font color='#1B5E20'><b>" + escapedKeyword + "</b></font>");
+                            displayedList.add(new trackingModel(sender, Html.fromHtml(highlightedMessage).toString(), ts));
+                        }
+                    } while (cursor.moveToNext());
                 }
-
-            } while (cursor.moveToNext());
-            cursor.close();
+            } finally {
+                cursor.close();
+            }
         }
 
-        if (adapter == null) {
-            adapter = new NotificationAdapter(displayedList);
-            recyclerView.setAdapter(adapter);
-        } else {
-            adapter.updateList(displayedList);
-        }
+        Collections.sort(displayedList, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+        adapter.updateList(displayedList);
+        emptyStateText.setVisibility(displayedList.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
-    /**
-     * Call this from NotificationListener whenever a new notification arrives
-     */
-    public void onNewNotification(String sender, String message, long timestamp) {
-        for (String keyword : keywordSet) {
-            if (message.toLowerCase().contains(keyword.toLowerCase())) {
-                // If the keyword matches the currently active one, display it
-                if (keyword.equals(activeKeyword)) {
-                    displayedList.add(0, new NotificationModel(sender, message, timestamp));
-                    if (adapter != null) adapter.updateList(displayedList);
+    public void onNewNotification(String sender, String message, long ts) {
+        boolean matched = false;
+        for (String kw : keywordList) {
+            if (message != null && message.toLowerCase().contains(kw.toLowerCase())) {
+                matched = true;
+                if (kw.equals(activeKeyword)) {
+                    // Highlight keyword
+                    String escapedKeyword = TextUtils.htmlEncode(activeKeyword);
+                    String highlightedMessage = message.replaceAll("(?i)" + java.util.regex.Pattern.quote(activeKeyword),
+                            "<font color='#1B5E20'><b>" + escapedKeyword + "</b></font>");
+                    displayedList.add(0, new trackingModel(sender, Html.fromHtml(highlightedMessage).toString(), ts));
+                    adapter.updateList(displayedList);
                 }
                 break;
             }
+        }
+        if (matched) saveKeywords();
+    }
+
+    private void exportMessagesToFile() {
+        try {
+            File dir = requireContext().getExternalFilesDir(null);
+            if (dir == null) dir = requireContext().getFilesDir();
+            File file = new File(dir, "tracked_messages.txt");
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            try (FileWriter fw = new FileWriter(file, false)) {
+                for (trackingModel m : displayedList) {
+                    fw.write("[" + sdf.format(new Date(m.getTimestamp())) + "] "
+                            + m.getSender() + " — " + m.getMessage() + "\n\n");
+                }
+            }
+
+            Toast.makeText(getContext(), "Exported to: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Export failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 }
