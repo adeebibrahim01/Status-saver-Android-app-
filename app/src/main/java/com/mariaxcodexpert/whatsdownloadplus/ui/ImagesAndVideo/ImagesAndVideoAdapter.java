@@ -100,7 +100,7 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         });
 
     }
-
+//okay
     @Override
     public int getItemCount() {
         return mediaList.size();
