@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import com.mariaxcodexpert.whatsdownloadplus.ui.tracker.trackingModel;
+
 public class NotificationsFragment extends Fragment {
 
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -33,10 +33,10 @@ public class NotificationsFragment extends Fragment {
     private TextView emptyText;
     private EditText searchEditText;
 
-    private com.mariaxcodexpert.whatsdownloadplus.ui.tracker.trackingAdapter adapter;
+    private NotificationAdapter adapter;
     private NotificationDatabaseHelper dbHelper;
-    private final List<trackingModel> notificationList = new ArrayList<>();
-    private final List<trackingModel> filteredList = new ArrayList<>();
+    private final List<NotificationModel> notificationList = new ArrayList<>();
+    private final List<NotificationModel> filteredList = new ArrayList<>();
 
     @Nullable
     @Override
@@ -88,8 +88,8 @@ public class NotificationsFragment extends Fragment {
         Cursor cursor = dbHelper.getAllNotifications();
 
         if (cursor != null && cursor.moveToFirst()) {
-            // Map to store sender -> List<trackingModel> (deduplicated by ID)
-            Map<String, LinkedHashMap<Long, trackingModel>> groupedMap = new LinkedHashMap<>();
+            // Map to group notifications by sender
+            Map<String, LinkedHashMap<Long, NotificationModel>> groupedMap = new LinkedHashMap<>();
 
             do {
                 long id = cursor.getLong(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_ID));
@@ -99,35 +99,31 @@ public class NotificationsFragment extends Fragment {
 
                 if (shouldIgnoreNotification(message)) continue;
 
-                trackingModel newNotification = new trackingModel(id, sender, message, timestamp);
+                NotificationModel newNotification = new NotificationModel(id, sender, message, timestamp);
 
-                // Initialize sender group if not exists
                 groupedMap.putIfAbsent(sender, new LinkedHashMap<>());
-                // Add message if not already present (deduplicate by ID)
                 groupedMap.get(sender).putIfAbsent(id, newNotification);
 
             } while (cursor.moveToNext());
             cursor.close();
 
             // Flatten grouped messages
-            for (Map.Entry<String, LinkedHashMap<Long, trackingModel>> entry : groupedMap.entrySet()) {
+            for (Map.Entry<String, LinkedHashMap<Long, NotificationModel>> entry : groupedMap.entrySet()) {
                 String sender = entry.getKey();
-                List<trackingModel> messages = new ArrayList<>(entry.getValue().values());
+                List<NotificationModel> messages = new ArrayList<>(entry.getValue().values());
 
-                // Sort newest -> oldest
                 messages.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
 
-                // Display summary if multiple messages
                 String displayMessage = messages.size() > 1 ? "(" + messages.size() + " messages)" : messages.get(0).getMessage();
 
-                trackingModel groupModel = new trackingModel(sender, displayMessage, messages.get(0).getTimestamp());
+                NotificationModel groupModel = new NotificationModel(sender, displayMessage, messages.get(0).getTimestamp());
                 groupModel.setGroupedMessages(messages);
 
                 notificationList.add(groupModel);
             }
         }
 
-        // Keep newest on top
+        // Sort newest -> oldest
         notificationList.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
 
         filteredList.clear();
@@ -135,104 +131,58 @@ public class NotificationsFragment extends Fragment {
         updateRecyclerView();
     }
 
-
     public static boolean shouldIgnoreNotification(String message) {
         if (message == null) return true;
         String lower = message.trim().toLowerCase();
         if (lower.isEmpty()) return true;
 
         return
-
-                // -------------------------------------------------------
-                // 1. CALL RELATED NOTIFICATIONS
-                // -------------------------------------------------------
-                lower.contains("calling") ||
-                        lower.contains("ringing") ||
-                        lower.contains("incoming call") ||
-                        lower.contains("incoming voice call") ||
-                        lower.contains("incoming video call") ||
-                        lower.contains("missed voice call") ||
-                        lower.contains("missed video call") ||
-                        lower.contains("voice call") ||
-                        lower.contains("video call") ||
-                        lower.contains("ongoing call") ||
-                        lower.contains("call ended") ||
+                // 1. CALL RELATED
+                lower.contains("calling") || lower.contains("ringing") || lower.contains("incoming call") ||
+                        lower.contains("incoming voice call") || lower.contains("incoming video call") ||
+                        lower.contains("missed voice call") || lower.contains("missed video call") ||
+                        lower.contains("voice call") || lower.contains("video call") ||
+                        lower.contains("ongoing call") || lower.contains("call ended") ||
                         lower.contains("call on hold") ||
 
-                        // -------------------------------------------------------
-                        // 2. MEDIA / VOICE NOTES NOTIFICATIONS
-                        // -------------------------------------------------------
-                        lower.contains("recording audio") ||
-                        lower.contains("recording…") ||
-                        lower.contains("recording...") ||
-                        lower.contains("playing audio") ||
-                        lower.contains("listened") ||
-                        lower.contains("listening…") ||
-                        lower.contains("listening...") ||
+                        // 2. MEDIA / VOICE NOTES
+                        lower.contains("recording audio") || lower.contains("recording…") || lower.contains("recording...") ||
+                        lower.contains("playing audio") || lower.contains("listened") ||
+                        lower.contains("listening…") || lower.contains("listening...") ||
 
-                        // -------------------------------------------------------
-                        // 3. TYPING / ONLINE NOTIFICATIONS
-                        // -------------------------------------------------------
-                        lower.contains("typing…") ||
-                        lower.contains("typing...") ||
-                        lower.contains("online") ||
+                        // 3. TYPING / ONLINE
+                        lower.contains("typing…") || lower.contains("typing...") || lower.contains("online") ||
 
-                        // -------------------------------------------------------
-                        // 4. GROUP ACTIVITY NOTIFICATIONS
-                        // -------------------------------------------------------
-                        lower.contains("you were added") ||
-                        lower.contains("you were removed") ||
-                        lower.contains("added you") ||
-                        lower.contains("created group") ||
-                        lower.contains("changed this group's icon") ||
-                        lower.contains("changed the group description") ||
-                        lower.contains("changed this group's subject") ||
+                        // 4. GROUP ACTIVITY
+                        lower.contains("you were added") || lower.contains("you were removed") || lower.contains("added you") ||
+                        lower.contains("created group") || lower.contains("changed this group's icon") ||
+                        lower.contains("changed the group description") || lower.contains("changed this group's subject") ||
                         lower.contains("changed group settings") ||
 
-                        // -------------------------------------------------------
-                        // 5. REACTION NOTIFICATIONS
-                        // -------------------------------------------------------
-                        lower.contains("reacted to your message") ||
-                        lower.contains("reacted ") ||   // “reacted ❤️ to your message”
+                        // 5. REACTIONS
+                        lower.contains("reacted to your message") || lower.contains("reacted ") ||
 
-                        // -------------------------------------------------------
-                        // 6. STATUS NOTIFICATIONS
-                        // -------------------------------------------------------
-                        lower.contains("new status") ||
-                        lower.contains("status update") ||
-                        lower.contains("new status update") ||
-                        lower.contains("viewed your status") ||
+                        // 6. STATUS
+                        lower.contains("new status") || lower.contains("status update") ||
+                        lower.contains("new status update") || lower.contains("viewed your status") ||
 
-                        // -------------------------------------------------------
-                        // 7. BACKUP / SYSTEM NOTIFICATIONS
-                        // -------------------------------------------------------
-                        lower.contains("backup in progress") ||
-                        lower.contains("restoring messages") ||
-                        lower.contains("connecting...") ||
-                        lower.contains("reconnecting...") ||
+                        // 7. BACKUP / SYSTEM
+                        lower.contains("backup in progress") || lower.contains("restoring messages") ||
+                        lower.contains("connecting...") || lower.contains("reconnecting...") ||
                         lower.contains("checking for new messages") ||
 
-                        // -------------------------------------------------------
-                        // 8. MULTI-DEVICE NOTIFICATIONS
-                        // -------------------------------------------------------
-                        lower.contains("linked device added") ||
-                        lower.contains("linked device removed") ||
-                        lower.contains("syncing messages") ||
-                        lower.contains("messages may be insecure") ||
+                        // 8. MULTI-DEVICE
+                        lower.contains("linked device added") || lower.contains("linked device removed") ||
+                        lower.contains("syncing messages") || lower.contains("messages may be insecure") ||
 
-                        // -------------------------------------------------------
-                        // 9. SECURITY / BROADCAST NOTIFICATIONS
-                        // -------------------------------------------------------
+                        // 9. SECURITY / BROADCAST
                         lower.contains("your security code has changed") ||
                         lower.contains("messages are now secured with end-to-end encryption") ||
 
-                        // -------------------------------------------------------
-                        // 10. COUNT-ONLY NOTIFICATIONS
-                        // -------------------------------------------------------
+                        // 10. COUNT-ONLY
                         lower.matches("\\d+ new messages?") ||
                         lower.matches("\\d+ messages from \\d+ chats?");
     }
-
 
     private void filterNotifications(String query) {
         filteredList.clear();
@@ -241,14 +191,14 @@ public class NotificationsFragment extends Fragment {
             filteredList.addAll(notificationList);
         } else {
             String lowerQuery = query.toLowerCase();
-            for (trackingModel model : notificationList) {
+            for (NotificationModel model : notificationList) {
 
                 boolean match = model.getSender().toLowerCase().contains(lowerQuery)
                         || model.getMessage().toLowerCase().contains(lowerQuery);
 
                 if (!match && model.getGroupedMessages() != null) {
-                    List<trackingModel> matchedMessages = new ArrayList<>();
-                    for (trackingModel msg : model.getGroupedMessages()) {
+                    List<NotificationModel> matchedMessages = new ArrayList<>();
+                    for (NotificationModel msg : model.getGroupedMessages()) {
                         if (msg.getMessage().toLowerCase().contains(lowerQuery)) {
                             matchedMessages.add(msg);
                         }
@@ -259,7 +209,7 @@ public class NotificationsFragment extends Fragment {
                                 "(" + matchedMessages.size() + " messages)" :
                                 matchedMessages.get(0).getMessage();
 
-                        trackingModel filteredGroup = new trackingModel(
+                        NotificationModel filteredGroup = new NotificationModel(
                                 model.getSender(),
                                 displayMessage,
                                 matchedMessages.get(0).getTimestamp()
@@ -286,7 +236,7 @@ public class NotificationsFragment extends Fragment {
             emptyText.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
             if (adapter == null) {
-                adapter = new com.mariaxcodexpert.whatsdownloadplus.ui.tracker.trackingAdapter(filteredList);
+                adapter = new NotificationAdapter(filteredList);
                 recyclerView.setAdapter(adapter);
             } else {
                 adapter.updateList(filteredList);
@@ -307,11 +257,10 @@ public class NotificationsFragment extends Fragment {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                trackingModel deleted = filteredList.get(position);
+                NotificationModel deleted = filteredList.get(position);
 
-                // Delete individual messages if grouped
                 if (deleted.getGroupedMessages() != null) {
-                    for (trackingModel msg : deleted.getGroupedMessages()) {
+                    for (NotificationModel msg : deleted.getGroupedMessages()) {
                         dbHelper.deleteNotificationById(msg.getId());
                     }
                 } else {

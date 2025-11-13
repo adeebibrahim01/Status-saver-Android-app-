@@ -37,12 +37,19 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         NotificationModel model = list.get(position);
 
         holder.sender.setText(model.getSender());
-        holder.message.setText(model.getMessage());
+
+        // Show summary if grouped
+        if (model.getGroupedMessages() != null && !model.getGroupedMessages().isEmpty()) {
+            holder.message.setText("(" + model.getGroupedMessages().size() + " messages)");
+        } else {
+            holder.message.setText(model.getMessage());
+        }
+
         holder.time.setText(DateFormat.format("hh:mm a • dd MMM", model.getTimestamp()));
 
+        // Expand grouped messages
         holder.itemView.setOnClickListener(v -> {
-            if (model.getGroupedMessages() != null && model.getGroupedMessages().size() > 1) {
-                // Inflate custom WhatsApp-style dialog
+            if (model.getGroupedMessages() != null && !model.getGroupedMessages().isEmpty()) {
                 View dialogView = LayoutInflater.from(v.getContext())
                         .inflate(R.layout.dialog_whatsapp_style, null);
 
@@ -62,7 +69,6 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
                         .create();
 
                 closeButton.setOnClickListener(b -> dialog.dismiss());
-
                 dialog.show();
             }
         });
