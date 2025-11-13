@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E9EFF1"
+    android:orientation="vertical">
+
+
+    <!-- Fragment container for permissions pages -->
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- ViewPager2 for intro pages -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Navigation dots -->
+    <LinearLayout
+        android:id="@+id/dotsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Bottom navigation with arrows -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <!-- Left Arrow -->
+        <ImageButton
+            android:id="@+id/btnLeft"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/circle_white_bg"
+            android:src="@drawable/ic_arrow_left"
+            android:contentDescription="Left"
+            android:padding="16dp"
+            android:scaleType="centerInside"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Center dots placeholder -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_height="wrap_content" />
+
+        <!-- Right Arrow -->
+        <ImageButton
+            android:id="@+id/btnRight"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/circle_white_bg"
+            android:src="@drawable/ic_arrow_right"
+            android:contentDescription="Right"
+            android:padding="16dp"
+            android:scaleType="centerInside"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="32dp" />
+    </LinearLayout>
+
+</LinearLayout>

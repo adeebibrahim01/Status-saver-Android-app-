@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Whats Download Plus</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Status Downloader plus</string>
+    <string name="nav_header_subtitle">mariaadeeb982@gmail.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Status</string>
+    <string name="Download">Download</string>
+    <string name="app_icon">s</string>
+    <string name="permission_icon">Permission icon</string>
+    <string name="storage_access">extra\n</string>
+    <string name="notification_access">extra2\n</string>
+</resources>

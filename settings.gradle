@@ -1,0 +1,25 @@
+pluginManagement {
+    repositories {
+        // Use standard repositories only to ensure stable AGP 8.6.1 resolution
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    // Prevent subprojects from defining their own repositories
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
+    repositories {
+        // Standard repositories for Android and Java dependencies
+        google()
+        mavenCentral()
+    }
+}
+
+// Root project configuration
+rootProject.name = "Whats Download Plus"
+
+// Include app module
+include(":app")
