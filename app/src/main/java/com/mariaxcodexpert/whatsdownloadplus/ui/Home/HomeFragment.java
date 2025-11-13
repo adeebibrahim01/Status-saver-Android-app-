@@ -1,6 +1,5 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
-import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -8,7 +7,6 @@ import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,7 +15,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.TrackerActivity;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
 
 import java.util.Date;
@@ -52,9 +49,16 @@ public class HomeFragment extends Fragment {
         binding.videoCard.setOnClickListener(v -> openGallery(true)); // true = Videos
 
         binding.keyTrackerText.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), TrackerActivity.class);
-            startActivity(intent);
+            try {
+                navController.navigate(R.id.nav_key_tracker); // fragment inside container
+                requireActivity().setTitle("Key Tracker");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(requireContext(), "Navigation error: Key Tracker", Toast.LENGTH_SHORT).show();
+            }
         });
+
+
         binding.downloadCard.setOnClickListener(v -> {
             try {
                 navController.navigate(R.id.nav_download);

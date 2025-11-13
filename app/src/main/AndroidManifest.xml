@@ -33,7 +33,7 @@
         android:theme="@style/Theme.WhatsDownloadPlus"
         tools:targetApi="33">
         <activity
-            android:name=".TrackerActivity"
+            android:name=".ui.tracker.TrackerFragment"
             android:exported="false" />
         <!-- Intro Screen -->
         <activity
