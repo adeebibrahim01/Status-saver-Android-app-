@@ -36,7 +36,7 @@
         android:layout_height="56dp"
         android:contentDescription="Add Filter"
         android:src="@drawable/ic_add"
-        app:backgroundTint="@color/purple_500"
+        app:backgroundTint="@color/whatsapp_green"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_margin="16dp"/>

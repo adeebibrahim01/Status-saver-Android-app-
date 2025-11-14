@@ -9,6 +9,13 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+
+
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"/>
+
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -32,10 +39,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WhatsDownloadPlus"
         tools:targetApi="33">
+
         <activity
             android:name=".ui.tracker.TrackerFragment"
-            android:exported="false" />
-        <!-- Intro Screen -->
+            android:exported="false" /> <!-- Intro Screen -->
         <activity
             android:name=".Permissions.PermissionsActivity"
             android:exported="true"

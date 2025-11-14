@@ -22,7 +22,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-//ok
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -34,17 +34,29 @@ android {
 }
 
 dependencies {
+    // AndroidX & UI
     implementation libs.appcompat
     implementation libs.material
     implementation libs.constraintlayout
-    implementation libs.lifecycle.livedata.ktx
-    implementation libs.lifecycle.viewmodel.ktx
-    implementation libs.navigation.fragment
-    implementation libs.navigation.ui
+    implementation libs.swiperefreshlayout
     implementation libs.activity
     implementation libs.documentfile
-    implementation libs.swiperefreshlayout
 
+    // Lifecycle
+    implementation libs.lifecycle.livedata.ktx
+    implementation libs.lifecycle.viewmodel.ktx
+
+    // Navigation
+    implementation libs.navigation.fragment
+    implementation libs.navigation.ui
+
+    // Room (Database)
+    def room_version = "2.6.0"
+    implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-ktx:$room_version" // Optional: useful for coroutines
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
+    // Testing
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

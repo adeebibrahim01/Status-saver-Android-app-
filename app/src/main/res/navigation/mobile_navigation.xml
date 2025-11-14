@@ -35,4 +35,11 @@
         android:label="notifications"
         tools:layout="@layout/fragment_notifications" />
 
+    <fragment
+        android:id="@+id/nav_status_prediction"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.prediction.StatusPredictionFragment"
+        android:label="Status Prediction"
+        tools:layout="@layout/fragment_status_prediction"/>
+
+
 </navigation>

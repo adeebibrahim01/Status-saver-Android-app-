@@ -3,6 +3,7 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAdapter.GalleryViewHolder> {
 
@@ -33,7 +35,7 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         void onDownload(DocumentFile file);
     }
 
-    // Callback for item click to switch tabs
+    // Callback for item click
     public interface OnItemClickListener {
         void onItemClick(DocumentFile file);
     }
@@ -47,9 +49,8 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         this.mediaList = new ArrayList<>(mediaList);
         this.isVideo = isVideo;
         this.downloadListener = downloadListener;
-        this.itemClickListener = itemClickListener; // store it
+        this.itemClickListener = itemClickListener;
     }
-
 
     /** Update the adapter data dynamically */
     public void updateData(List<DocumentFile> newMediaList, boolean isVideo) {
@@ -82,7 +83,7 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         holder.downloadIcon.setVisibility(isSaved ? View.GONE : View.VISIBLE);
         holder.downloadStatus.setVisibility(isSaved ? View.VISIBLE : View.GONE);
 
-        // Show video overlay icon
+        // Show video overlay icon (play icon centered)
         holder.videoIcon.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
         // Download click
@@ -94,13 +95,16 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
             }
         });
 
-        // Item click → tell fragment which tab to open
+        // Item click
         holder.itemView.setOnClickListener(v -> {
             if (itemClickListener != null) itemClickListener.onItemClick(file);
         });
 
+        // ===== Countdown Timer Implementation =====
+        long expiryTime = file.lastModified() + 24 * 60 * 60 * 1000; // WhatsApp status expires in 24h
+        holder.bindCountdown(expiryTime);
     }
-//okay working
+
     @Override
     public int getItemCount() {
         return mediaList.size();
@@ -142,7 +146,8 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
 
     public static class GalleryViewHolder extends RecyclerView.ViewHolder {
         ImageView imageThumb, downloadIcon, videoIcon;
-        TextView downloadStatus;
+        TextView downloadStatus, countdownTimer;
+        CountDownTimer timer;
 
         public GalleryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -150,6 +155,46 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
             downloadIcon = itemView.findViewById(R.id.downloadIcon);
             downloadStatus = itemView.findViewById(R.id.downloadStatus);
             videoIcon = itemView.findViewById(R.id.videoIcon);
+            countdownTimer = itemView.findViewById(R.id.countdownTimer);
+        }
+
+        /** Bind countdown timer to this view holder */
+        public void bindCountdown(long expiryTimeMillis) {
+            if (timer != null) timer.cancel();
+
+            long remaining = expiryTimeMillis - System.currentTimeMillis();
+            if (remaining <= 0) {
+                countdownTimer.setText("Expired");
+                countdownTimer.setTextColor(0xFFFF0000);
+                return;
+            }
+
+            timer = new CountDownTimer(remaining, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    long hours = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
+                    long minutes = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
+                    long seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) % 60;
+
+                    // Display in single row with label
+                    countdownTimer.setText(String.format("Expires in %02d:%02d:%02d", hours, minutes, seconds));
+
+                    // Optional: Color coding based on remaining time
+                    if (hours < 1) {
+                        countdownTimer.setTextColor(0xFFFF0000); // red
+                    } else if (hours < 6) {
+                        countdownTimer.setTextColor(0xFFFFA500); // orange
+                    } else {
+                        countdownTimer.setTextColor(0xFF00FF00); // green
+                    }
+                }
+
+                @Override
+                public void onFinish() {
+                    countdownTimer.setText("Expired");
+                    countdownTimer.setTextColor(0xFFFF0000);
+                }
+            }.start();
         }
     }
 }

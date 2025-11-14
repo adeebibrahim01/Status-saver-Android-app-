@@ -22,8 +22,7 @@
             android:background="@color/whatsapp_green"
             android:elevation="4dp">
 
-            <!-- Toolbar (Title Area) -->
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
@@ -31,7 +30,8 @@
                 android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
                 app:title="Download Images and Videos"
                 app:titleTextColor="@android:color/white"
-                app:titleCentered="false" />
+                app:titleCentered="true" />
+
 
             <!-- TabLayout (WhatsApp-style Tabs) -->
             <com.google.android.material.tabs.TabLayout

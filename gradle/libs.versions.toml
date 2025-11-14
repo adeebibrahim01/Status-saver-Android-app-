@@ -13,6 +13,8 @@ navigationUi = "2.9.5"
 activity = "1.9.2"
 documentfile = "1.1.0"
 swiperefreshlayout = "1.1.0"
+roomCommonJvm = "2.8.3"
+roomRuntimeAndroid = "2.8.3"
 
 
 [libraries]
@@ -29,6 +31,8 @@ navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version
 activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
+room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

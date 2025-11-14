@@ -227,6 +227,44 @@
                     android:textSize="12sp"
                     android:layout_marginTop="5dp"/>
             </LinearLayout>
+
+
+        </LinearLayout>
+
+        <!-- ROW 3 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- Notifications -->
+            <LinearLayout
+                android:id="@+id/cardStatusprediction"
+                android:layout_width="0dp"
+                android:layout_height="120dp"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="10dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/wa_card_bg">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_wa_notifications" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Status prediction"
+                    android:textColor="#075E54"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:layout_marginTop="5dp"/>
+            </LinearLayout>
+
+
         </LinearLayout>
 
     </LinearLayout>

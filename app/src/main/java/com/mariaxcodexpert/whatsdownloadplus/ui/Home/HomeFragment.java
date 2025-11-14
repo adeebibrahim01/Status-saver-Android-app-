@@ -48,6 +48,19 @@ public class HomeFragment extends Fragment {
         binding.cardImages.setOnClickListener(v -> openGallery(false)); // false = Images
         binding.cardVideos.setOnClickListener(v -> openGallery(true)); // true = Videos
 
+
+
+        binding.cardStatusprediction.setOnClickListener(v -> {
+            try {
+                navController.navigate(R.id.nav_status_prediction); // fragment inside container
+                requireActivity().setTitle("Status Prediction");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(requireContext(), "Navigation error: Key Tracker", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
         binding.cardKeyTracker.setOnClickListener(v -> {
             try {
                 navController.navigate(R.id.nav_key_tracker); // fragment inside container
