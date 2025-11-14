@@ -4,7 +4,12 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
+    <!-- Left Arrow path -->
     <path
-        android:pathData="M7.59,6.41L12.17,11 7.59,15.59 9,17l7-7-7-7z"
-        android:fillColor="#000000"/>
+        android:pathData="M8.59,16.59L10,18l7-7-7-7-1.41,1.41L14.17,11z"
+        android:fillColor="#075E54"
+        android:strokeWidth="1.5"
+        android:strokeColor="#075E54"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
 </vector>

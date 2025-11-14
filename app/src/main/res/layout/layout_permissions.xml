@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:background="#F0F4F5"
+    android:background="#ECE5DD"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -16,26 +15,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- App Title -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textStyle="bold"
-                android:textSize="28sp"
-                android:textColor="#2FB19C"
-                android:gravity="center"
-                android:layout_marginBottom="6dp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="PERMISSIONS REQUIRED"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#555555"
-                android:gravity="center"
-                android:layout_marginBottom="30dp" />
 
             <!-- 1. Storage Access -->
             <LinearLayout
@@ -43,11 +22,15 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingVertical="10dp">
+                android:padding="12dp"
+                android:background="@drawable/permission_card_bg"
+                android:layout_marginBottom="12dp"
+                android:clipToOutline="true"
+                android:elevation="3dp">
 
                 <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:gravity="center"
                     android:text="1"
                     android:textColor="#FFFFFF"
@@ -63,19 +46,24 @@
                     android:layout_height="wrap_content">
 
                     <TextView
+                        android:id="@+id/permissionTitleStorage"
                         android:text="Storage Access"
                         android:textStyle="bold"
                         android:textColor="#000000"
                         android:textSize="16sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"/>
 
                     <TextView
-                        android:text="Allows recovery of deleted photos, videos, and documents from WhatsApp."
+                        android:id="@+id/permissionDescriptionStorage"
+                        android:text="Allow storage access so that when a status is downloaded, it can be saved directly to your device.
+"
                         android:textColor="#666666"
                         android:textSize="13sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="1dp"/>
                 </LinearLayout>
 
                 <Button
@@ -83,9 +71,10 @@
                     android:text="Allow"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#2FB19C"
+                    android:background="@drawable/permission_button_bg"
                     android:layout_width="80dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="40dp"
+                    android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
 
             <!-- 2. Notification Access -->
@@ -94,11 +83,15 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingVertical="10dp">
+                android:padding="12dp"
+                android:background="@drawable/permission_card_bg"
+                android:layout_marginBottom="12dp"
+                android:clipToOutline="true"
+                android:elevation="3dp">
 
                 <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:gravity="center"
                     android:text="2"
                     android:textColor="#FFFFFF"
@@ -114,19 +107,23 @@
                     android:layout_height="wrap_content">
 
                     <TextView
+                        android:id="@+id/permissionTitleNotification"
                         android:text="Notification Access"
                         android:textStyle="bold"
                         android:textColor="#000000"
                         android:textSize="16sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"/>
 
                     <TextView
-                        android:text="Required to recover deleted messages in real-time using notifications."
+                        android:id="@+id/permissionDescriptionNotification"
+                        android:text="Allow notification permission so all notifications appear inside the app."
                         android:textColor="#666666"
                         android:textSize="13sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="1dp"/>
                 </LinearLayout>
 
                 <Button
@@ -134,22 +131,27 @@
                     android:text="Allow"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#2FB19C"
+                    android:background="@drawable/permission_button_bg"
                     android:layout_width="80dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="40dp"
+                    android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
 
-            <!-- 3. Power Optimization / Status Folder -->
+            <!-- 3. WhatsApp Status Folder -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingVertical="10dp">
+                android:padding="12dp"
+                android:background="@drawable/permission_card_bg"
+                android:layout_marginBottom="12dp"
+                android:clipToOutline="true"
+                android:elevation="3dp">
 
                 <TextView
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:gravity="center"
                     android:text="3"
                     android:textColor="#FFFFFF"
@@ -165,19 +167,23 @@
                     android:layout_height="wrap_content">
 
                     <TextView
-                        android:text="Whatsapp Status Folder"
+                        android:id="@+id/permissionTitleStatus"
+                        android:text="WhatsApp Status Folder"
                         android:textStyle="bold"
                         android:textColor="#000000"
                         android:textSize="16sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"/>
 
                     <TextView
-                        android:text=".Statuses folder to ensure videos and images are properly retrieved."
+                        android:id="@+id/permissionDescriptionStatus"
+                        android:text="Allow .status folder permission so the app can access and show your status images and videos."
                         android:textColor="#666666"
                         android:textSize="13sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="1dp"/>
                 </LinearLayout>
 
                 <Button
@@ -185,9 +191,10 @@
                     android:text="Allow"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#2FB19C"
+                    android:background="@drawable/permission_button_bg"
                     android:layout_width="80dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="40dp"
+                    android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
 
             <TextView
@@ -197,8 +204,7 @@
                 android:textSize="12sp"
                 android:textColor="#555555"
                 android:gravity="center"
-                android:layout_marginTop="20dp" />
+                android:layout_marginTop="20dp"/>
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>

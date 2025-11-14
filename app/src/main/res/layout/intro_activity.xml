@@ -1,24 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E9EFF1"
-    android:orientation="vertical">
+    android:background="#ECE5DD"
+    android:orientation="vertical"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
 
-
-    <!-- Fragment container for permissions pages -->
+    <!-- Fragment container for permissions/pages -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:clipToOutline="true"
+        android:elevation="6dp"
+        android:background="@drawable/whatsapp_card_bg"
+        android:padding="20dp">
+
+        <!-- Inner content to make it professional -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="16dp">
+
+
+            <!-- App Title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="#075E54"
+                android:gravity="center"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="sans-serif-medium"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Permissions Required"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#555555"
+                android:gravity="center"
+                android:layout_marginBottom="1dp"
+                android:fontFamily="sans-serif-medium"/>
+
+
+        </LinearLayout>
+    </FrameLayout>
+
 
     <!-- ViewPager2 for intro pages -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingTop="24dp"
+        android:paddingBottom="24dp"/>
 
     <!-- Navigation dots -->
     <LinearLayout
@@ -26,50 +74,56 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:layout_marginBottom="16dp" />
+        android:gravity="center"
+        android:layout_marginBottom="28dp" />
 
     <!-- Bottom navigation with arrows -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:gravity="center"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp">
+        android:gravity="center_vertical"
+        android:paddingBottom="16dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <!-- Left Arrow -->
         <ImageButton
             android:id="@+id/btnLeft"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:background="@drawable/circle_white_bg"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/circle_white_ripple"
             android:src="@drawable/ic_arrow_left"
             android:contentDescription="Left"
-            android:padding="16dp"
-            android:scaleType="centerInside"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="16dp" />
+            android:scaleType="center"
+            android:elevation="6dp"
+            android:outlineProvider="background"
+            android:layout_marginEnd="16dp"
+            android:clipToOutline="true"/>
 
         <!-- Center dots placeholder -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_height="wrap_content" />
+            android:gravity="center"/>
 
         <!-- Right Arrow -->
         <ImageButton
             android:id="@+id/btnRight"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:background="@drawable/circle_white_bg"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/circle_white_ripple"
             android:src="@drawable/ic_arrow_right"
             android:contentDescription="Right"
-            android:padding="16dp"
-            android:scaleType="centerInside"
+            android:scaleType="center"
+            android:elevation="6dp"
+            android:outlineProvider="background"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="32dp" />
+            android:clipToOutline="true"/>
     </LinearLayout>
 
 </LinearLayout>

@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="#D6E0E5"
+    android:background="#ECE5DD"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingTop="16dp"
+    android:paddingBottom="16dp">
 
     <!-- Title -->
     <TextView
@@ -13,40 +16,44 @@
         android:text="Select app from the list"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:textColor="#000000"
+        android:textColor="#075E54"
         android:gravity="center"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="12dp" />
+        android:layout_marginBottom="24dp"
+        android:fontFamily="sans-serif-medium"/>
 
-    <!-- WhatsApp card -->
+    <!-- WhatsApp Card -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
+        android:layout_marginHorizontal="16dp"
         android:orientation="horizontal"
-        android:padding="12dp"
-        android:background="#2C2C2C"
-        android:elevation="6dp"
+        android:padding="16dp"
+        android:background="@drawable/whatsapp_card_bg"
+        android:elevation="4dp"
         android:gravity="center_vertical">
 
         <ImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:src="@drawable/ic_whatsapp"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginEnd="16dp"
+            android:contentDescription="WhatsApp icon"
+            android:scaleType="centerCrop" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="WhatsApp"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+            android:textColor="#075E54"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"/>
 
         <CheckBox
             android:id="@+id/selectWhatsappButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/whatsapp_greeen"/>
     </LinearLayout>
 
     <View
