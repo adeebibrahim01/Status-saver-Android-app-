@@ -74,7 +74,16 @@ public class DownloadFragmentLegacy extends Fragment {
             permissionsActivity = (PermissionsActivity) getActivity();
         }
 
-        adapter = new DownloadAdapter(getContext(), mediaUris, isVideoList, permissionsActivity, this::deleteFile);
+        // Same as your existing Legacy fragment, just adapter call updated:
+        adapter = new DownloadAdapter(
+                getContext(),
+                mediaUris,
+                isVideoList,
+                permissionsActivity,
+                this::deleteFile,
+                this::updateEmptyView // <-- EmptyCheckCallback
+        );
+
         recyclerView.setAdapter(adapter);
     }
 

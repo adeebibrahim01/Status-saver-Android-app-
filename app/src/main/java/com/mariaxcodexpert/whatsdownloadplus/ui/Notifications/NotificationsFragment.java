@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class NotificationsFragment extends Fragment {
     private NotificationDatabaseHelper dbHelper;
     private final List<NotificationModel> notificationList = new ArrayList<>();
     private final List<NotificationModel> filteredList = new ArrayList<>();
+    private LottieAnimationView lottieEmptyState;
 
     @Nullable
     @Override
@@ -49,7 +51,9 @@ public class NotificationsFragment extends Fragment {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         recyclerView = view.findViewById(R.id.recyclerViewNotifications);
         emptyText = view.findViewById(R.id.emptyText);
+        lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
         searchEditText = view.findViewById(R.id.searchEditText);
+
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         dbHelper = new NotificationDatabaseHelper(requireContext());
@@ -230,11 +234,14 @@ public class NotificationsFragment extends Fragment {
 
     private void updateRecyclerView() {
         if (filteredList.isEmpty()) {
-            emptyText.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
+            emptyText.setVisibility(View.VISIBLE);
+            lottieEmptyState.setVisibility(View.VISIBLE);  // ✅ Lottie show
         } else {
-            emptyText.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
+            emptyText.setVisibility(View.GONE);
+            lottieEmptyState.setVisibility(View.GONE);     // ✅ Lottie hide
+
             if (adapter == null) {
                 adapter = new NotificationAdapter(filteredList);
                 recyclerView.setAdapter(adapter);
@@ -243,6 +250,7 @@ public class NotificationsFragment extends Fragment {
             }
         }
     }
+
 
     private void setupSwipeToDelete() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,

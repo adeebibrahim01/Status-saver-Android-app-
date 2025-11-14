@@ -1,7 +1,9 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.Menu;
@@ -16,8 +18,6 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.ActivityMainBinding;
-
-import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,70 +40,140 @@ public class MainActivity extends AppCompatActivity {
         navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
 
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_download, R.id.nav_notifications)
+                R.id.nav_home,
+                R.id.nav_gallery,
+                R.id.nav_download,
+                R.id.nav_notifications,
+                R.id.nav_status_prediction,
+                R.id.nav_privacy_policy
+        )
                 .setOpenableLayout(drawer)
                 .build();
 
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        // ===== Navigation Drawer clicks =====
+        // ====================================
+        // 🔥 Custom Drawer Item Click Handler
+        // ====================================
         navigationView.setNavigationItemSelectedListener(item -> {
+
             int id = item.getItemId();
 
-            if (id == R.id.nav_home) {
-                navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
-                navController.navigate(R.id.nav_home);
-            } else if (id == R.id.nav_gallery) {
-                // Pass argument to select Images tab by default
-                Bundle args = new Bundle();
-                args.putBoolean("showVideos", false); // false = Images tab
-                navController.navigate(R.id.nav_gallery, args);
+                    if (id == R.id.nav_home) {
+                        // Pop back stack to start destination (Home) so it always shows
+                        navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
+                    }
+                    else if (id == R.id.nav_gallery ||
+                            id == R.id.nav_download ||
+                            id == R.id.nav_notifications ||
+                            id == R.id.nav_status_prediction ||
+                            id == R.id.nav_privacy_policy) {
 
+                        NavigationUI.onNavDestinationSelected(item, navController);
 
-
-            } else if (id == R.id.nav_download) {
-                navController.navigate(R.id.nav_download);
-            } else if (id == R.id.nav_notifications) {
-                navController.navigate(R.id.nav_notifications);
+                }
+            // --- Share App ---
+            else if (id == R.id.nav_share_app) {
+                shareApp();
+            }
+            // --- Rate App ---
+            else if (id == R.id.nav_rate_app) {
+                rateApp();
+            }
+            // --- Feedback ---
+            else if (id == R.id.nav_feedback) {
+                sendFeedback();
             }
 
             drawer.closeDrawers();
             return true;
         });
 
-        // ===== FAB click navigates to Slideshow =====
-        binding.appBarMain.fab.setOnClickListener(view -> navController.navigate(R.id.nav_download));
+        // ========= FAB Shortcut =========
+        binding.appBarMain.fab.setOnClickListener(v ->
+                navController.navigate(R.id.nav_download)
+        );
 
-        // ===== Toolbar title and joined date dynamically =====
-        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            if (destination.getId() == R.id.nav_home) {
+        // ========= Toolbar Titles =========
+        navController.addOnDestinationChangedListener((controller, destination, args) -> {
+
+            int id = destination.getId();
+
+            if (id == R.id.nav_home) {
                 binding.appBarMain.toolbar.setTitle("Home");
+                setJoinedDate();
 
-                try {
-                    TextView joinedText = findViewById(R.id.joinedText);
-                    if (joinedText != null) {
-                        PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                        long firstInstallTime = packageInfo.firstInstallTime;
-                        String formattedDate = DateFormat.format("MMMM dd, yyyy", firstInstallTime).toString();
-                        joinedText.setText("Joined Status downloader plus on " + formattedDate + ".");
-                    }
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-            } else if (destination.getId() == R.id.nav_gallery) {
-                boolean showVideos = arguments != null && arguments.getBoolean("showVideos", false);
+            } else if (id == R.id.nav_gallery) {
+                boolean showVideos = args != null && args.getBoolean("showVideos", false);
                 binding.appBarMain.toolbar.setTitle(showVideos ? "Videos" : "Images");
-            } else if (destination.getId() == R.id.nav_download) {
+
+            } else if (id == R.id.nav_download) {
                 binding.appBarMain.toolbar.setTitle("Download");
-            } else if (destination.getId() == R.id.nav_notifications) {
+
+            } else if (id == R.id.nav_notifications) {
                 binding.appBarMain.toolbar.setTitle("Notifications");
+
+            } else if (id == R.id.nav_status_prediction) {
+                binding.appBarMain.toolbar.setTitle("AI Status Prediction");
+
+            } else if (id == R.id.nav_privacy_policy) {
+                binding.appBarMain.toolbar.setTitle("Privacy Policy");
             }
         });
 
-        // ===== Highlight Home menu at start =====
+        // Highlight Home by default
         navigationView.setCheckedItem(R.id.nav_home);
+    }
+
+    // =========================================
+    // 🔥 Share App
+    // =========================================
+    private void shareApp() {
+        String url = "https://play.google.com/store/apps/details?id=" + getPackageName();
+        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+        sendIntent.setType("text/plain");
+        sendIntent.putExtra(Intent.EXTRA_TEXT,
+                "Download this amazing Status Downloader app:\n" + url);
+        startActivity(Intent.createChooser(sendIntent, "Share App"));
+    }
+
+    // =========================================
+    // 🔥 Rate App
+    // =========================================
+    private void rateApp() {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=" + getPackageName())));
+        } catch (Exception e) {
+            startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName())));
+        }
+    }
+
+    // =========================================
+    // 🔥 Feedback
+    // =========================================
+    private void sendFeedback() {
+        Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+        emailIntent.setData(Uri.parse("mailto:mariaadeeb982@gmail.com"));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback - WhatsDownload Plus");
+        startActivity(emailIntent);
+    }
+
+    // =========================================
+    // 🔥 Joined Date Logic
+    // =========================================
+    private void setJoinedDate() {
+        try {
+            TextView joinedText = findViewById(R.id.joinedText);
+            if (joinedText != null) {
+                PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+                long time = info.firstInstallTime;
+                String date = DateFormat.format("MMMM dd, yyyy", time).toString();
+                joinedText.setText("Joined Status Downloader Plus on " + date + ".");
+            }
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -118,7 +188,9 @@ public class MainActivity extends AppCompatActivity {
                 || super.onSupportNavigateUp();
     }
 
-    // ===== Add helper methods to navigate directly to Images or Videos tab =====
+    // =========================================
+    // 🔥 Open Gallery with specific tab
+    // =========================================
     public void openGalleryTab(boolean showVideos) {
         Bundle args = new Bundle();
         args.putBoolean("showVideos", showVideos);

@@ -51,14 +51,9 @@ public class HomeFragment extends Fragment {
 
 
         binding.cardStatusprediction.setOnClickListener(v -> {
-            try {
-                navController.navigate(R.id.nav_status_prediction); // fragment inside container
-                requireActivity().setTitle("Status Prediction");
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(requireContext(), "Navigation error: Key Tracker", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(requireContext(), "Feature coming soon 🚀", Toast.LENGTH_SHORT).show();
         });
+
 
 
         binding.cardKeyTracker.setOnClickListener(v -> {

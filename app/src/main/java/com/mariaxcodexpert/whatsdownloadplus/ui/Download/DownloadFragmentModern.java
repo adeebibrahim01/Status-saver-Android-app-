@@ -75,7 +75,16 @@ public class DownloadFragmentModern extends Fragment {
             permissionsActivity = (PermissionsActivity) getActivity();
         }
 
-        adapter = new DownloadAdapter(getContext(), mediaUris, isVideoList, permissionsActivity, this::deleteFile);
+        // Same as your existing Modern fragment, just adapter call updated:
+        adapter = new DownloadAdapter(
+                getContext(),
+                mediaUris,
+                isVideoList,
+                permissionsActivity,
+                this::deleteFile,
+                this::updateEmptyView // <-- EmptyCheckCallback
+        );
+
         recyclerView.setAdapter(adapter);
     }
 

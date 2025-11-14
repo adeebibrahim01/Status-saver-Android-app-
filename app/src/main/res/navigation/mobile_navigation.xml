@@ -5,41 +5,52 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/nav_home">
 
+    <!-- Home -->
     <fragment
         android:id="@+id/nav_home"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Home.HomeFragment"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_home" />
 
+    <!-- Gallery -->
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment"
         android:label="@string/menu_gallery"
         tools:layout="@layout/fragment_imagesandvideo" />
 
-
+    <!-- Download -->
     <fragment
         android:id="@+id/nav_download"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Download.DownloadFragment"
         android:label="Download"
         tools:layout="@layout/fragment_download" />
+
+    <!-- Keyword Tracker -->
     <fragment
         android:id="@+id/nav_key_tracker"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.tracker.TrackerFragment"
         android:label="Key Tracker" />
 
-
+    <!-- Notifications -->
     <fragment
         android:id="@+id/nav_notifications"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationsFragment"
-        android:label="notifications"
+        android:label="Notifications"
         tools:layout="@layout/fragment_notifications" />
 
+    <!-- Status Prediction -->
     <fragment
         android:id="@+id/nav_status_prediction"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.prediction.StatusPredictionFragment"
         android:label="Status Prediction"
-        tools:layout="@layout/fragment_status_prediction"/>
+        tools:layout="@layout/fragment_status_prediction" />
 
+    <!-- Only Privacy Policy Fragment -->
+    <fragment
+        android:id="@+id/nav_privacy_policy"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Privacy_policy.PrivacyPolicyFragment"
+        android:label="Privacy Policy"
+        tools:layout="@layout/fragment_privacy_policy" />
 
 </navigation>

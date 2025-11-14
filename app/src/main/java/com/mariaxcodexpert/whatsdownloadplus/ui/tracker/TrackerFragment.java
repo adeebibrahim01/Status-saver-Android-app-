@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mariaxcodexpert.whatsdownloadplus.R;
@@ -53,6 +54,9 @@ public class TrackerFragment extends Fragment {
     private final Set<String> keywordSet = new HashSet<>();
     private String activeKeyword = "";
 
+    private LottieAnimationView lottieEmptyState;
+
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -63,6 +67,7 @@ public class TrackerFragment extends Fragment {
         recyclerView = root.findViewById(R.id.recyclerViewTracker);
         emptyStateText = root.findViewById(R.id.textEmptyState);
         fabAddKeyword = root.findViewById(R.id.fabAddFilter);
+        lottieEmptyState = root.findViewById(R.id.lottieEmptyState);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -199,8 +204,17 @@ public class TrackerFragment extends Fragment {
         displayedList.clear();
         if (activeKeyword == null || activeKeyword.isEmpty()) {
             adapter.updateList(displayedList);
-            emptyStateText.setVisibility(View.VISIBLE);
-            return;
+
+            if (displayedList.isEmpty()) {
+                recyclerView.setVisibility(View.GONE);
+                emptyStateText.setVisibility(View.VISIBLE);
+                lottieEmptyState.setVisibility(View.VISIBLE);
+            } else {
+                recyclerView.setVisibility(View.VISIBLE);
+                emptyStateText.setVisibility(View.GONE);
+                lottieEmptyState.setVisibility(View.GONE);
+            }
+
         }
 
         Cursor cursor = dbHelper.getAllNotifications();
@@ -233,20 +247,40 @@ public class TrackerFragment extends Fragment {
 
     public void onNewNotification(String sender, String message, long ts) {
         boolean matched = false;
+
+        if (message == null) message = "";
+
         for (String kw : keywordList) {
-            if (message != null && message.toLowerCase().contains(kw.toLowerCase())) {
+            if (message.toLowerCase().contains(kw.toLowerCase())) {
                 matched = true;
+
                 if (kw.equals(activeKeyword)) {
                     // Highlight keyword
                     String escapedKeyword = TextUtils.htmlEncode(activeKeyword);
                     String highlightedMessage = message.replaceAll("(?i)" + java.util.regex.Pattern.quote(activeKeyword),
                             "<font color='#1B5E20'><b>" + escapedKeyword + "</b></font>");
+
+                    // Add at top of list
                     displayedList.add(0, new trackingModel(sender, Html.fromHtml(highlightedMessage).toString(), ts));
+
+                    // Update adapter
                     adapter.updateList(displayedList);
+
+                    // Toggle visibility
+                    if (displayedList.isEmpty()) {
+                        recyclerView.setVisibility(View.GONE);
+                        emptyStateText.setVisibility(View.VISIBLE);
+                        lottieEmptyState.setVisibility(View.VISIBLE);
+                    } else {
+                        recyclerView.setVisibility(View.VISIBLE);
+                        emptyStateText.setVisibility(View.GONE);
+                        lottieEmptyState.setVisibility(View.GONE);
+                    }
                 }
-                break;
+                break; // Stop after first matching keyword
             }
         }
+
         if (matched) saveKeywords();
     }
 

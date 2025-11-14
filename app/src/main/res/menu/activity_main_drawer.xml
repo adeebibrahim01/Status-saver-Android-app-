@@ -1,30 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:showIn="navigation_view">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:showIn="navigation_view"
+    app:itemIconTint="@null">
 
     <group android:checkableBehavior="single">
 
+        <!-- Home -->
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_menu_camera"
             android:title="@string/menu_home" />
 
+        <!-- Gallery -->
         <item
             android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_menu_gallery"
             android:title="@string/menu_gallery" />
 
+        <!-- Downloads -->
         <item
             android:id="@+id/nav_download"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/Download" />
+            android:icon="@drawable/ic_wa_download"
+            android:title="Download" />
 
-        <!-- 🟢 New Notifications Section -->
+        <!-- Notifications -->
         <item
             android:id="@+id/nav_notifications"
             android:icon="@drawable/ic_notifications"
             android:title="Notifications" />
+
+        <!-- Rate App -->
+        <item
+            android:id="@+id/nav_rate_app"
+            android:icon="@drawable/ic_rate"
+            android:title="Rate App" />
+
+
+        <!-- Feedback -->
+        <item
+            android:id="@+id/nav_feedback"
+            android:icon="@drawable/ic_feedback"
+            android:title="Send Feedback" />
+
+        <!-- Share App (Direct Intent) -->
+        <item
+            android:id="@+id/nav_share_app"
+            android:icon="@drawable/ic_share"
+            android:title="Share App" />
+
+        <!-- Privacy Policy (Fragment) -->
+        <item
+            android:id="@+id/nav_privacy_policy"
+            android:icon="@drawable/ic_privacy"
+            android:title="Privacy Policy" />
+
 
     </group>
 

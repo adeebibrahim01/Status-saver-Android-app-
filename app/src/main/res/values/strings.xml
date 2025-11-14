@@ -14,4 +14,58 @@
     <string name="permission_icon">Permission icon</string>
     <string name="storage_access">extra\n</string>
     <string name="notification_access">extra2\n</string>
+
+
+
+        <string name="privacy_title">Privacy Policy – WhatsDownload Plus</string>
+        <string name="privacy_last_updated">Last updated: November 2025</string>
+
+        <!-- Section 1 -->
+        <string name="privacy_section_1_heading">Information We Collect</string>
+        <string name="privacy_section_1">
+We do not collect or share any personal data outside your device.
+    </string>
+
+        <!-- Section 2 -->
+        <string name="privacy_section_2_heading">How the App Works</string>
+        <string name="privacy_section_2">
+App scans WhatsApp Status folder to show photos and videos locally.
+    </string>
+
+        <!-- Section 3 -->
+        <string name="privacy_section_3_heading">Permissions</string>
+        <string name="privacy_section_3">
+Storage permission is required to access statuses; notification is optional.
+    </string>
+
+        <!-- Section 4 -->
+        <string name="privacy_section_4_heading">Third-Party Services</string>
+        <string name="privacy_section_4">
+We do not integrate third-party analytics or SDKs that track users.
+    </string>
+
+        <!-- Section 5 -->
+        <string name="privacy_section_5_heading">Security</string>
+        <string name="privacy_section_5">
+All actions occur locally; we do not access your WhatsApp account.
+    </string>
+
+        <!-- Section 6 -->
+        <string name="privacy_section_6_heading">Childrens Privacy</string>
+        <string name="privacy_section_6">
+App is not for children under 13; no minor information is collected.
+    </string>
+
+        <!-- Section 7 -->
+        <string name="privacy_section_7_heading">Updates</string>
+        <string name="privacy_section_7">
+Policy updates are shown in-app; latest version is always available.
+    </string>
+
+        <!-- Section 8 -->
+        <string name="privacy_section_8_heading">Contact Us</string>
+        <string name="privacy_section_8">
+For questions, contact: mariaadeeb982@gmail.com
+    </string>
+
 </resources>

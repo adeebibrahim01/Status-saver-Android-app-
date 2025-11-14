@@ -4,10 +4,12 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -15,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.navigation.Navigation;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.tabs.TabLayout;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
@@ -30,6 +33,10 @@ public class ImagesAndVideoFragment extends Fragment {
     private TabLayout tabLayout;
     private ImagesAndVideoAdapter adapter;
     private SwipeRefreshLayout swipeRefreshLayout;
+
+    private ConstraintLayout emptyStateLayout;
+    private LottieAnimationView lottieEmptyState;
+    private TextView tvEmptyMessage;
 
     private final List<DocumentFile> imageList = new ArrayList<>();
     private final List<DocumentFile> videoList = new ArrayList<>();
@@ -48,24 +55,24 @@ public class ImagesAndVideoFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadStatuses();
-            swipeRefreshLayout.setRefreshing(false);
-        });
-
         tabLayout = view.findViewById(R.id.tabLayout);
         galleryRecycler = view.findViewById(R.id.galleryRecycler);
         galleryRecycler.setLayoutManager(new GridLayoutManager(getContext(), 3));
         galleryRecycler.setHasFixedSize(true);
 
+        emptyStateLayout = view.findViewById(R.id.emptyStateLayout);
+        lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
+        tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
+
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            loadStatuses();
+            swipeRefreshLayout.setRefreshing(false);
+        });
+
         tabLayout.addTab(tabLayout.newTab().setText("Images"));
         tabLayout.addTab(tabLayout.newTab().setText("Videos"));
 
-        // Load folder URI from SharedPreferences
         loadStatusFolderUri();
-
-        // Load data
-        loadStatuses();
 
         adapter = new ImagesAndVideoAdapter(
                 getContext(),
@@ -73,10 +80,8 @@ public class ImagesAndVideoFragment extends Fragment {
                 false,
                 this::saveToStatusSaver,
                 documentFile -> {
-                    // documentFile is the clicked file
                     boolean isVideo = documentFile.getName() != null &&
                             documentFile.getName().toLowerCase().matches(".*\\.(mp4|mkv|3gp)$");
-
                     Bundle args = new Bundle();
                     args.putBoolean("showVideos", isVideo);
                     Navigation.findNavController(galleryRecycler).navigate(R.id.nav_gallery, args);
@@ -84,31 +89,24 @@ public class ImagesAndVideoFragment extends Fragment {
         );
         galleryRecycler.setAdapter(adapter);
 
-        galleryRecycler.setAdapter(adapter);
-
-
-        galleryRecycler.setAdapter(adapter);
-
-        // ===== Select correct tab immediately based on argument =====
-        boolean showVideoTab = false;
-        if (getArguments() != null) {
-            showVideoTab = getArguments().getBoolean("showVideos", false);
-        }
-
-        // Select tab **before updating adapter**
+        // Check initial tab
+        boolean showVideoTab = getArguments() != null && getArguments().getBoolean("showVideos", false);
         TabLayout.Tab initialTab = tabLayout.getTabAt(showVideoTab ? 1 : 0);
         if (initialTab != null) initialTab.select();
 
+        loadStatuses();
         adapter.updateData(showVideoTab ? videoList : imageList, showVideoTab);
         updateActionBarTitle(showVideoTab);
+        updateEmptyState();
 
-        // Tab click listener
+        // Tab listener
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 boolean showVideo = tab.getPosition() == 1;
                 adapter.updateData(showVideo ? videoList : imageList, showVideo);
                 updateActionBarTitle(showVideo);
+                updateEmptyState();
             }
 
             @Override public void onTabUnselected(TabLayout.Tab tab) {}
@@ -134,40 +132,50 @@ public class ImagesAndVideoFragment extends Fragment {
         }
     }
 
+    private void updateEmptyState() {
+        boolean showVideoTab = tabLayout.getSelectedTabPosition() == 1;
+        List<DocumentFile> currentList = showVideoTab ? videoList : imageList;
+
+        if (currentList.isEmpty()) {
+            galleryRecycler.setVisibility(android.view.View.GONE);
+            emptyStateLayout.setVisibility(android.view.View.VISIBLE);
+            lottieEmptyState.setVisibility(android.view.View.VISIBLE);
+            lottieEmptyState.setAnimation(R.raw.empty_status);
+            lottieEmptyState.buildDrawingCache();
+            lottieEmptyState.playAnimation();
+
+            tvEmptyMessage.setText(showVideoTab ?
+                    "Videos not available. Please watch complete status from WhatsApp" :
+                    "Images not available. Please watch complete status from WhatsApp");
+            tvEmptyMessage.setVisibility(android.view.View.VISIBLE);
+        } else {
+            galleryRecycler.setVisibility(android.view.View.VISIBLE);
+            emptyStateLayout.setVisibility(android.view.View.GONE);
+            lottieEmptyState.pauseAnimation();
+            lottieEmptyState.setVisibility(android.view.View.GONE);
+            tvEmptyMessage.setVisibility(android.view.View.GONE);
+        }
+    }
+
     private void loadStatuses() {
         imageList.clear();
         videoList.clear();
 
-        if (statusFolderUri == null) {
-            Toast.makeText(getContext(), "Status folder not selected or detected ❌", Toast.LENGTH_LONG).show();
-            return;
-        }
+        if (statusFolderUri == null) return;
 
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
             File folder = new File(statusFolderUri.getPath());
-            if (!folder.exists() || !folder.isDirectory()) {
-                Toast.makeText(getContext(), "WhatsApp Status folder not found ❌", Toast.LENGTH_LONG).show();
-                return;
-            }
+            if (!folder.exists() || !folder.isDirectory()) return;
             addFilesFromFolder(folder);
         } else {
             DocumentFile folder = DocumentFile.fromTreeUri(requireContext(), statusFolderUri);
-            if (folder == null || !folder.exists() || !folder.isDirectory()) {
-                Toast.makeText(getContext(), "Cannot access Status folder. Permission missing ❌", Toast.LENGTH_LONG).show();
-                return;
-            }
+            if (folder == null || !folder.exists() || !folder.isDirectory()) return;
             addFilesFromFolder(folder);
         }
 
-        // Update adapter for currently selected tab
-        if (adapter != null && tabLayout != null) {
-            boolean showVideoTab = tabLayout.getSelectedTabPosition() == 1;
-            adapter.updateData(showVideoTab ? videoList : imageList, showVideoTab);
-        }
-
-        if (imageList.isEmpty() && videoList.isEmpty()) {
-            Toast.makeText(getContext(), "No statuses found ⚠️", Toast.LENGTH_LONG).show();
-        }
+        boolean showVideoTab = tabLayout.getSelectedTabPosition() == 1;
+        adapter.updateData(showVideoTab ? videoList : imageList, showVideoTab);
+        updateEmptyState();
     }
 
     private void addFilesFromFolder(File folder) {

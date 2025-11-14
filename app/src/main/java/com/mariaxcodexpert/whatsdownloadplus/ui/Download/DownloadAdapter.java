@@ -28,18 +28,27 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     private final List<Uri> mediaUris;
     private final List<Boolean> isVideoList;
     private final DeleteCallback deleteCallback;
+    private final EmptyCheckCallback emptyCheckCallback;
 
     // Interface to handle delete from fragment
     public interface DeleteCallback {
         void onDelete(int position);
     }
 
+    // Interface to check empty state
+    public interface EmptyCheckCallback {
+        void onCheckEmpty();
+    }
+
     public DownloadAdapter(Context context, List<Uri> mediaUris, List<Boolean> isVideoList,
-                           PermissionsActivity permissionsActivity, DeleteCallback deleteCallback) {
+                           PermissionsActivity permissionsActivity,
+                           DeleteCallback deleteCallback,
+                           EmptyCheckCallback emptyCheckCallback) {
         this.context = context;
         this.mediaUris = mediaUris;
         this.isVideoList = isVideoList;
         this.deleteCallback = deleteCallback;
+        this.emptyCheckCallback = emptyCheckCallback;
     }
 
     @NonNull
@@ -113,6 +122,11 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         isVideoList.remove(pos);
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos, mediaUris.size());
+
+        // Check if RecyclerView is empty after deletion
+        if (emptyCheckCallback != null) {
+            emptyCheckCallback.onCheckEmpty();
+        }
     }
 
     @Override
