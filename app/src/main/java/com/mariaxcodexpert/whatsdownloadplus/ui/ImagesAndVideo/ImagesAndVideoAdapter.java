@@ -145,8 +145,9 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
     }
 
     public static class GalleryViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageThumb, downloadIcon, videoIcon;
-        TextView downloadStatus, countdownTimer;
+        ImageView imageThumb, downloadIcon, videoIcon ,downloadStatus;
+
+        TextView  countdownTimer;
         CountDownTimer timer;
 
         public GalleryViewHolder(@NonNull View itemView) {

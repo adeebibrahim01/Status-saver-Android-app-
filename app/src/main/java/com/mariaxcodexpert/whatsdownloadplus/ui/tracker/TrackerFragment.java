@@ -53,6 +53,7 @@ public class TrackerFragment extends Fragment {
     private final List<String> keywordList = new ArrayList<>();
     private final Set<String> keywordSet = new HashSet<>();
     private String activeKeyword = "";
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshLayout;
 
     private LottieAnimationView lottieEmptyState;
 
@@ -74,6 +75,12 @@ public class TrackerFragment extends Fragment {
         dbHelper = new NotificationDatabaseHelper(requireContext());
 
         loadSavedKeywords();
+        swipeRefreshLayout = root.findViewById(R.id.swipeRefresh);
+
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            loadNotifications(); // Refresh the notifications
+            swipeRefreshLayout.setRefreshing(false); // Stop the loading animation
+        });
 
         if (!keywordList.isEmpty()) {
             SharedPreferences prefs = requireContext()
@@ -201,20 +208,12 @@ public class TrackerFragment extends Fragment {
     }
 
     private void loadNotifications() {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
+
         displayedList.clear();
         if (activeKeyword == null || activeKeyword.isEmpty()) {
             adapter.updateList(displayedList);
-
-            if (displayedList.isEmpty()) {
-                recyclerView.setVisibility(View.GONE);
-                emptyStateText.setVisibility(View.VISIBLE);
-                lottieEmptyState.setVisibility(View.VISIBLE);
-            } else {
-                recyclerView.setVisibility(View.VISIBLE);
-                emptyStateText.setVisibility(View.GONE);
-                lottieEmptyState.setVisibility(View.GONE);
-            }
-
+            toggleEmptyState();
         }
 
         Cursor cursor = dbHelper.getAllNotifications();
@@ -227,7 +226,6 @@ public class TrackerFragment extends Fragment {
                         long ts = cursor.getLong(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_TIMESTAMP));
 
                         if (message != null && message.toLowerCase().contains(activeKeyword.toLowerCase())) {
-                            // Highlight the keyword using HTML
                             String escapedKeyword = TextUtils.htmlEncode(activeKeyword);
                             String highlightedMessage = message.replaceAll("(?i)" + java.util.regex.Pattern.quote(activeKeyword),
                                     "<font color='#1B5E20'><b>" + escapedKeyword + "</b></font>");
@@ -242,8 +240,18 @@ public class TrackerFragment extends Fragment {
 
         Collections.sort(displayedList, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
         adapter.updateList(displayedList);
-        emptyStateText.setVisibility(displayedList.isEmpty() ? View.VISIBLE : View.GONE);
+        toggleEmptyState();
+
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
     }
+
+    private void toggleEmptyState() {
+        boolean empty = displayedList.isEmpty();
+        recyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
+        emptyStateText.setVisibility(empty ? View.VISIBLE : View.GONE);
+        lottieEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+    }
+
 
     public void onNewNotification(String sender, String message, long ts) {
         boolean matched = false;

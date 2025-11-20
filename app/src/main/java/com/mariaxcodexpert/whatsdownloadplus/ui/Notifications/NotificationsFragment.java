@@ -54,34 +54,26 @@ public class NotificationsFragment extends Fragment {
         lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
         searchEditText = view.findViewById(R.id.searchEditText);
 
-
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         dbHelper = new NotificationDatabaseHelper(requireContext());
 
-        // Load notifications initially
         loadNotifications();
-
-        // Swipe-to-delete
         setupSwipeToDelete();
 
-        // Pull-to-refresh
         swipeRefreshLayout.setOnRefreshListener(() -> {
             loadNotifications();
             swipeRefreshLayout.setRefreshing(false);
         });
 
-        // Live search
         searchEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterNotifications(s.toString());
             }
 
-            @Override
-            public void afterTextChanged(Editable s) { }
+            @Override public void afterTextChanged(Editable s) { }
         });
 
         return view;
@@ -92,7 +84,7 @@ public class NotificationsFragment extends Fragment {
         Cursor cursor = dbHelper.getAllNotifications();
 
         if (cursor != null && cursor.moveToFirst()) {
-            // Map to group notifications by sender
+
             Map<String, LinkedHashMap<Long, NotificationModel>> groupedMap = new LinkedHashMap<>();
 
             do {
@@ -111,14 +103,16 @@ public class NotificationsFragment extends Fragment {
             } while (cursor.moveToNext());
             cursor.close();
 
-            // Flatten grouped messages
             for (Map.Entry<String, LinkedHashMap<Long, NotificationModel>> entry : groupedMap.entrySet()) {
+
                 String sender = entry.getKey();
                 List<NotificationModel> messages = new ArrayList<>(entry.getValue().values());
 
                 messages.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
 
-                String displayMessage = messages.size() > 1 ? "(" + messages.size() + " messages)" : messages.get(0).getMessage();
+                String displayMessage = messages.size() > 1 ?
+                        "(" + messages.size() + " messages)" :
+                        messages.get(0).getMessage();
 
                 NotificationModel groupModel = new NotificationModel(sender, displayMessage, messages.get(0).getTimestamp());
                 groupModel.setGroupedMessages(messages);
@@ -127,7 +121,6 @@ public class NotificationsFragment extends Fragment {
             }
         }
 
-        // Sort newest -> oldest
         notificationList.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
 
         filteredList.clear();
@@ -137,53 +130,30 @@ public class NotificationsFragment extends Fragment {
 
     public static boolean shouldIgnoreNotification(String message) {
         if (message == null) return true;
+
         String lower = message.trim().toLowerCase();
         if (lower.isEmpty()) return true;
 
         return
-                // 1. CALL RELATED
-                lower.contains("calling") || lower.contains("ringing") || lower.contains("incoming call") ||
-                        lower.contains("incoming voice call") || lower.contains("incoming video call") ||
-                        lower.contains("missed voice call") || lower.contains("missed video call") ||
-                        lower.contains("voice call") || lower.contains("video call") ||
-                        lower.contains("ongoing call") || lower.contains("call ended") ||
-                        lower.contains("call on hold") ||
+                lower.contains("calling") || lower.contains("ringing") ||
+                        lower.contains("incoming call") || lower.contains("incoming voice call") ||
+                        lower.contains("incoming video call") || lower.contains("missed voice call") ||
+                        lower.contains("missed video call") || lower.contains("voice call") ||
+                        lower.contains("video call") || lower.contains("ongoing call") ||
 
-                        // 2. MEDIA / VOICE NOTES
-                        lower.contains("recording audio") || lower.contains("recording…") || lower.contains("recording...") ||
-                        lower.contains("playing audio") || lower.contains("listened") ||
-                        lower.contains("listening…") || lower.contains("listening...") ||
+                        lower.contains("recording audio") || lower.contains("playing audio") ||
 
-                        // 3. TYPING / ONLINE
-                        lower.contains("typing…") || lower.contains("typing...") || lower.contains("online") ||
+                        lower.contains("typing") || lower.contains("online") ||
 
-                        // 4. GROUP ACTIVITY
-                        lower.contains("you were added") || lower.contains("you were removed") || lower.contains("added you") ||
-                        lower.contains("created group") || lower.contains("changed this group's icon") ||
-                        lower.contains("changed the group description") || lower.contains("changed this group's subject") ||
-                        lower.contains("changed group settings") ||
+                        lower.contains("you were added") || lower.contains("created group") ||
+                        lower.contains("changed this group's icon") || lower.contains("changed this group's subject") ||
 
-                        // 5. REACTIONS
-                        lower.contains("reacted to your message") || lower.contains("reacted ") ||
+                        lower.contains("reacted to your message") ||
 
-                        // 6. STATUS
                         lower.contains("new status") || lower.contains("status update") ||
-                        lower.contains("new status update") || lower.contains("viewed your status") ||
 
-                        // 7. BACKUP / SYSTEM
                         lower.contains("backup in progress") || lower.contains("restoring messages") ||
-                        lower.contains("connecting...") || lower.contains("reconnecting...") ||
-                        lower.contains("checking for new messages") ||
 
-                        // 8. MULTI-DEVICE
-                        lower.contains("linked device added") || lower.contains("linked device removed") ||
-                        lower.contains("syncing messages") || lower.contains("messages may be insecure") ||
-
-                        // 9. SECURITY / BROADCAST
-                        lower.contains("your security code has changed") ||
-                        lower.contains("messages are now secured with end-to-end encryption") ||
-
-                        // 10. COUNT-ONLY
                         lower.matches("\\d+ new messages?") ||
                         lower.matches("\\d+ messages from \\d+ chats?");
     }
@@ -195,6 +165,7 @@ public class NotificationsFragment extends Fragment {
             filteredList.addAll(notificationList);
         } else {
             String lowerQuery = query.toLowerCase();
+
             for (NotificationModel model : notificationList) {
 
                 boolean match = model.getSender().toLowerCase().contains(lowerQuery)
@@ -202,6 +173,7 @@ public class NotificationsFragment extends Fragment {
 
                 if (!match && model.getGroupedMessages() != null) {
                     List<NotificationModel> matchedMessages = new ArrayList<>();
+
                     for (NotificationModel msg : model.getGroupedMessages()) {
                         if (msg.getMessage().toLowerCase().contains(lowerQuery)) {
                             matchedMessages.add(msg);
@@ -213,11 +185,12 @@ public class NotificationsFragment extends Fragment {
                                 "(" + matchedMessages.size() + " messages)" :
                                 matchedMessages.get(0).getMessage();
 
-                        NotificationModel filteredGroup = new NotificationModel(
-                                model.getSender(),
-                                displayMessage,
-                                matchedMessages.get(0).getTimestamp()
-                        );
+                        NotificationModel filteredGroup =
+                                new NotificationModel(
+                                        model.getSender(),
+                                        displayMessage,
+                                        matchedMessages.get(0).getTimestamp()
+                                );
                         filteredGroup.setGroupedMessages(matchedMessages);
                         filteredList.add(filteredGroup);
                         continue;
@@ -236,11 +209,11 @@ public class NotificationsFragment extends Fragment {
         if (filteredList.isEmpty()) {
             recyclerView.setVisibility(View.GONE);
             emptyText.setVisibility(View.VISIBLE);
-            lottieEmptyState.setVisibility(View.VISIBLE);  // ✅ Lottie show
+            lottieEmptyState.setVisibility(View.VISIBLE);
         } else {
             recyclerView.setVisibility(View.VISIBLE);
             emptyText.setVisibility(View.GONE);
-            lottieEmptyState.setVisibility(View.GONE);     // ✅ Lottie hide
+            lottieEmptyState.setVisibility(View.GONE);
 
             if (adapter == null) {
                 adapter = new NotificationAdapter(filteredList);
@@ -251,10 +224,11 @@ public class NotificationsFragment extends Fragment {
         }
     }
 
-
     private void setupSwipeToDelete() {
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0,
-                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(
+                0,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT
+        ) {
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView,
                                   @NonNull RecyclerView.ViewHolder viewHolder,
@@ -264,6 +238,7 @@ public class NotificationsFragment extends Fragment {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+
                 int position = viewHolder.getAdapterPosition();
                 NotificationModel deleted = filteredList.get(position);
 
