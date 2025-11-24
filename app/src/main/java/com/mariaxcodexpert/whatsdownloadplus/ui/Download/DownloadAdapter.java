@@ -3,6 +3,7 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Download;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -73,21 +74,34 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
         holder.videoIcon.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
+        // Click to open full screen
+        holder.imageThumb.setOnClickListener(v -> {
+            int pos = holder.getBindingAdapterPosition();
+            if (pos == RecyclerView.NO_POSITION) return;
+
+            Uri mediaUri = mediaUris.get(pos);
+            boolean videoFlag = isVideoList.get(pos);
+
+            Intent intent = new Intent(context, FullScreenMediaActivity.class);
+            intent.putExtra(FullScreenMediaActivity.EXTRA_URI, mediaUri);
+            intent.putExtra(FullScreenMediaActivity.EXTRA_IS_VIDEO, videoFlag);
+            context.startActivity(intent);
+        });
+
+        // Delete icon click
         holder.deleteIcon.setOnClickListener(v -> {
             int pos = holder.getBindingAdapterPosition();
             if (pos == RecyclerView.NO_POSITION) return;
 
-            // Call fragment's delete callback if provided
             if (deleteCallback != null) {
                 deleteCallback.onDelete(pos);
             } else {
-                // Fallback: delete directly from adapter
                 deleteFile(pos, isVideo);
             }
         });
     }
 
-    // Fallback delete if no fragment callback
+    // Delete file fallback
     private void deleteFile(int pos, boolean isVideo) {
         Uri fileUri = mediaUris.get(pos);
         boolean deleted = false;
@@ -123,7 +137,6 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos, mediaUris.size());
 
-        // Check if RecyclerView is empty after deletion
         if (emptyCheckCallback != null) {
             emptyCheckCallback.onCheckEmpty();
         }

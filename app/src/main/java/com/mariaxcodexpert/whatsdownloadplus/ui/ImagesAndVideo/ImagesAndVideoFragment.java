@@ -264,4 +264,10 @@ public class ImagesAndVideoFragment extends Fragment {
             Toast.makeText(getContext(), "Failed to save file ❌", Toast.LENGTH_SHORT).show();
         }
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (adapter != null) adapter.shutdownScheduler(); // Stop background countdown
+    }
 }

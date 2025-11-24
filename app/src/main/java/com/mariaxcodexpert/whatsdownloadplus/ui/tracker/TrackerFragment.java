@@ -1,6 +1,7 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.tracker;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -54,9 +55,7 @@ public class TrackerFragment extends Fragment {
     private final Set<String> keywordSet = new HashSet<>();
     private String activeKeyword = "";
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshLayout;
-
     private LottieAnimationView lottieEmptyState;
-
 
     @Nullable
     @Override
@@ -69,22 +68,21 @@ public class TrackerFragment extends Fragment {
         emptyStateText = root.findViewById(R.id.textEmptyState);
         fabAddKeyword = root.findViewById(R.id.fabAddFilter);
         lottieEmptyState = root.findViewById(R.id.lottieEmptyState);
+        swipeRefreshLayout = root.findViewById(R.id.swipeRefresh);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         dbHelper = new NotificationDatabaseHelper(requireContext());
 
         loadSavedKeywords();
-        swipeRefreshLayout = root.findViewById(R.id.swipeRefresh);
 
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadNotifications(); // Refresh the notifications
-            swipeRefreshLayout.setRefreshing(false); // Stop the loading animation
+            loadNotifications();
+            swipeRefreshLayout.setRefreshing(false);
         });
 
         if (!keywordList.isEmpty()) {
-            SharedPreferences prefs = requireContext()
-                    .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             activeKeyword = prefs.getString(KEY_ACTIVE, keywordList.get(0));
         }
 
@@ -183,7 +181,8 @@ public class TrackerFragment extends Fragment {
             String kw = edtKeyword.getText().toString().trim();
             if (!kw.isEmpty() && !keywordList.contains(kw)) {
                 keywordList.add(0, kw);
-                adapterList.clear(); adapterList.addAll(keywordList);
+                adapterList.clear();
+                adapterList.addAll(keywordList);
                 keywordAdapterHolder[0].notifyDataSetChanged();
 
                 activeKeyword = kw;
@@ -193,7 +192,6 @@ public class TrackerFragment extends Fragment {
 
                 edtKeyword.setText("");
             } else if (!kw.isEmpty()) {
-                // Keyword exists, select it
                 activeKeyword = kw;
                 saveKeywords();
                 adapter.setHighlightKeyword(activeKeyword);
@@ -252,7 +250,6 @@ public class TrackerFragment extends Fragment {
         lottieEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
     }
 
-
     public void onNewNotification(String sender, String message, long ts) {
         boolean matched = false;
 
@@ -263,18 +260,14 @@ public class TrackerFragment extends Fragment {
                 matched = true;
 
                 if (kw.equals(activeKeyword)) {
-                    // Highlight keyword
                     String escapedKeyword = TextUtils.htmlEncode(activeKeyword);
                     String highlightedMessage = message.replaceAll("(?i)" + java.util.regex.Pattern.quote(activeKeyword),
                             "<font color='#1B5E20'><b>" + escapedKeyword + "</b></font>");
 
-                    // Add at top of list
                     displayedList.add(0, new trackingModel(sender, Html.fromHtml(highlightedMessage).toString(), ts));
 
-                    // Update adapter
                     adapter.updateList(displayedList);
 
-                    // Toggle visibility
                     if (displayedList.isEmpty()) {
                         recyclerView.setVisibility(View.GONE);
                         emptyStateText.setVisibility(View.VISIBLE);
@@ -285,7 +278,7 @@ public class TrackerFragment extends Fragment {
                         lottieEmptyState.setVisibility(View.GONE);
                     }
                 }
-                break; // Stop after first matching keyword
+                break;
             }
         }
 
@@ -306,9 +299,32 @@ public class TrackerFragment extends Fragment {
                 }
             }
 
-            Toast.makeText(getContext(), "Exported to: " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Exported to: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+
+            androidx.core.content.FileProvider.getUriForFile(
+                    requireContext(),
+                    requireContext().getPackageName() + ".fileprovider",
+                    file
+            );
+
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(
+                    androidx.core.content.FileProvider.getUriForFile(
+                            requireContext(),
+                            requireContext().getPackageName() + ".fileprovider",
+                            file
+                    ),
+                    "text/plain"
+            );
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+            Intent chooser = Intent.createChooser(intent, "Open exported file");
+            startActivity(chooser);
+
         } catch (Exception e) {
             Toast.makeText(getContext(), "Export failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
+
+
 }

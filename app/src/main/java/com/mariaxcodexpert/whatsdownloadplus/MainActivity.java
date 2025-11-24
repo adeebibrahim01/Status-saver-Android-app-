@@ -173,8 +173,11 @@ public class MainActivity extends AppCompatActivity {
                 String date = DateFormat.format("MMMM dd, yyyy", time).toString();
                 joinedText.setText("Joined Status Downloader Plus on " + date + ".");
             }
-        } catch (Exception ignored) {}
+        } catch (Throwable ignored) {
+            // ignored
+        }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

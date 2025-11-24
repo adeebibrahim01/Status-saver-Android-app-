@@ -25,6 +25,10 @@
             android:icon="@drawable/ic_wa_download"
             android:title="Download" />
 
+
+
+
+
         <!-- Notifications -->
         <item
             android:id="@+id/nav_notifications"

@@ -1,9 +1,9 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.CountDownTimer;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,24 +20,34 @@ import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAdapter.GalleryViewHolder> {
 
     private final Context context;
-    private List<DocumentFile> mediaList;
     private boolean isVideo;
+    private List<MediaItem> mediaItems;
+
     private final OnDownloadClickListener downloadListener;
     private final OnItemClickListener itemClickListener;
 
-    // Callback for download
-    public interface OnDownloadClickListener {
-        void onDownload(DocumentFile file);
-    }
+    private final List<GalleryViewHolder> visibleHolders = new ArrayList<>();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    // Callback for item click
-    public interface OnItemClickListener {
-        void onItemClick(DocumentFile file);
+    public interface OnDownloadClickListener { void onDownload(DocumentFile file); }
+    public interface OnItemClickListener { void onItemClick(DocumentFile file); }
+
+    // Model class to store DocumentFile and its expiryTime
+    public static class MediaItem {
+        public final DocumentFile file;
+        public final long expiryTime;
+
+        public MediaItem(DocumentFile file) {
+            this.file = file;
+            this.expiryTime = file.lastModified() + 24 * 60 * 60 * 1000; // 24 hours
+        }
     }
 
     public ImagesAndVideoAdapter(Context context,
@@ -46,15 +56,20 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
                                  OnDownloadClickListener downloadListener,
                                  OnItemClickListener itemClickListener) {
         this.context = context;
-        this.mediaList = new ArrayList<>(mediaList);
-        this.isVideo = isVideo;
         this.downloadListener = downloadListener;
         this.itemClickListener = itemClickListener;
+        this.mediaItems = new ArrayList<>();
+        for (DocumentFile f : mediaList) mediaItems.add(new MediaItem(f));
+        this.isVideo = isVideo;
+
+        // Start background countdown updates
+        scheduler.scheduleAtFixedRate(this::updateCountdowns, 0, 1, TimeUnit.SECONDS);
     }
 
-    /** Update the adapter data dynamically */
-    public void updateData(List<DocumentFile> newMediaList, boolean isVideo) {
-        this.mediaList = new ArrayList<>(newMediaList);
+    // Update adapter data
+    public void updateData(List<DocumentFile> files, boolean isVideo) {
+        mediaItems = new ArrayList<>();
+        for (DocumentFile f : files) mediaItems.add(new MediaItem(f));
         this.isVideo = isVideo;
         notifyDataSetChanged();
     }
@@ -68,7 +83,8 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
 
     @Override
     public void onBindViewHolder(@NonNull GalleryViewHolder holder, int position) {
-        DocumentFile file = mediaList.get(position);
+        MediaItem item = mediaItems.get(position);
+        DocumentFile file = item.file;
         Uri uri = file.getUri();
 
         Glide.with(context)
@@ -78,15 +94,11 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
                 .centerCrop()
                 .into(holder.imageThumb);
 
-        // Check if file exists in Status Saver
         boolean isSaved = isFileSavedInStatusSaver(file.getName(), file.getType());
         holder.downloadIcon.setVisibility(isSaved ? View.GONE : View.VISIBLE);
         holder.downloadStatus.setVisibility(isSaved ? View.VISIBLE : View.GONE);
-
-        // Show video overlay icon (play icon centered)
         holder.videoIcon.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
-        // Download click
         holder.downloadIcon.setOnClickListener(v -> {
             if (downloadListener != null) {
                 downloadListener.onDownload(file);
@@ -95,25 +107,29 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
             }
         });
 
-        // Item click
         holder.itemView.setOnClickListener(v -> {
             if (itemClickListener != null) itemClickListener.onItemClick(file);
+            Intent intent = new Intent(context, ImageVideoPreviewActivity.class);
+            intent.putExtra(ImageVideoPreviewActivity.EXTRA_URI, file.getUri());
+            boolean isVideoFile = file.getName() != null &&
+                    file.getName().toLowerCase().matches(".*\\.(mp4|mkv|3gp)$");
+            intent.putExtra(ImageVideoPreviewActivity.EXTRA_IS_VIDEO, isVideoFile);
+            context.startActivity(intent);
         });
 
-        // ===== Countdown Timer Implementation =====
-        long expiryTime = file.lastModified() + 24 * 60 * 60 * 1000; // WhatsApp status expires in 24h
-        holder.bindCountdown(expiryTime);
+        // **Use expiryTime from MediaItem model**
+        holder.expiryTime = item.expiryTime;
+
+        if (!visibleHolders.contains(holder)) visibleHolders.add(holder);
     }
 
     @Override
     public int getItemCount() {
-        return mediaList.size();
+        return mediaItems.size();
     }
 
-    /** Check if file already saved in Status Saver */
     private boolean isFileSavedInStatusSaver(String fileName, String mimeType) {
         if (fileName == null) return false;
-
         Uri collection;
         String selection;
         String[] selectionArgs;
@@ -131,12 +147,7 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         }
 
         try (Cursor cursor = context.getContentResolver().query(
-                collection,
-                new String[]{MediaStore.MediaColumns._ID},
-                selection,
-                selectionArgs,
-                null
-        )) {
+                collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
             return cursor != null && cursor.getCount() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,11 +155,33 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         return false;
     }
 
-    public static class GalleryViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageThumb, downloadIcon, videoIcon ,downloadStatus;
+    /** Update countdowns in main thread */
+    private void updateCountdowns() {
+        long now = System.currentTimeMillis();
+        for (GalleryViewHolder holder : visibleHolders) {
+            long remaining = holder.expiryTime - now;
+            holder.countdownTimer.post(() -> {
+                if (remaining <= 0) {
+                    holder.countdownTimer.setText("Expired");
+                    holder.countdownTimer.setTextColor(0xFFFF0000);
+                } else {
+                    long hours = TimeUnit.MILLISECONDS.toHours(remaining);
+                    long minutes = TimeUnit.MILLISECONDS.toMinutes(remaining) % 60;
+                    long seconds = TimeUnit.MILLISECONDS.toSeconds(remaining) % 60;
+                    holder.countdownTimer.setText(String.format("Expires in %02d:%02d:%02d", hours, minutes, seconds));
 
-        TextView  countdownTimer;
-        CountDownTimer timer;
+                    if (hours < 1) holder.countdownTimer.setTextColor(0xFFFF0000);
+                    else if (hours < 6) holder.countdownTimer.setTextColor(0xFFFFA500);
+                    else holder.countdownTimer.setTextColor(0xFF00FF00);
+                }
+            });
+        }
+    }
+
+    public static class GalleryViewHolder extends RecyclerView.ViewHolder {
+        ImageView imageThumb, downloadIcon, videoIcon, downloadStatus;
+        TextView countdownTimer;
+        long expiryTime;
 
         public GalleryViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -158,44 +191,16 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
             videoIcon = itemView.findViewById(R.id.videoIcon);
             countdownTimer = itemView.findViewById(R.id.countdownTimer);
         }
+    }
 
-        /** Bind countdown timer to this view holder */
-        public void bindCountdown(long expiryTimeMillis) {
-            if (timer != null) timer.cancel();
+    @Override
+    public void onViewRecycled(@NonNull GalleryViewHolder holder) {
+        super.onViewRecycled(holder);
+        visibleHolders.remove(holder);
+    }
 
-            long remaining = expiryTimeMillis - System.currentTimeMillis();
-            if (remaining <= 0) {
-                countdownTimer.setText("Expired");
-                countdownTimer.setTextColor(0xFFFF0000);
-                return;
-            }
-
-            timer = new CountDownTimer(remaining, 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    long hours = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
-                    long minutes = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
-                    long seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) % 60;
-
-                    // Display in single row with label
-                    countdownTimer.setText(String.format("Expires in %02d:%02d:%02d", hours, minutes, seconds));
-
-                    // Optional: Color coding based on remaining time
-                    if (hours < 1) {
-                        countdownTimer.setTextColor(0xFFFF0000); // red
-                    } else if (hours < 6) {
-                        countdownTimer.setTextColor(0xFFFFA500); // orange
-                    } else {
-                        countdownTimer.setTextColor(0xFF00FF00); // green
-                    }
-                }
-
-                @Override
-                public void onFinish() {
-                    countdownTimer.setText("Expired");
-                    countdownTimer.setTextColor(0xFFFF0000);
-                }
-            }.start();
-        }
+    /** Shutdown scheduler when adapter is no longer used */
+    public void shutdownScheduler() {
+        scheduler.shutdownNow();
     }
 }

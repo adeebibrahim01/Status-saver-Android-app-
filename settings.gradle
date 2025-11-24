@@ -1,20 +1,24 @@
+// Plugin management with repositories
 pluginManagement {
     repositories {
-        // Use standard repositories only to ensure stable AGP 8.6.1 resolution
+        // Standard repositories for Gradle plugins
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }  // Important for PhotoView
         gradlePluginPortal()
     }
 }
 
+// Dependency resolution management
 dependencyResolutionManagement {
-    // Prevent subprojects from defining their own repositories
+    // Prevent subprojects from using their own repositories
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
     repositories {
-        // Standard repositories for Android and Java dependencies
+        // Standard repositories for app dependencies
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }  // Ensure JitPack is included for PhotoView
     }
 }
 
