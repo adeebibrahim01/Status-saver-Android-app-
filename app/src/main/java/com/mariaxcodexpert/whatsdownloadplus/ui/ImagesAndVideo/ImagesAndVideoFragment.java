@@ -215,31 +215,29 @@ public class ImagesAndVideoFragment extends Fragment {
     }
 
     private void saveToStatusSaver(DocumentFile file, ImagesAndVideoAdapter.GalleryViewHolder holder) {
-        // Check if already saved
-        if (isFileAlreadySaved(file)) {
-             return; // prevent duplicate save
-        }
+        // Prevent duplicate save
+        if (isFileAlreadySaved(file)) return;
 
         SharedPreferences prefs = requireContext().getSharedPreferences("AppPrefs", MODE_PRIVATE);
         int freeDownloads = prefs.getInt("freeDownloads", 0);
 
         if (freeDownloads <= 0) {
+            // User has no free downloads, show ad
             if (AdManager.isAdLoaded()) {
                 AdManager.showRewardedInterstitial(requireActivity(), new AdManager.RewardListener() {
                     @Override
                     public void onRewardEarned(int amount, String type) {
-                        Toast.makeText(getContext(), "Reward granted! You now have 2 free downloads.", Toast.LENGTH_SHORT).show();
-
+                        // Reward: grant 3 free downloads (current + next 2)
                         prefs.edit().putInt("freeDownloads", 2).apply();
 
-                        actuallySaveFile(file);
+                        actuallySaveFile(file); // save current file
 
-                        if (holder != null) {
-                            holder.downloadIcon.setVisibility(View.GONE);
-                            holder.downloadStatus.setVisibility(View.VISIBLE);
-                        }
+                        updateHolderUI(holder);
 
+                        // Preload next ad
                         AdManager.loadRewardedInterstitial(requireContext());
+
+                        Toast.makeText(getContext(), "Reward granted! You now have 3 free downloads.", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -248,20 +246,28 @@ public class ImagesAndVideoFragment extends Fragment {
                     }
                 });
             } else {
-                Toast.makeText(getContext(), "Ad is loading, try again!", Toast.LENGTH_SHORT).show();
+                // Ad not loaded yet → preload
                 AdManager.loadRewardedInterstitial(requireContext());
+                Toast.makeText(getContext(), "Ad is loading, try again!", Toast.LENGTH_SHORT).show();
             }
         } else {
+            // Free downloads available → save directly
             actuallySaveFile(file);
 
             prefs.edit().putInt("freeDownloads", freeDownloads - 1).apply();
 
-            if (holder != null) {
-                holder.downloadIcon.setVisibility(View.GONE);
-                holder.downloadStatus.setVisibility(View.VISIBLE);
-            }
+            updateHolderUI(holder);
         }
     }
+
+    // Helper method to update RecyclerView holder UI
+    private void updateHolderUI(ImagesAndVideoAdapter.GalleryViewHolder holder) {
+        if (holder != null) {
+            holder.downloadIcon.setVisibility(View.GONE);
+            holder.downloadStatus.setVisibility(View.VISIBLE);
+        }
+    }
+
 
     // New helper method
     private boolean isFileAlreadySaved(DocumentFile file) {
