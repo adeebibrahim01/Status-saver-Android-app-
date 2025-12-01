@@ -1,9 +1,12 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,6 +22,7 @@ import androidx.navigation.Navigation;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.tabs.TabLayout;
+import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.io.File;
@@ -78,7 +82,7 @@ public class ImagesAndVideoFragment extends Fragment {
                 getContext(),
                 imageList,
                 false,
-                this::saveToStatusSaver,
+                file -> saveToStatusSaver(file, null), // pass null for holder here
                 documentFile -> {
                     boolean isVideo = documentFile.getName() != null &&
                             documentFile.getName().toLowerCase().matches(".*\\.(mp4|mkv|3gp)$");
@@ -89,7 +93,6 @@ public class ImagesAndVideoFragment extends Fragment {
         );
         galleryRecycler.setAdapter(adapter);
 
-        // Check initial tab
         boolean showVideoTab = getArguments() != null && getArguments().getBoolean("showVideos", false);
         TabLayout.Tab initialTab = tabLayout.getTabAt(showVideoTab ? 1 : 0);
         if (initialTab != null) initialTab.select();
@@ -99,7 +102,6 @@ public class ImagesAndVideoFragment extends Fragment {
         updateActionBarTitle(showVideoTab);
         updateEmptyState();
 
-        // Tab listener
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -113,6 +115,7 @@ public class ImagesAndVideoFragment extends Fragment {
             @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
     }
+
 
     private void loadStatusFolderUri() {
         SharedPreferences prefs = requireContext().getSharedPreferences("AppPrefs", MODE_PRIVATE);
@@ -211,7 +214,82 @@ public class ImagesAndVideoFragment extends Fragment {
         }
     }
 
-    private void saveToStatusSaver(DocumentFile file) {
+    private void saveToStatusSaver(DocumentFile file, ImagesAndVideoAdapter.GalleryViewHolder holder) {
+        // Check if already saved
+        if (isFileAlreadySaved(file)) {
+             return; // prevent duplicate save
+        }
+
+        SharedPreferences prefs = requireContext().getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        int freeDownloads = prefs.getInt("freeDownloads", 0);
+
+        if (freeDownloads <= 0) {
+            if (AdManager.isAdLoaded()) {
+                AdManager.showRewardedInterstitial(requireActivity(), new AdManager.RewardListener() {
+                    @Override
+                    public void onRewardEarned(int amount, String type) {
+                        Toast.makeText(getContext(), "Reward granted! You now have 2 free downloads.", Toast.LENGTH_SHORT).show();
+
+                        prefs.edit().putInt("freeDownloads", 2).apply();
+
+                        actuallySaveFile(file);
+
+                        if (holder != null) {
+                            holder.downloadIcon.setVisibility(View.GONE);
+                            holder.downloadStatus.setVisibility(View.VISIBLE);
+                        }
+
+                        AdManager.loadRewardedInterstitial(requireContext());
+                    }
+
+                    @Override
+                    public void onAdNotAvailable() {
+                        Toast.makeText(getContext(), "Ad not available, try again later.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Toast.makeText(getContext(), "Ad is loading, try again!", Toast.LENGTH_SHORT).show();
+                AdManager.loadRewardedInterstitial(requireContext());
+            }
+        } else {
+            actuallySaveFile(file);
+
+            prefs.edit().putInt("freeDownloads", freeDownloads - 1).apply();
+
+            if (holder != null) {
+                holder.downloadIcon.setVisibility(View.GONE);
+                holder.downloadStatus.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    // New helper method
+    private boolean isFileAlreadySaved(DocumentFile file) {
+        Uri uri = file.getUri();
+        String name = file.getName();
+        if (name == null) return false;
+
+        // Check in MediaStore
+        String selection = MediaStore.Images.Media.DISPLAY_NAME + "=?";
+        String[] selectionArgs = new String[]{name};
+
+        try (Cursor cursor = requireContext().getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+            if (cursor != null && cursor.getCount() > 0) return true;
+        } catch (Exception e) { e.printStackTrace(); }
+
+        try (Cursor cursor = requireContext().getContentResolver().query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+            if (cursor != null && cursor.getCount() > 0) return true;
+        } catch (Exception e) { e.printStackTrace(); }
+
+        return false;
+    }
+
+
+    private void actuallySaveFile(DocumentFile file) {
         try {
             String fileName = file.getName();
             if (fileName == null) fileName = "status_" + System.currentTimeMillis();
@@ -268,6 +346,13 @@ public class ImagesAndVideoFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (adapter != null) adapter.shutdownScheduler(); // Stop background countdown
+        if (adapter != null) adapter.shutdownScheduler();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadStatuses();
+        if (adapter != null) adapter.notifyDataSetChanged();
     }
 }

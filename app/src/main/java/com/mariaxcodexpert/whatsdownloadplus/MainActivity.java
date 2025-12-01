@@ -29,6 +29,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Initialize AdMob
+        AdManager.init(this);
+
+        // Load rewarded interstitial on startup
+        AdManager.loadRewardedInterstitial(this);
+
+
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 

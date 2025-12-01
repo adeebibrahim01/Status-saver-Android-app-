@@ -52,6 +52,7 @@ dependencies {
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
 
+
     // Room (Database)
     def room_version = "2.6.0"
     implementation "androidx.room:room-runtime:$room_version"
@@ -75,5 +76,5 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.15.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     implementation 'com.github.yalantis:ucrop:2.2.8' // For cropping images
-
+    implementation 'com.google.android.gms:play-services-ads:23.0.0'
 }
