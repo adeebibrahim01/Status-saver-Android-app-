@@ -5,21 +5,19 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.io.File;
-import java.util.Set;
 
 public class PermissionsActivity extends AppCompatActivity {
 
@@ -30,58 +28,119 @@ public class PermissionsActivity extends AppCompatActivity {
     private SharedPreferences prefs;
 
     private ViewPager2 viewPager;
-    private int[] layouts = {
-            R.layout.layout_select_app,
-            R.layout.layout_permissions
-    };
+    private int[] layouts = {R.layout.layout_select_app, R.layout.layout_permissions};
+
+    private Android10AboveActivity android10Above;
+    AccessibilityBelow10Helper accessHelper;
+
+    private Button storageBtn, notificationBtn, statusFolderBtn;
+
+    private Handler handler = new Handler();
+    private boolean accessibilityDialogShown = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.intro_activity); // <-- setContentView first!
+        setContentView(R.layout.intro_activity);
+
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         viewPager = findViewById(R.id.viewPager);
         viewPager.setAdapter(new PermissionsPagerAdapter(this, layouts, viewPager));
 
-        // Restore previously selected folder URI
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            android10Above = new Android10AboveActivity(this, prefs);
+        } else {
+            accessHelper = new AccessibilityBelow10Helper(this);
+        }
+
+        // Restore saved folder URI
         String savedUri = prefs.getString(KEY_STATUS_FOLDER_URI, null);
         if (savedUri != null) {
             selectedStatusFolderUri = Uri.parse(savedUri);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && selectedStatusFolderUri != null) {
-                try {
-                    getContentResolver().takePersistableUriPermission(selectedStatusFolderUri,
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    selectedStatusFolderUri = null;
-                }
+            try {
+                getContentResolver().takePersistableUriPermission(selectedStatusFolderUri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            } catch (Exception ignored) {
+                selectedStatusFolderUri = null;
             }
         }
 
-        // Update buttons initially
+        storageBtn = findViewById(R.id.allowStorageButton);
+        notificationBtn = findViewById(R.id.allowNotificationButton);
+        statusFolderBtn = findViewById(R.id.allowStatusFolderButton);
+
+        // Hide notification button for Android 10 below
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && notificationBtn != null) {
+            notificationBtn.setVisibility(View.GONE);
+        }
+
+        setupButtons();
         refreshPermissionButtons();
 
         if (prefs.getBoolean("introCompleted", false)) {
             goToMainActivity();
         }
+
+        // Polling for Android 10 below to handle accessibility & folder detection
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            handler.postDelayed(this::checkPermissionsAndroid10Below, 500);
+        }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Refresh UI dynamically for notification permission or folder permission changes
-        refreshPermissionButtons();
-        checkAllPermissionsAndProceed();
+    private void checkPermissionsAndroid10Below() {
+        if (isStorageGranted()) {
+            // Show accessibility dialog only once
+            if (!isNotificationPermissionGranted() && !accessibilityDialogShown) {
+                if (accessHelper != null) {
+                    accessHelper.showAccessibilityDialog();
+                    accessibilityDialogShown = true;
+                }
+            }
+
+            // Folder detection even if accessibility denied
+            if (selectedStatusFolderUri == null) {
+                detectStatusFolder();
+            }
+
+            // Navigate to MainActivity if storage + folder ready
+            if (isStorageGranted() && selectedStatusFolderUri != null) {
+                goToMainActivity();
+                return; // stop further polling
+            }
+        }
+
+        // Continue polling
+        handler.postDelayed(this::checkPermissionsAndroid10Below, 1000);
+    }
+
+    private void setupButtons() {
+        if (storageBtn != null) storageBtn.setOnClickListener(v -> {
+            requestStoragePermission();
+            storageBtn.postDelayed(() -> updatePermissionButtonUI(storageBtn, isStorageGranted()), 500);
+        });
+
+        if (notificationBtn != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            notificationBtn.setOnClickListener(v -> {
+                if (!isNotificationPermissionGranted()) showNotificationAccessDialog();
+            });
+        }
+
+        if (statusFolderBtn != null) {
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                statusFolderBtn.setEnabled(false);
+            } else {
+                statusFolderBtn.setOnClickListener(v -> openStatusFolderPicker());
+            }
+        }
     }
 
     private void refreshPermissionButtons() {
-        updatePermissionButtonUI(findViewById(R.id.allowStorageButton), isStorageGranted());
-        updatePermissionButtonUI(findViewById(R.id.allowNotificationButton), isNotificationPermissionGranted());
-        updatePermissionButtonUI(findViewById(R.id.allowStatusFolderButton), selectedStatusFolderUri != null);
+        if (storageBtn != null) updatePermissionButtonUI(storageBtn, isStorageGranted());
+        if (notificationBtn != null) updatePermissionButtonUI(notificationBtn, isNotificationPermissionGranted());
+        if (statusFolderBtn != null) updatePermissionButtonUI(statusFolderBtn, selectedStatusFolderUri != null);
     }
 
-    /** ------------------ Permission Checks ------------------ */
     public boolean isStorageGranted() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             return checkSelfPermission(android.Manifest.permission.READ_MEDIA_IMAGES) ==
@@ -108,47 +167,19 @@ public class PermissionsActivity extends AppCompatActivity {
         }
     }
 
-    /** Notification permission check only for Android 10+ */
-    public boolean isNotificationPermissionGranted() {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) return true;
-        Set<String> enabledPackages = NotificationManagerCompat.getEnabledListenerPackages(this);
-        return enabledPackages != null && enabledPackages.contains(getPackageName());
-    }
-
     public void showNotificationAccessDialog() {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) return;
-        new AlertDialog.Builder(this)
-                .setTitle("Enable Notification Access")
-                .setMessage("To recover deleted messages, please allow notification access.")
-                .setCancelable(false)
-                .setPositiveButton("Allow", (dialog, which) -> {
-                    try {
-                        startActivity(new Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
-                    } catch (Exception e) {
-                        Toast.makeText(this, "Please enable manually", Toast.LENGTH_LONG).show();
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) android10Above.showNotificationAccessDialog();
+        else if (accessHelper != null) accessHelper.showAccessibilityDialog();
     }
 
-    /** ------------------ Open Folder Picker ------------------ */
     public void openStatusFolderPicker() {
-        try {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
-                    Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-            startActivityForResult(intent, 1001);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Select folder manually", Toast.LENGTH_LONG).show();
-        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) android10Above.openStatusFolderPicker();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == 1001 && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
             if (uri != null) {
@@ -161,37 +192,38 @@ public class PermissionsActivity extends AppCompatActivity {
                     refreshPermissionButtons();
                     checkAllPermissionsAndProceed();
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(this, "Failed to save folder permission ❌", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Failed to save folder permission", Toast.LENGTH_LONG).show();
                 }
             }
         }
     }
 
-    /** ------------------ WhatsApp Folder Detection ------------------ */
+    void checkAllPermissionsAndProceed() {
+        boolean storage = isStorageGranted();
+        boolean notification = isNotificationPermissionGranted();
+        boolean folder = selectedStatusFolderUri != null;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (storage && notification && folder) {
+                goToMainActivity();
+            }
+        }
+    }
+
     public void detectStatusFolder() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            try {
-                File whatsappFolder = new File("/storage/emulated/0/WhatsApp/Media/.Statuses");
-                File businessFolder = new File("/storage/emulated/0/WhatsApp Business/Media/.Statuses");
-                File folderToUse = null;
+            File whatsapp = new File("/storage/emulated/0/WhatsApp/Media/.Statuses");
+            File business = new File("/storage/emulated/0/WhatsApp Business/Media/.Statuses");
 
-                if (whatsappFolder.exists() && whatsappFolder.isDirectory()) folderToUse = whatsappFolder;
-                else if (businessFolder.exists() && businessFolder.isDirectory()) folderToUse = businessFolder;
-
-                if (folderToUse != null) selectedStatusFolderUri = Uri.fromFile(folderToUse);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            if (whatsapp.exists()) selectedStatusFolderUri = Uri.fromFile(whatsapp);
+            else if (business.exists()) selectedStatusFolderUri = Uri.fromFile(business);
         } else {
             if (selectedStatusFolderUri == null) openStatusFolderPicker();
         }
 
         refreshPermissionButtons();
-        checkAllPermissionsAndProceed();
     }
 
-    /** ------------------ Button UI ------------------ */
     public void updatePermissionButtonUI(Button button, boolean granted) {
         if (button == null) return;
         if (granted) {
@@ -205,14 +237,12 @@ public class PermissionsActivity extends AppCompatActivity {
         }
     }
 
-    /** ------------------ Check All Permissions & Redirect ------------------ */
-    public void checkAllPermissionsAndProceed() {
-        boolean storage = isStorageGranted();
-        boolean notification = isNotificationPermissionGranted();
-        boolean folder = selectedStatusFolderUri != null;
-
-        if (storage && notification && folder) {
-            goToMainActivity();
+    public boolean isNotificationPermissionGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return android10Above != null && android10Above.isNotificationPermissionGranted();
+        } else {
+            return accessHelper != null &&
+                    accessHelper.isAccessibilityEnabled(getPackageName() + "/.WhatsAccessibilityService");
         }
     }
 
@@ -220,12 +250,5 @@ public class PermissionsActivity extends AppCompatActivity {
         prefs.edit().putBoolean("introCompleted", true).apply();
         startActivity(new Intent(this, MainActivity.class));
         finish();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        refreshPermissionButtons();
-        checkAllPermissionsAndProceed();
     }
 }

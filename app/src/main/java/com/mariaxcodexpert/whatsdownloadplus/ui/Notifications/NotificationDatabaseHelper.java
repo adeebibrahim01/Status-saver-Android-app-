@@ -5,6 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
+import android.widget.Toast;
 
 public class NotificationDatabaseHelper extends SQLiteOpenHelper {
 
@@ -17,8 +19,11 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_MESSAGE = "message";
     public static final String COLUMN_TIMESTAMP = "timestamp";
 
+    private final Context context;
+
     public NotificationDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.context = context;
     }
 
     @Override
@@ -29,12 +34,14 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_MESSAGE + " TEXT, " +
                 COLUMN_TIMESTAMP + " INTEGER" +
                 ");");
+        Toast.makeText(context, "Database created: " + TABLE_NAME, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
+        Toast.makeText(context, "Database upgraded: " + oldVersion + " -> " + newVersion, Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -42,14 +49,22 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
      * Ignores duplicates and system/call messages
      */
     public void insertNotification(String sender, String message, long timestamp) {
-        if (sender == null || message == null) return;
+        if (sender == null || message == null) {
+            Toast.makeText(context, "Insert failed: sender or message is null", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Ignore system/call messages
-        if (NotificationsFragment.shouldIgnoreNotification(message)) return;
+        // Temporarily disable ignore filter for Android 10 below
+        boolean skipIgnore = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q;
+
+//        if (!skipIgnore && NotificationsFragment.shouldIgnoreNotification(message)) {
+//            Toast.makeText(context, "Ignored system/call message: " + message, Toast.LENGTH_SHORT).show();
+//            return;
+//        }
 
         SQLiteDatabase db = getWritableDatabase();
 
-        // Check for duplicates: same sender & message within 1 second
+        // Check duplicates
         Cursor cursor = db.rawQuery(
                 "SELECT COUNT(*) FROM " + TABLE_NAME +
                         " WHERE " + COLUMN_SENDER + "=? AND " + COLUMN_MESSAGE + "=? AND ABS(" + COLUMN_TIMESTAMP + "-?) < 1000",
@@ -65,19 +80,28 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
             values.put(COLUMN_SENDER, sender);
             values.put(COLUMN_MESSAGE, message);
             values.put(COLUMN_TIMESTAMP, timestamp);
-            db.insert(TABLE_NAME, null, values);
+            long rowId = db.insert(TABLE_NAME, null, values);
+
+            if (rowId != -1) {
+                Toast.makeText(context, "Inserted: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(context, "Insert failed for: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(context, "Duplicate ignored: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
         }
 
         db.close();
     }
-
 
     /**
      * Retrieve all notifications, newest first
      */
     public Cursor getAllNotifications() {
         SQLiteDatabase db = getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_NAME + " ORDER BY " + COLUMN_TIMESTAMP + " DESC", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " ORDER BY " + COLUMN_TIMESTAMP + " DESC", null);
+        Toast.makeText(context, "Loaded notifications: " + (cursor != null ? cursor.getCount() : 0), Toast.LENGTH_SHORT).show();
+        return cursor;
     }
 
     /**
@@ -87,6 +111,7 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_NAME);
         db.close();
+        Toast.makeText(context, "All notifications cleared", Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -96,7 +121,10 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
      * @return number of rows deleted
      */
     public int deleteNotificationBySender(String sender) {
-        if (sender == null || sender.trim().isEmpty()) return 0;
+        if (sender == null || sender.trim().isEmpty()) {
+            Toast.makeText(context, "Delete failed: sender is null or empty", Toast.LENGTH_SHORT).show();
+            return 0;
+        }
 
         SQLiteDatabase db = getWritableDatabase();
         int deletedRows = db.delete(
@@ -105,6 +133,7 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
                 new String[]{sender}
         );
         db.close();
+        Toast.makeText(context, "Deleted " + deletedRows + " notifications for sender: " + sender, Toast.LENGTH_SHORT).show();
         return deletedRows;
     }
 
@@ -118,6 +147,7 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         int deletedRows = db.delete(TABLE_NAME, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
         db.close();
+        Toast.makeText(context, "Deleted notification ID " + id + ": " + (deletedRows > 0 ? "success" : "fail"), Toast.LENGTH_SHORT).show();
         return deletedRows > 0;
     }
 }

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
@@ -27,6 +26,9 @@ public class NotificationListener extends NotificationListenerService {
         startForegroundServiceSafe();
     }
 
+    /** -------------------------------
+     * Start foreground safely for Android O+
+     * ------------------------------- */
     private void startForegroundServiceSafe() {
         try {
             NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -40,10 +42,20 @@ public class NotificationListener extends NotificationListenerService {
                 manager.createNotificationChannel(channel);
             }
 
-            Notification notification = new Notification.Builder(this, CHANNEL_ID)
-                    .setContentTitle("Listening for WhatsApp Messages")
-                    .setSmallIcon(android.R.drawable.ic_dialog_info)
-                    .build();
+            Notification notification = null;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                notification = new Notification.Builder(this, CHANNEL_ID)
+                        .setContentTitle("Listening for WhatsApp Messages")
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setOngoing(true)
+                        .build();
+            } else {
+                notification = new Notification.Builder(this)
+                        .setContentTitle("Listening for WhatsApp Messages")
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setOngoing(true)
+                        .build();
+            }
 
             startForeground(1, notification);
         } catch (Exception e) {
@@ -51,9 +63,13 @@ public class NotificationListener extends NotificationListenerService {
         }
     }
 
+    /** -------------------------------
+     * Handle WhatsApp notifications
+     * ------------------------------- */
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        if (!"com.whatsapp".equals(sbn.getPackageName())) return;
+        String pkg = sbn.getPackageName();
+        if (!"com.whatsapp".equals(pkg) && !"com.whatsapp.w4b".equals(pkg)) return;
 
         Bundle extras = sbn.getNotification().extras;
         String sender = extras.getString("android.title");
@@ -70,12 +86,11 @@ public class NotificationListener extends NotificationListenerService {
         NotificationDatabaseHelper dbHelper = new NotificationDatabaseHelper(getApplicationContext());
         dbHelper.insertNotification(sender, message, timestamp);
 
-        // Load active keywords from SharedPreferences
+        // Load keywords
         SharedPreferences prefs = getSharedPreferences("tracker_prefs", MODE_PRIVATE);
         Set<String> keywords = prefs.getStringSet("keywords_set", new HashSet<>());
         String activeKeyword = prefs.getString("active_keyword", "");
 
-        // Only broadcast if message contains any keyword
         boolean matches = false;
         for (String kw : keywords) {
             if (message.toLowerCase().contains(kw.toLowerCase())) {
@@ -84,6 +99,7 @@ public class NotificationListener extends NotificationListenerService {
             }
         }
 
+        // Broadcast only if keyword matches
         if (matches) {
             Intent intent = new Intent("com.mariaxcodexpert.NEW_NOTIFICATION");
             intent.putExtra("sender", sender);
@@ -94,10 +110,15 @@ public class NotificationListener extends NotificationListenerService {
         }
     }
 
-
-
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.d(TAG, "Notification removed: " + sbn.getPackageName());
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        super.onListenerDisconnected();
+        Log.d(TAG, "Notification listener disconnected ⚠️");
+        // Do not call unbindService manually. Android handles it.
     }
 }

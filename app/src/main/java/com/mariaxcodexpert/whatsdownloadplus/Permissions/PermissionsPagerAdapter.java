@@ -56,27 +56,34 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
             Button notificationBtn = holder.itemView.findViewById(R.id.allowNotificationButton);
             Button statusFolderBtn = holder.itemView.findViewById(R.id.allowStatusFolderButton);
 
+            // Hide notification button for Android 10 below
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && notificationBtn != null) {
+                notificationBtn.setVisibility(View.GONE);
+            }
+
             // Storage button
             if (storageBtn != null) {
                 activity.updatePermissionButtonUI(storageBtn, activity.isStorageGranted());
-                storageBtn.setOnClickListener(v -> activity.requestStoragePermission());
+                storageBtn.setOnClickListener(v -> {
+                    activity.requestStoragePermission();
+                    storageBtn.postDelayed(() -> {
+                        activity.updatePermissionButtonUI(storageBtn, activity.isStorageGranted());
+                        activity.checkAllPermissionsAndProceed();
+                    }, 500);
+                });
             }
 
-            // Notification button
-            if (notificationBtn != null) {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                    notificationBtn.setVisibility(View.GONE); // hide for Android 9 and below
-                } else {
-                    activity.updatePermissionButtonUI(notificationBtn, activity.isNotificationPermissionGranted());
-                    notificationBtn.setOnClickListener(v -> {
-                        if (!activity.isNotificationPermissionGranted())
-                            activity.showNotificationAccessDialog();
-                        else {
-                            Toast.makeText(context, "Notification access granted ✅", Toast.LENGTH_SHORT).show();
-                            activity.updatePermissionButtonUI(notificationBtn, true);
-                        }
-                    });
-                }
+            // Notification button (Android 10+ only)
+            if (notificationBtn != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                activity.updatePermissionButtonUI(notificationBtn, activity.isNotificationPermissionGranted());
+                notificationBtn.setOnClickListener(v -> {
+                    if (!activity.isNotificationPermissionGranted())
+                        activity.showNotificationAccessDialog();
+                    else {
+                        activity.updatePermissionButtonUI(notificationBtn, true);
+                        activity.checkAllPermissionsAndProceed();
+                    }
+                });
             }
 
             // Status folder button
@@ -89,7 +96,13 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
                     statusFolderBtn.setAlpha(0.7f);
                     activity.detectStatusFolder();
                 } else {
-                    statusFolderBtn.setOnClickListener(v -> activity.openStatusFolderPicker());
+                    statusFolderBtn.setOnClickListener(v -> {
+                        activity.openStatusFolderPicker();
+                        statusFolderBtn.postDelayed(() -> {
+                            activity.updatePermissionButtonUI(statusFolderBtn, activity.selectedStatusFolderUri != null);
+                            activity.checkAllPermissionsAndProceed();
+                        }, 500);
+                    });
                 }
             }
         }

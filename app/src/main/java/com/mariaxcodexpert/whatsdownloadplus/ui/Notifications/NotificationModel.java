@@ -5,7 +5,7 @@ import java.util.List;
 public class NotificationModel {
     private final long id; // 🔹 add id
     private final String sender;
-    private final String message;
+    private String message;
     private final long timestamp;
     private List<NotificationModel> groupedMessages;
 
@@ -46,5 +46,9 @@ public class NotificationModel {
 
     public List<NotificationModel> getGroupedMessages() {
         return groupedMessages;
+    }
+
+    public void setMessage(String s) {
+        this.message = s;
     }
 }
