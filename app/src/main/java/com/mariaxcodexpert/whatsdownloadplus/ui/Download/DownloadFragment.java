@@ -219,8 +219,7 @@ public class DownloadFragment extends Fragment {
                 isVideoList.remove(position);
                 adapter.notifyItemRemoved(position);
                 adapter.notifyItemRangeChanged(position, mediaUris.size());
-                Toast.makeText(getContext(), "Deleted successfully", Toast.LENGTH_SHORT).show();
-            } else {
+               } else {
                 Toast.makeText(getContext(), "Failed to delete file", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {

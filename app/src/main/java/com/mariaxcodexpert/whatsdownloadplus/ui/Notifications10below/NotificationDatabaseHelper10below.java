@@ -1,4 +1,4 @@
-package com.mariaxcodexpert.whatsdownloadplus.ui.Notifications;
+package com.mariaxcodexpert.whatsdownloadplus.ui.Notifications10below;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,8 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.widget.Toast;
 
-public class NotificationDatabaseHelper extends SQLiteOpenHelper {
-
+public class NotificationDatabaseHelper10below extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "notifications.db";
     private static final int DATABASE_VERSION = 3;
@@ -22,7 +21,7 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
 
     private final Context context;
 
-    public NotificationDatabaseHelper(Context context) {
+    public NotificationDatabaseHelper10below(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         this.context = context;
     }
@@ -36,13 +35,13 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_MESSAGE + " TEXT, " +
                 COLUMN_TIMESTAMP + " INTEGER" +
                 ");");
-       // Toast.makeText(context, "Database created: " + TABLE_NAME, Toast.LENGTH_SHORT).show();
+        //    Toast.makeText(context, "Database created: " + TABLE_NAME, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 3) {
-       //     db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN " + COLUMN_CHAT_ID + " TEXT;");
+            db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN " + COLUMN_CHAT_ID + " TEXT;");
         }
        // Toast.makeText(context, "Database upgraded: " + oldVersion + " -> " + newVersion, Toast.LENGTH_SHORT).show();
     }
@@ -76,9 +75,9 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
 
         if (rowId != -1) {
             // Optional: Remove Toasts if too spammy
-          //  Toast.makeText(context, "Inserted: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
+           // Toast.makeText(context, "Inserted: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
         } else {
-          //  Toast.makeText(context, "Insert failed: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
+           // Toast.makeText(context, "Insert failed: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
         }
 
         return rowId;

@@ -52,6 +52,7 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
 
         // Page 2: Permissions
         else if (layoutRes == R.layout.layout_permissions) {
+            // Get buttons from the page layout
             Button storageBtn = holder.itemView.findViewById(R.id.allowStorageButton);
             Button notificationBtn = holder.itemView.findViewById(R.id.allowNotificationButton);
             Button statusFolderBtn = holder.itemView.findViewById(R.id.allowStatusFolderButton);
@@ -61,7 +62,7 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
                 notificationBtn.setVisibility(View.GONE);
             }
 
-            // Storage button
+            // Setup Storage button
             if (storageBtn != null) {
                 activity.updatePermissionButtonUI(storageBtn, activity.isStorageGranted());
                 storageBtn.setOnClickListener(v -> {
@@ -73,29 +74,31 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
                 });
             }
 
-            // Notification button (Android 10+ only)
+            // Setup Notification button (Android 10+ only)
             if (notificationBtn != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 activity.updatePermissionButtonUI(notificationBtn, activity.isNotificationPermissionGranted());
                 notificationBtn.setOnClickListener(v -> {
-                    if (!activity.isNotificationPermissionGranted())
+                    if (!activity.isNotificationPermissionGranted()) {
                         activity.showNotificationAccessDialog();
-                    else {
+                    } else {
                         activity.updatePermissionButtonUI(notificationBtn, true);
                         activity.checkAllPermissionsAndProceed();
                     }
                 });
             }
 
-            // Status folder button
+            // Setup Status Folder button
             if (statusFolderBtn != null) {
                 activity.updatePermissionButtonUI(statusFolderBtn, activity.selectedStatusFolderUri != null);
 
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                    // For Android 9 and below, auto detect folder
                     statusFolderBtn.setEnabled(false);
                     statusFolderBtn.setText("✅");
                     statusFolderBtn.setAlpha(0.7f);
                     activity.detectStatusFolder();
                 } else {
+                    // For Android 10+, allow user to pick folder
                     statusFolderBtn.setOnClickListener(v -> {
                         activity.openStatusFolderPicker();
                         statusFolderBtn.postDelayed(() -> {
@@ -123,4 +126,15 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
             super(itemView);
         }
     }
+
+    // Call this to refresh the buttons dynamically
+    public void refreshPermissionsPage() {
+        for (int i = 0; i < getItemCount(); i++) {
+            if (layouts[i] == R.layout.layout_permissions) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
 }

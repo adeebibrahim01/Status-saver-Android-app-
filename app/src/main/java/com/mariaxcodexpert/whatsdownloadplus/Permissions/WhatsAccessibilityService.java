@@ -3,112 +3,76 @@ package com.mariaxcodexpert.whatsdownloadplus.Permissions;
 import android.accessibilityservice.AccessibilityService;
 import android.app.Notification;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.accessibility.AccessibilityEvent;
-import android.widget.Toast;
 
-import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationDatabaseHelper;
-
-import java.util.List;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications10below.NotificationDatabaseHelper10below;
 
 public class WhatsAccessibilityService extends AccessibilityService {
 
-    private static final String TAG = "WhatsAccessibilityService";
+    private NotificationDatabaseHelper10below dbHelper;
 
-    // Log + single toast per notification
-    private void logAndToast(String msg) {
-        Log.d(TAG, msg);
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        dbHelper = new NotificationDatabaseHelper10below(this);
     }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        if (event.getEventType() != AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) return;
 
-        // Only for Android 10 below
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            logAndToast("Android 10+ detected, ignoring event");
-            return;
-        }
-
-        if (event.getEventType() != AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
-            logAndToast("Event type not notification: " + event.getEventType());
-            return;
-        }
-
-        String packageName = String.valueOf(event.getPackageName());
-
-        // Accept only WhatsApp packages
-        if (!packageName.toLowerCase().contains("whatsapp")) {
-            logAndToast("Not WhatsApp, ignoring.");
-            return;
-        }
-
-        String sender = null;
-        String message = null;
-
-        // Try extracting from notification extras
         if (event.getParcelableData() instanceof Notification) {
-            Notification notification = (Notification) event.getParcelableData();
-            Bundle extras = notification.extras;
-            if (extras != null) {
-                sender = extras.getString("android.title");
+            Notification notif = (Notification) event.getParcelableData();
+            if (notif == null || notif.extras == null) return;
 
-                CharSequence text = extras.getCharSequence("android.text");
-                if (text == null) text = extras.getCharSequence("android.bigText");
+            Bundle extras = notif.extras;
+            CharSequence[] lines = extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES);
 
-                // Check android.textLines
-                if (text == null) {
-                    CharSequence[] lines = extras.getCharSequenceArray("android.textLines");
-                    if (lines != null && lines.length > 0)
-                        text = lines[lines.length - 1];
+            if (lines != null && lines.length > 0) {
+                // Multiple lines (stacked messages)
+                for (CharSequence line : lines) {
+                    if (line == null) continue;
+                    processLine(extras, line.toString());
                 }
-
-                if (text != null) message = text.toString();
+            } else {
+                // Single message
+                CharSequence text = extras.getCharSequence(Notification.EXTRA_TEXT);
+                if (text != null) {
+                    processLine(extras, text.toString());
+                }
             }
         }
+    }
 
-        // Fallback: event.getText()
-        if (message == null || message.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
-            List<CharSequence> texts = event.getText();
-            for (CharSequence s : texts) sb.append(s).append(" ");
-            message = sb.toString().trim();
+    private void processLine(Bundle extras, String message) {
+        if (TextUtils.isEmpty(message)) return;
+
+        String sender = extras.getString(Notification.EXTRA_TITLE);
+        if (message.contains(": ")) {
+            int index = message.indexOf(": ");
+            sender = message.substring(0, index);
+            message = message.substring(index + 2);
         }
 
-        if (sender == null || sender.isEmpty()) sender = "WhatsApp";
-
         long timestamp = System.currentTimeMillis();
+        String chatId = getPackageName() + "_" + sender;
 
-        // Prepare single debug message
-        String debugMsg = "Notif received: \nPackage: " + packageName +
-                "\nSender: " + sender +
-                "\nMessage: " + message +
-                "\nTimestamp: " + timestamp;
+        // ✅ Prevent duplicate insert
+        if (!dbHelper.isMessageAlreadySaved(chatId, message)) {
+            dbHelper.insertNotificationWithChatId(sender, chatId, message, timestamp);
+        }
 
-        logAndToast(debugMsg);  // Log only; show single toast
-        Toast.makeText(getApplicationContext(), "WhatsApp notif: " + message, Toast.LENGTH_SHORT).show();
-
-        // Insert into database
-        NotificationDatabaseHelper dbHelper = new NotificationDatabaseHelper(getApplicationContext());
-        dbHelper.insertNotification(sender, message, timestamp);
-
-        // Send broadcast
+        // Send broadcast to update UI
         Intent intent = new Intent("com.mariaxcodexpert.NEW_NOTIFICATION");
         intent.putExtra("sender", sender);
+        intent.putExtra("chatId", chatId);
         intent.putExtra("message", message);
         intent.putExtra("timestamp", timestamp);
         sendBroadcast(intent);
     }
 
     @Override
-    public void onInterrupt() {
-        logAndToast("Accessibility interrupted");
-    }
-
-    @Override
-    protected void onServiceConnected() {
-        super.onServiceConnected();
-        logAndToast("Accessibility service connected and active for Android 10 below");
-    }
+    public void onInterrupt() { }
 }

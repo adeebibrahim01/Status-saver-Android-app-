@@ -13,14 +13,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.whatsapp.WhatsAppMessageAdapter;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationModel10Above;
 
 import java.util.List;
 
 public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
 
-    private List<NotificationModel> list;
+    private List<NotificationModel10Above> list;
 
-    public NotificationAdapter(List<NotificationModel> list) {
+    public NotificationAdapter(List<NotificationModel10Above> list) {
         this.list = list;
     }
 
@@ -34,7 +35,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        NotificationModel model = list.get(position);
+        NotificationModel10Above model = list.get(position);
 
         holder.sender.setText(model.getSender());
 
@@ -59,7 +60,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
                 dialogSender.setText(model.getSender() + " (" + model.getGroupedMessages().size() + " messages)");
 
-                WhatsAppMessageAdapter msgAdapter = new WhatsAppMessageAdapter(model.getGroupedMessages());
+                WhatsAppMessageAdapter msgAdapter = new WhatsAppMessageAdapter(model.getGroupedMessages(),false);
                 dialogRecycler.setLayoutManager(new LinearLayoutManager(v.getContext()));
                 dialogRecycler.setAdapter(msgAdapter);
 
@@ -79,7 +80,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         return list != null ? list.size() : 0;
     }
 
-    public void updateList(List<NotificationModel> newList) {
+    public void updateList(List<NotificationModel10Above> newList) {
         this.list = newList;
         notifyDataSetChanged();
     }

@@ -80,11 +80,42 @@ public class HomeFragment extends Fragment {
 
         binding.cardNotifications.setOnClickListener(v -> {
             try {
-                navController.navigate(R.id.nav_notifications);
+                int sdk = android.os.Build.VERSION.SDK_INT;
+
+                // Always use correct NavHostFragment ID
+                NavHostFragment navHostFragment =
+                        (NavHostFragment) requireActivity()
+                                .getSupportFragmentManager()
+                                .findFragmentById(R.id.nav_host_fragment_content_main); // ← IMPORTANT FIX
+
+                if (navHostFragment == null) {
+                    Toast.makeText(requireContext(), "NavHost not found", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (sdk < android.os.Build.VERSION_CODES.Q) {
+                    // Android < 10 → Notifications10below
+                    navHostFragment.getNavController()
+                            .navigate(R.id.nav_notifications_below);
+
+                   // Toast.makeText(requireContext(),
+                    //        "Notifications10below loaded", Toast.LENGTH_SHORT).show();
+
+                } else {
+                    // Android ≥ 10 → Notifications10above
+                    navHostFragment.getNavController()
+                            .navigate(R.id.nav_notifications_above);
+
+                  //  Toast.makeText(requireContext(),
+                    //        "Notifications10above loaded", Toast.LENGTH_SHORT).show();
+                }
+
                 requireActivity().setTitle("Notifications");
+
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(requireContext(), "Navigation error: Notifications", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(),
+                        "Navigation error: Notifications", Toast.LENGTH_SHORT).show();
             }
         });
 

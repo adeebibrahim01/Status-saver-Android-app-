@@ -29,11 +29,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Initialize AdMob
         AdManager.init(this);
-
-        // Load rewarded interstitial on startup
-        AdManager.loadRewardedInterstitial(this);
+        AdManager.loadInterstitial(this);
 
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -50,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_home,
                 R.id.nav_gallery,
                 R.id.nav_download,
-                R.id.nav_notifications,
+
                 R.id.nav_status_prediction,
                 R.id.nav_privacy_policy
         )
@@ -73,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     else if (id == R.id.nav_gallery ||
                             id == R.id.nav_download ||
-                            id == R.id.nav_notifications ||
+
                             id == R.id.nav_status_prediction ||
                             id == R.id.nav_privacy_policy) {
 
@@ -117,9 +114,6 @@ public class MainActivity extends AppCompatActivity {
 
             } else if (id == R.id.nav_download) {
                 binding.appBarMain.toolbar.setTitle("Download");
-
-            } else if (id == R.id.nav_notifications) {
-                binding.appBarMain.toolbar.setTitle("Notifications");
 
             } else if (id == R.id.nav_status_prediction) {
                 binding.appBarMain.toolbar.setTitle("AI Status Prediction");

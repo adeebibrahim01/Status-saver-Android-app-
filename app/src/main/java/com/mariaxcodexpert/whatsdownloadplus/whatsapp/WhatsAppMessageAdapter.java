@@ -10,16 +10,19 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationModel;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationModel10Above;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications10below.NotificationModel10below;
 
 import java.util.List;
 
 public class WhatsAppMessageAdapter extends RecyclerView.Adapter<WhatsAppMessageAdapter.ViewHolder> {
 
-    private final List<NotificationModel> messages;
+    private final List<?> messages;  // ← ANY list (below or above)
+    private final boolean isBelow;   // ← Tells which model to use
 
-    public WhatsAppMessageAdapter(List<NotificationModel> messages) {
+    public WhatsAppMessageAdapter(List<?> messages, boolean isBelow) {
         this.messages = messages;
+        this.isBelow = isBelow;
     }
 
     @NonNull
@@ -32,9 +35,18 @@ public class WhatsAppMessageAdapter extends RecyclerView.Adapter<WhatsAppMessage
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        NotificationModel msg = messages.get(position);
-        holder.messageText.setText(msg.getMessage());
-        holder.timeText.setText(DateFormat.format("hh:mm a", msg.getTimestamp()));
+
+        if (isBelow) {
+            // Android < 10 model
+            NotificationModel10below msg = (NotificationModel10below) messages.get(position);
+            holder.messageText.setText(msg.getMessage());
+            holder.timeText.setText(DateFormat.format("hh:mm a", msg.getTimestamp()));
+        } else {
+            // Android ≥ 10 model
+            NotificationModel10Above msg = (NotificationModel10Above) messages.get(position);
+            holder.messageText.setText(msg.getMessage());
+            holder.timeText.setText(DateFormat.format("hh:mm a", msg.getTimestamp()));
+        }
     }
 
     @Override

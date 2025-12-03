@@ -2,111 +2,96 @@ package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.rewarded.RewardItem;
-import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd;
-import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.AdError;
 
 public class AdManager {
 
-    private static RewardedInterstitialAd rewardedInterstitialAd;
-    private static boolean isTesting = true; // true = test ads, false = real ads
+    private static InterstitialAd interstitialAd;
+    private static boolean isTesting = true;  // testing mode
 
-    private static final String TEST_REWARDED_INTERSTITIAL = "ca-app-pub-3940256099942544/5354046379";
-    private static final String REAL_REWARDED_INTERSTITIAL = "YOUR_REWARDED_INTERSTITIAL_ID";
-
-    private static final String PREFS_NAME = "AdPrefs";
-    private static final String KEY_FREE_DOWNLOADS = "freeDownloads";
+    private static final String TEST_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712";
+    private static final String REAL_INTERSTITIAL = "YOUR_INTERSTITIAL_AD_ID";
 
     // Initialize AdMob
     public static void init(Context context) {
         MobileAds.initialize(context, initializationStatus -> {});
     }
 
-    // Return correct ad unit
+    // Get correct ad unit id
     private static String getAdUnit() {
-        return isTesting ? TEST_REWARDED_INTERSTITIAL : REAL_REWARDED_INTERSTITIAL;
+        return isTesting ? TEST_INTERSTITIAL : REAL_INTERSTITIAL;
     }
 
-    // Load rewarded interstitial
-    public static void loadRewardedInterstitial(Context context) {
+    // Load Interstitial Ad
+    public static void loadInterstitial(Context context) {
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        RewardedInterstitialAd.load(
+        InterstitialAd.load(
                 context,
                 getAdUnit(),
                 adRequest,
-                new RewardedInterstitialAdLoadCallback() {
-
+                new InterstitialAdLoadCallback() {
                     @Override
-                    public void onAdLoaded(RewardedInterstitialAd ad) {
-                        rewardedInterstitialAd = ad;
-                        Log.d("AdManager", "Rewarded Interstitial Loaded");
+                    public void onAdLoaded(InterstitialAd ad) {
+                        interstitialAd = ad;
+                        Log.d("AdManager", "Interstitial Loaded");
                     }
 
                     @Override
                     public void onAdFailedToLoad(LoadAdError loadError) {
-                        rewardedInterstitialAd = null;
+                        interstitialAd = null;
                         Log.e("AdManager", "Failed to load: " + loadError.getMessage());
                     }
                 }
         );
     }
 
-    // Show ad
-    public static void showRewardedInterstitial(Activity activity, RewardListener listener) {
-        if (rewardedInterstitialAd != null) {
-            rewardedInterstitialAd.show(activity, rewardItem -> {
-                listener.onRewardEarned(rewardItem.getAmount(), rewardItem.getType());
-                // Give 2 free downloads after reward
-                giveFreeDownloads(activity);
+    // Show Interstitial Ad without callback
+    public static void showInterstitial(Activity activity) {
+        showInterstitial(activity, null);
+    }
+
+    // Callback interface
+    public interface AdCallback {
+        void onAdClosed();
+    }
+
+    // Show Interstitial Ad with callback
+    public static void showInterstitial(Activity activity, AdCallback callback) {
+        if (interstitialAd != null) {
+            interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                @Override
+                public void onAdDismissedFullScreenContent() {
+                    interstitialAd = null;
+                    loadInterstitial(activity); // Load next ad
+                    if (callback != null) callback.onAdClosed();
+                }
+
+                @Override
+                public void onAdFailedToShowFullScreenContent(AdError adError) {
+                    interstitialAd = null;
+                    loadInterstitial(activity);
+                    if (callback != null) callback.onAdClosed();
+                }
             });
+            interstitialAd.show(activity);
         } else {
-            Log.e("AdManager", "Rewarded Interstitial Not Loaded");
-            listener.onAdNotAvailable();
+            Log.d("AdManager", "Interstitial not loaded.");
+            loadInterstitial(activity);
+            if (callback != null) callback.onAdClosed(); // call immediately if ad not ready
         }
     }
 
+    // Check if Ad is loaded
     public static boolean isAdLoaded() {
-        return rewardedInterstitialAd != null;
-    }
-
-
-    // Reward listener interface
-    public interface RewardListener {
-        void onRewardEarned(int amount, String type);
-        void onAdNotAvailable();
-    }
-
-    // Check if user should see ad or has free downloads
-    public static boolean shouldShowRewardAd(Context context) {
-        int free = getFreeDownloads(context);
-        return free <= 0;
-    }
-
-    // Give 2 free downloads
-    private static void giveFreeDownloads(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putInt(KEY_FREE_DOWNLOADS, 2).apply();
-    }
-
-    // Decrease free downloads after each download
-    public static void decreaseFreeDownload(Context context) {
-        int free = getFreeDownloads(context);
-        if (free > 0) {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            prefs.edit().putInt(KEY_FREE_DOWNLOADS, free - 1).apply();
-        }
-    }
-
-    // Get current free downloads
-    public static int getFreeDownloads(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getInt(KEY_FREE_DOWNLOADS, 0);
+        return interstitialAd != null;
     }
 }

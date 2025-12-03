@@ -25,7 +25,7 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationDatabaseHelper;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Notifications10below.NotificationDatabaseHelper10below;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -48,7 +48,7 @@ public class TrackerFragment extends Fragment {
     private TextView emptyStateText;
     private FloatingActionButton fabAddKeyword;
     private trackingAdapter adapter;
-    private NotificationDatabaseHelper dbHelper;
+    private NotificationDatabaseHelper10below dbHelper;
 
     private final List<trackingModel> displayedList = new ArrayList<>();
     private final List<String> keywordList = new ArrayList<>();
@@ -72,7 +72,7 @@ public class TrackerFragment extends Fragment {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        dbHelper = new NotificationDatabaseHelper(requireContext());
+        dbHelper = new NotificationDatabaseHelper10below(requireContext());
 
         loadSavedKeywords();
 
@@ -219,9 +219,9 @@ public class TrackerFragment extends Fragment {
             try {
                 if (cursor.moveToFirst()) {
                     do {
-                        String sender = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_SENDER));
-                        String message = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_MESSAGE));
-                        long ts = cursor.getLong(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper.COLUMN_TIMESTAMP));
+                        String sender = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper10below.COLUMN_SENDER));
+                        String message = cursor.getString(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper10below.COLUMN_MESSAGE));
+                        long ts = cursor.getLong(cursor.getColumnIndexOrThrow(NotificationDatabaseHelper10below.COLUMN_TIMESTAMP));
 
                         if (message != null && message.toLowerCase().contains(activeKeyword.toLowerCase())) {
                             String escapedKeyword = TextUtils.htmlEncode(activeKeyword);

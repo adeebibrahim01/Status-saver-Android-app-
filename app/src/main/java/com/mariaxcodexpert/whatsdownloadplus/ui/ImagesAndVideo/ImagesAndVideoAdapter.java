@@ -3,7 +3,6 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -23,6 +22,7 @@ import com.bumptech.glide.Glide;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -36,13 +36,8 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
     private final Context context;
     private boolean isVideo;
     private List<MediaItem> mediaItems;
-    private final OnDownloadClickListener downloadListener;
-    private final OnItemClickListener itemClickListener;
     private final List<GalleryViewHolder> visibleHolders = new ArrayList<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
-    public interface OnDownloadClickListener { void onDownload(DocumentFile file); }
-    public interface OnItemClickListener { void onItemClick(DocumentFile file); }
 
     public static class MediaItem {
         public final DocumentFile file;
@@ -54,17 +49,11 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         }
     }
 
-    public ImagesAndVideoAdapter(Context context,
-                                 List<DocumentFile> mediaList,
-                                 boolean isVideo,
-                                 OnDownloadClickListener downloadListener,
-                                 OnItemClickListener itemClickListener) {
+    public ImagesAndVideoAdapter(Context context, List<DocumentFile> mediaList, boolean isVideo) {
         this.context = context;
-        this.downloadListener = downloadListener;
-        this.itemClickListener = itemClickListener;
+        this.isVideo = isVideo;
         this.mediaItems = new ArrayList<>();
         for (DocumentFile f : mediaList) mediaItems.add(new MediaItem(f));
-        this.isVideo = isVideo;
 
         scheduler.scheduleAtFixedRate(this::updateCountdowns, 0, 1, TimeUnit.SECONDS);
     }
@@ -98,7 +87,7 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
                 .centerCrop()
                 .into(holder.imageThumb);
 
-        boolean isSaved = isFileSavedInStatusSaver(file.getName(), file.getType());
+        boolean isSaved = isFileAlreadySaved(file);
 
         if (isSaved) {
             holder.downloadIcon.setVisibility(View.GONE);
@@ -110,10 +99,21 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
 
         holder.videoIcon.setVisibility(isVideoFile ? View.VISIBLE : View.GONE);
 
-        holder.downloadIcon.setOnClickListener(v -> saveToStatusSaver(file, holder));
+        holder.downloadIcon.setOnClickListener(v -> {
+            // Show normal interstitial ad first
+            if (AdManager.isAdLoaded()) {
+                AdManager.showInterstitial((Activity) context, new AdManager.AdCallback() {
+                    @Override
+                    public void onAdClosed() {
+                        saveFileWithUI(file, holder);
+                    }
+                });
+            } else {
+                saveFileWithUI(file, holder);
+            }
+        });
 
         holder.itemView.setOnClickListener(v -> {
-            if (itemClickListener != null) itemClickListener.onItemClick(file);
             Intent intent = new Intent(context, ImageVideoPreviewActivity.class);
             intent.putExtra(ImageVideoPreviewActivity.EXTRA_URI, file.getUri());
             intent.putExtra(ImageVideoPreviewActivity.EXTRA_IS_VIDEO, isVideoFile);
@@ -127,89 +127,43 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
     @Override
     public int getItemCount() { return mediaItems.size(); }
 
-    private boolean isFileSavedInStatusSaver(String fileName, String mimeType) {
-        if (fileName == null) return false;
-        Uri collection;
-        String selection;
-        String[] selectionArgs;
+    // ---------- FIXED method for Android 10- ----------
+    private boolean isFileAlreadySaved(DocumentFile file) {
+        String name = file.getName();
+        if (name == null) return false;
 
-        if (mimeType != null && mimeType.startsWith("video")) {
-            collection = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-            selection = MediaStore.Video.Media.DISPLAY_NAME + "=? AND " +
-                    MediaStore.Video.Media.RELATIVE_PATH + " LIKE ?";
-            selectionArgs = new String[]{fileName, "%Status Saver%"};
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ logic (MediaStore query)
+            String selection = MediaStore.Images.Media.DISPLAY_NAME + "=?";
+            String[] args = new String[]{name};
+
+            try (Cursor cursor = context.getContentResolver().query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new String[]{MediaStore.MediaColumns._ID}, selection, args, null)) {
+                if (cursor != null && cursor.getCount() > 0) return true;
+            } catch (Exception ignored) {}
+
+            try (Cursor cursor = context.getContentResolver().query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, new String[]{MediaStore.MediaColumns._ID}, selection, args, null)) {
+                if (cursor != null && cursor.getCount() > 0) return true;
+            } catch (Exception ignored) {}
+
+            return false;
         } else {
-            collection = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-            selection = MediaStore.Images.Media.DISPLAY_NAME + "=? AND " +
-                    MediaStore.Images.Media.RELATIVE_PATH + " LIKE ?";
-            selectionArgs = new String[]{fileName, "%Status Saver%"};
-        }
-
-        try (Cursor cursor = context.getContentResolver().query(
-                collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
-            return cursor != null && cursor.getCount() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    private void saveToStatusSaver(DocumentFile file, GalleryViewHolder holder) {
-        SharedPreferences prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-        int freeDownloads = prefs.getInt("freeDownloads", 0);
-
-        if (freeDownloads <= 0) {
-            // No free downloads → show rewarded ad
-            if (AdManager.isAdLoaded()) {
-                AdManager.showRewardedInterstitial((Activity) context, new AdManager.RewardListener() {
-                    @Override
-                    public void onRewardEarned(int amount, String type) {
-                        // 1 ad completed → 3 downloads free (including current)
-                        prefs.edit().putInt("freeDownloads", 2).apply();
-                        Toast.makeText(context, "Reward granted! Now download 2 statuses without watching ad.", Toast.LENGTH_SHORT).show();
-
-                        // Immediately save current file
-                        actuallySaveFile(file);
-
-                        if (holder != null) {
-                            holder.downloadIcon.setVisibility(View.GONE);
-                            holder.downloadStatus.setVisibility(View.VISIBLE);
-                        }
-
-                        // Update adapter for current item
-                        notifyItemChanged(holder.getBindingAdapterPosition());
-
-                        // Preload next ad
-                        AdManager.loadRewardedInterstitial(context);
-                    }
-
-                    @Override
-                    public void onAdNotAvailable() {
-                        Toast.makeText(context, "Ad not available, try again later.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                Toast.makeText(context, "Ad is loading, try again!", Toast.LENGTH_SHORT).show();
-                AdManager.loadRewardedInterstitial(context);
-            }
-        } else {
-            // Free downloads available → just save without ad
-            actuallySaveFile(file);
-
-            // Decrease counter
-            prefs.edit().putInt("freeDownloads", freeDownloads - 1).apply();
-
-            if (holder != null) {
-                holder.downloadIcon.setVisibility(View.GONE);
-                holder.downloadStatus.setVisibility(View.VISIBLE);
-            }
-
-            // Update adapter for this item
-            notifyItemChanged(holder.getBindingAdapterPosition());
-            if (downloadListener != null) downloadListener.onDownload(file);
+            // Android 10- (check actual file on disk)
+            File folder = new File(android.os.Environment.getExternalStoragePublicDirectory(
+                    android.os.Environment.DIRECTORY_PICTURES), "Status Saver");
+            File localFile = new File(folder, name);
+            return localFile.exists();
         }
     }
+    // -----------------------------------------------
 
+    private void saveFileWithUI(DocumentFile file, GalleryViewHolder holder) {
+        if (isFileAlreadySaved(file)) return; // prevent duplicates
+        actuallySaveFile(file);
+        holder.downloadIcon.setVisibility(View.GONE);
+        holder.downloadStatus.setVisibility(View.VISIBLE);
+    }
 
     private void actuallySaveFile(DocumentFile file) {
         try {
@@ -229,19 +183,18 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
             Uri uri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 android.content.ContentValues values = new android.content.ContentValues();
-                values.put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-                values.put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mimeType);
-                values.put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH,
-                        android.os.Environment.DIRECTORY_PICTURES + "/Status Saver");
-
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/Status Saver");
                 uri = context.getContentResolver().insert(
                         mimeType.startsWith("video") ?
                                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI :
                                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             } else {
-                java.io.File folder = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES), "Status Saver");
+                File folder = new File(android.os.Environment.getExternalStoragePublicDirectory(
+                        android.os.Environment.DIRECTORY_PICTURES), "Status Saver");
                 if (!folder.exists()) folder.mkdirs();
-                java.io.File outFile = new java.io.File(folder, fileName);
+                File outFile = new File(folder, fileName);
                 uri = Uri.fromFile(outFile);
             }
 
@@ -274,7 +227,6 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
                     long minutes = TimeUnit.MILLISECONDS.toMinutes(remaining) % 60;
                     long seconds = TimeUnit.MILLISECONDS.toSeconds(remaining) % 60;
                     holder.countdownTimer.setText(String.format("Expires in %02d:%02d:%02d", hours, minutes, seconds));
-
                     if (hours < 1) holder.countdownTimer.setTextColor(0xFFFF0000);
                     else if (hours < 6) holder.countdownTimer.setTextColor(0xFFFFA500);
                     else holder.countdownTimer.setTextColor(0xFF00FF00);

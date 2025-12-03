@@ -40,13 +40,20 @@
 
 
 
-
-    <!-- Notifications -->
+    <!-- Notifications for Android 10 Below -->
     <fragment
-        android:id="@+id/nav_notifications"
+        android:id="@+id/nav_notifications_below"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Notifications10below.NotificationsFragment10below"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications" />
+
+    <!-- Notifications for Android 10 & Above -->
+    <fragment
+        android:id="@+id/nav_notifications_above"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationsFragment"
         android:label="Notifications"
         tools:layout="@layout/fragment_notifications" />
+
 
     <!-- Status Prediction -->
     <fragment
