@@ -22,6 +22,7 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             // optional: keep mapping.txt for upload
+            //ok
         }
     }
 
