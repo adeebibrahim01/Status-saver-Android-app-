@@ -209,9 +209,13 @@ public class TrackerFragment extends Fragment {
         if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(true);
 
         displayedList.clear();
+
+        // If no keyword is selected, show empty state
         if (activeKeyword == null || activeKeyword.isEmpty()) {
             adapter.updateList(displayedList);
             toggleEmptyState();
+            if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+            return;
         }
 
         Cursor cursor = dbHelper.getAllNotifications();
@@ -243,6 +247,7 @@ public class TrackerFragment extends Fragment {
         if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
     }
 
+
     private void toggleEmptyState() {
         boolean empty = displayedList.isEmpty();
         recyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
@@ -251,39 +256,30 @@ public class TrackerFragment extends Fragment {
     }
 
     public void onNewNotification(String sender, String message, long ts) {
-        boolean matched = false;
+        if (message == null || activeKeyword == null || activeKeyword.isEmpty()) return;
 
-        if (message == null) message = "";
+        if (message.toLowerCase().contains(activeKeyword.toLowerCase())) {
 
-        for (String kw : keywordList) {
-            if (message.toLowerCase().contains(kw.toLowerCase())) {
-                matched = true;
-
-                if (kw.equals(activeKeyword)) {
-                    String escapedKeyword = TextUtils.htmlEncode(activeKeyword);
-                    String highlightedMessage = message.replaceAll("(?i)" + java.util.regex.Pattern.quote(activeKeyword),
-                            "<font color='#1B5E20'><b>" + escapedKeyword + "</b></font>");
-
-                    displayedList.add(0, new trackingModel(sender, Html.fromHtml(highlightedMessage).toString(), ts));
-
-                    adapter.updateList(displayedList);
-
-                    if (displayedList.isEmpty()) {
-                        recyclerView.setVisibility(View.GONE);
-                        emptyStateText.setVisibility(View.VISIBLE);
-                        lottieEmptyState.setVisibility(View.VISIBLE);
-                    } else {
-                        recyclerView.setVisibility(View.VISIBLE);
-                        emptyStateText.setVisibility(View.GONE);
-                        lottieEmptyState.setVisibility(View.GONE);
-                    }
+            // Check for duplicates
+            boolean exists = false;
+            for (trackingModel m : displayedList) {
+                if (m.getSender().equals(sender) && m.getMessage().equals(message) && m.getTimestamp() == ts) {
+                    exists = true;
+                    break;
                 }
-                break;
             }
-        }
+            if (exists) return; // skip if already added
 
-        if (matched) saveKeywords();
+            String escapedKeyword = TextUtils.htmlEncode(activeKeyword);
+            String highlightedMessage = message.replaceAll("(?i)" + java.util.regex.Pattern.quote(activeKeyword),
+                    "<font color='#1B5E20'><b>" + escapedKeyword + "</b></font>");
+
+            displayedList.add(0, new trackingModel(sender, Html.fromHtml(highlightedMessage).toString(), ts));
+            adapter.updateList(displayedList);
+            toggleEmptyState();
+        }
     }
+
 
     private void exportMessagesToFile() {
         try {

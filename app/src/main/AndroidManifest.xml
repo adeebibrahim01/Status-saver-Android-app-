@@ -66,7 +66,7 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" /> <!-- 🔔 Notification Listener Service -->
         <service
-            android:name=".ui.Notifications10below.NotificationListener"
+            android:name=".ui.Notifications.NotificationListener"
             android:exported="true"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
             <intent-filter>
@@ -100,7 +100,9 @@
         <!-- AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-9822767396000072~6754372345" />
+
+
     </application>
 
 </manifest>
