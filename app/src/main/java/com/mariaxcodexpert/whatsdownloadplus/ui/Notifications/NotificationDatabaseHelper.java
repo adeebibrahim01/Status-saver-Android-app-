@@ -60,7 +60,12 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
      */
     public long insertNotificationWithChatId(String sender, String chatId, String message, long timestamp) {
         if (sender == null || message == null) {
-         //   Toast.makeText(context, "Insert failed: sender or message is null", Toast.LENGTH_SHORT).show();
+            return -1;
+        }
+
+        // Prevent duplicate insertion
+        if (isMessageAlreadySaved(chatId != null ? chatId : sender, message)) {
+            // Message already exists, do not insert
             return -1;
         }
 
@@ -74,15 +79,9 @@ public class NotificationDatabaseHelper extends SQLiteOpenHelper {
         long rowId = db.insert(TABLE_NAME, null, values);
         db.close();
 
-        if (rowId != -1) {
-            // Optional: Remove Toasts if too spammy
-          //  Toast.makeText(context, "Inserted: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
-        } else {
-          //  Toast.makeText(context, "Insert failed: " + sender + " -> " + message, Toast.LENGTH_SHORT).show();
-        }
-
         return rowId;
     }
+
 
     /**
      * Retrieve all notifications, newest first
