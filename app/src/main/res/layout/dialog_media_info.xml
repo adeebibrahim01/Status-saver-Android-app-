@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/bg_dialog_rounded"
+    android:gravity="center">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tvDialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Media Info"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:layout_gravity="center"
+        android:paddingBottom="12dp"/>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#000000"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Media Type -->
+    <TextView
+        android:id="@+id/tvMediaType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Type: Image"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- File Name -->
+    <TextView
+        android:id="@+id/tvFileName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Name: example.jpg"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- File Size -->
+    <TextView
+        android:id="@+id/tvFileSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Size: 1024 KB"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:layout_marginBottom="6dp"/>
+
+    <!-- Resolution / Duration -->
+    <TextView
+        android:id="@+id/tvResolution"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Resolution: 1080 x 1920"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:layout_marginBottom="6dp"/>
+
+    <TextView
+        android:id="@+id/tvDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Duration: 0h 0m 0s"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:layout_marginBottom="12dp"
+        android:visibility="gone"/>
+
+    <!-- OK Button -->
+    <Button
+        android:id="@+id/btnOk"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="OK"
+        android:backgroundTint="#075E54"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:padding="10dp"/>
+</LinearLayout>
