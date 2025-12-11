@@ -1,12 +1,10 @@
 package com.mariaxcodexpert.whatsdownloadplus.Permissions;
 
 import android.content.Context;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,86 +24,50 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
         this.layouts = layouts;
         this.viewPager = viewPager;
         this.activity = (PermissionsActivity) context;
+        viewPager.setOffscreenPageLimit(layouts.length);
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(viewType, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view, viewType);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         int layoutRes = layouts[position];
 
-        // Page 1: Select App
-        if (layoutRes == R.layout.layout_select_app) {
-            Button selectWhatsapp = holder.itemView.findViewById(R.id.selectWhatsappButton);
-            if (selectWhatsapp != null) {
-                selectWhatsapp.setOnClickListener(v -> {
-                    Toast.makeText(context, "WhatsApp selected ✅", Toast.LENGTH_SHORT).show();
-                    viewPager.setCurrentItem(position + 1, true);
-                });
-            }
-        }
+        if (layoutRes == R.layout.layout_select_app && holder.selectWhatsapp != null) {
+            holder.selectWhatsapp.setOnClickListener(v -> viewPager.setCurrentItem(position + 1, true));
+        } else if (layoutRes == R.layout.layout_permissions) {
 
-        // Page 2: Permissions
-        else if (layoutRes == R.layout.layout_permissions) {
-            // Get buttons from the page layout
-            Button storageBtn = holder.itemView.findViewById(R.id.allowStorageButton);
-            Button notificationBtn = holder.itemView.findViewById(R.id.allowNotificationButton);
-            Button statusFolderBtn = holder.itemView.findViewById(R.id.allowStatusFolderButton);
+            // Storage button
+            if (holder.storageBtn != null) {
+                holder.storageBtn.setOnClickListener(v -> activity.requestStoragePermission());
 
-            // Hide notification button for Android 10 below
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && notificationBtn != null) {
-                notificationBtn.setVisibility(View.GONE);
-            }
-
-            // Setup Storage button
-            if (storageBtn != null) {
-                activity.updatePermissionButtonUI(storageBtn, activity.isStorageGranted());
-                storageBtn.setOnClickListener(v -> {
-                    activity.requestStoragePermission();
-                    storageBtn.postDelayed(() -> {
-                        activity.updatePermissionButtonUI(storageBtn, activity.isStorageGranted());
-                        activity.checkAllPermissionsAndProceed();
-                    }, 500);
-                });
-            }
-
-            // Setup Notification button (Android 10+ only)
-            if (notificationBtn != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                activity.updatePermissionButtonUI(notificationBtn, activity.isNotificationPermissionGranted());
-                notificationBtn.setOnClickListener(v -> {
-                    if (!activity.isNotificationPermissionGranted()) {
-                        activity.showNotificationAccessDialog();
-                    } else {
-                        activity.updatePermissionButtonUI(notificationBtn, true);
-                        activity.checkAllPermissionsAndProceed();
-                    }
-                });
-            }
-
-            // Setup Status Folder button
-            if (statusFolderBtn != null) {
-                activity.updatePermissionButtonUI(statusFolderBtn, activity.selectedStatusFolderUri != null);
-
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                    // For Android 9 and below, auto detect folder
-                    statusFolderBtn.setEnabled(false);
-                    statusFolderBtn.setText("✅");
-                    statusFolderBtn.setAlpha(0.7f);
-                    activity.detectStatusFolder();
+                if (activity.isStorageGranted()) {
+                    holder.storageBtn.setText("Granted ✅");
+                    holder.storageBtn.setEnabled(false);
+                    holder.storageBtn.setAlpha(0.7f);
                 } else {
-                    // For Android 10+, allow user to pick folder
-                    statusFolderBtn.setOnClickListener(v -> {
-                        activity.openStatusFolderPicker();
-                        statusFolderBtn.postDelayed(() -> {
-                            activity.updatePermissionButtonUI(statusFolderBtn, activity.selectedStatusFolderUri != null);
-                            activity.checkAllPermissionsAndProceed();
-                        }, 500);
-                    });
+                    holder.storageBtn.setText("Allow Storage");
+                    holder.storageBtn.setEnabled(true);
+                    holder.storageBtn.setAlpha(1f);
+                }
+            }
+
+            // Status folder button
+            if (holder.statusFolderBtn != null) {
+                if (activity.selectedStatusFolderUri != null) {
+                    holder.statusFolderBtn.setText("Granted ✅");
+                    holder.statusFolderBtn.setEnabled(false);
+                    holder.statusFolderBtn.setAlpha(0.7f);
+                } else {
+                    holder.statusFolderBtn.setText("Select Folder");
+                    holder.statusFolderBtn.setEnabled(true);
+                    holder.statusFolderBtn.setAlpha(1f);
+                    holder.statusFolderBtn.setOnClickListener(v -> activity.openStatusFolderPicker());
                 }
             }
         }
@@ -122,12 +84,20 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        public ViewHolder(@NonNull View itemView) {
+        Button selectWhatsapp, storageBtn, statusFolderBtn;
+
+        public ViewHolder(@NonNull View itemView, int layoutRes) {
             super(itemView);
+            if (layoutRes == R.layout.layout_select_app)
+                selectWhatsapp = itemView.findViewById(R.id.selectWhatsappButton);
+            else if (layoutRes == R.layout.layout_permissions) {
+                storageBtn = itemView.findViewById(R.id.allowStorageButton);
+                statusFolderBtn = itemView.findViewById(R.id.allowStatusFolderButton);
+            }
         }
     }
 
-    // Call this to refresh the buttons dynamically
+    /** Refresh only the permissions page */
     public void refreshPermissionsPage() {
         for (int i = 0; i < getItemCount(); i++) {
             if (layouts[i] == R.layout.layout_permissions) {
@@ -136,5 +106,4 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
             }
         }
     }
-
 }

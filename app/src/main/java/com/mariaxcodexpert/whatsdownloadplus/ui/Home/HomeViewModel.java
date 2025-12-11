@@ -1,19 +1,53 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
+import android.app.Application;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.text.format.DateFormat;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
-public class HomeViewModel extends ViewModel {
+import java.util.Date;
 
-    private final MutableLiveData<String> mText;
+public class HomeViewModel extends AndroidViewModel {
 
-    public HomeViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is home fragment");
+    private final MutableLiveData<String> joinedDate = new MutableLiveData<>();
+    private final MutableLiveData<String> toolbarTitle = new MutableLiveData<>();
+
+    public HomeViewModel(@NonNull Application application) {
+        super(application);
+        loadJoinedDate();
+        toolbarTitle.setValue("Home");
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    private void loadJoinedDate() {
+        try {
+            PackageInfo packageInfo = getApplication()
+                    .getPackageManager()
+                    .getPackageInfo(getApplication().getPackageName(), 0);
+
+            long firstInstallTime = packageInfo.firstInstallTime;
+            String formattedDate = DateFormat.format("MMMM dd, yyyy", new Date(firstInstallTime)).toString();
+            joinedDate.setValue("Joined on " + formattedDate + ".");
+        } catch (PackageManager.NameNotFoundException e) {
+            joinedDate.setValue("Joined");
+        }
+    }
+
+    // Expose LiveData
+    public LiveData<String> getJoinedDate() {
+        return joinedDate;
+    }
+
+    public LiveData<String> getToolbarTitle() {
+        return toolbarTitle;
+    }
+
+    // Update toolbar title dynamically (Images/Videos/Download)
+    public void setToolbarTitle(String title) {
+        toolbarTitle.setValue(title);
     }
 }

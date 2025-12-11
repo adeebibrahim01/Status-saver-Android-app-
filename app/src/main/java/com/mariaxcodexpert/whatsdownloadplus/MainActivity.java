@@ -1,13 +1,9 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.format.DateFormat;
 import android.view.Menu;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -17,144 +13,139 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
+import com.mariaxcodexpert.whatsdownloadplus.ConsentFormManager;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.ActivityMainBinding;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
     private NavController navController;
+    private AppBarConfiguration appBarConfiguration;
+    private ConsentFormManager consentFormManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        AdManager.init(this);
-        AdManager.loadInterstitial(this);
-
-
+        // ViewBinding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        DrawerLayout drawer = binding.drawerLayout;
-        NavigationView navigationView = binding.navView;
-
+        // Navigation setup
         navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        setupAppBarConfiguration();
+        setupDrawerActions();
+        setupToolbarTitleUpdater();
+        setupFAB();
 
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
+        // ==============================
+        // GDPR + ADS HANDLING (Simplified)
+        // ==============================
+        ConsentFormManager.init(this);
+
+        ConsentFormManager.getInstance().requestConsentForm(() -> {
+            // After consent is ready (EU or Non-EU)
+            AdManager.init(this);
+
+            // ✅ Check for app updates here
+            new AppUpdateChecker(this).checkForUpdate();
+        });
+
+    }
+
+
+    // =========================
+    // AppBarConfiguration
+    // =========================
+    private void setupAppBarConfiguration() {
+        DrawerLayout drawer = binding.drawerLayout;
+        appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home,
                 R.id.nav_gallery,
                 R.id.nav_download,
-
                 R.id.nav_status_prediction,
                 R.id.nav_privacy_policy
-        )
-                .setOpenableLayout(drawer)
-                .build();
+        ).setOpenableLayout(drawer).build();
 
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupWithNavController(binding.navView, navController);
+    }
 
-        // ====================================
-        // 🔥 Custom Drawer Item Click Handler
-        // ====================================
-        navigationView.setNavigationItemSelectedListener(item -> {
+    // =========================
+    // Drawer Actions
+    // =========================
+    private void setupDrawerActions() {
+        Map<Integer, Runnable> drawerActions = new HashMap<>();
+        drawerActions.put(R.id.nav_home, () -> navController.popBackStack(navController.getGraph().getStartDestinationId(), false));
+        drawerActions.put(R.id.nav_gallery, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_gallery), navController));
+        drawerActions.put(R.id.nav_download, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_download), navController));
+        drawerActions.put(R.id.nav_status_prediction, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_status_prediction), navController));
+        drawerActions.put(R.id.nav_privacy_policy, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_privacy_policy), navController));
+        drawerActions.put(R.id.nav_share_app, this::shareApp);
+        drawerActions.put(R.id.nav_rate_app, () -> openUrl(
+                "market://details?id=" + getPackageName(),
+                "https://play.google.com/store/apps/details?id=" + getPackageName()));
+        drawerActions.put(R.id.nav_feedback, this::sendFeedback);
 
-            int id = item.getItemId();
-
-                    if (id == R.id.nav_home) {
-                        // Pop back stack to start destination (Home) so it always shows
-                        navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
-                    }
-                    else if (id == R.id.nav_gallery ||
-                            id == R.id.nav_download ||
-
-                            id == R.id.nav_status_prediction ||
-                            id == R.id.nav_privacy_policy) {
-
-                        NavigationUI.onNavDestinationSelected(item, navController);
-
-                }
-            // --- Share App ---
-            else if (id == R.id.nav_share_app) {
-                shareApp();
-            }
-            // --- Rate App ---
-            else if (id == R.id.nav_rate_app) {
-                rateApp();
-            }
-            // --- Feedback ---
-            else if (id == R.id.nav_feedback) {
-                sendFeedback();
-            }
-
-            drawer.closeDrawers();
+        binding.navView.setNavigationItemSelectedListener(item -> {
+            Runnable action = drawerActions.get(item.getItemId());
+            if (action != null) action.run();
+            binding.drawerLayout.closeDrawers();
             return true;
         });
 
-        // ========= FAB Shortcut =========
+        binding.navView.setCheckedItem(R.id.nav_home);
+    }
+
+    // =========================
+    // Toolbar Titles
+    // =========================
+    private void setupToolbarTitleUpdater() {
+        navController.addOnDestinationChangedListener((controller, destination, args) -> {
+            int id = destination.getId();
+            if (id == R.id.nav_home) {
+                setToolbarTitle("Home");
+            } else if (id == R.id.nav_gallery) {
+                boolean showVideos = args != null && args.getBoolean("showVideos", false);
+                setToolbarTitle(showVideos ? "Videos" : "Images");
+            } else if (id == R.id.nav_download) {
+                setToolbarTitle("Download");
+            } else if (id == R.id.nav_status_prediction) {
+                setToolbarTitle("AI Status Prediction");
+            } else if (id == R.id.nav_privacy_policy) {
+                setToolbarTitle("Privacy Policy");
+            }
+        });
+    }
+
+    private void setToolbarTitle(String title) {
+        binding.appBarMain.toolbar.setTitle(title);
+    }
+
+    // =========================
+    // FAB Shortcut
+    // =========================
+    private void setupFAB() {
         binding.appBarMain.fab.setOnClickListener(v ->
                 navController.navigate(R.id.nav_download)
         );
-
-        // ========= Toolbar Titles =========
-        navController.addOnDestinationChangedListener((controller, destination, args) -> {
-
-            int id = destination.getId();
-
-            if (id == R.id.nav_home) {
-                binding.appBarMain.toolbar.setTitle("Home");
-                setJoinedDate();
-
-            } else if (id == R.id.nav_gallery) {
-                boolean showVideos = args != null && args.getBoolean("showVideos", false);
-                binding.appBarMain.toolbar.setTitle(showVideos ? "Videos" : "Images");
-
-            } else if (id == R.id.nav_download) {
-                binding.appBarMain.toolbar.setTitle("Download");
-
-            } else if (id == R.id.nav_status_prediction) {
-                binding.appBarMain.toolbar.setTitle("AI Status Prediction");
-
-            } else if (id == R.id.nav_privacy_policy) {
-                binding.appBarMain.toolbar.setTitle("Privacy Policy");
-            }
-        });
-
-        // Highlight Home by default
-        navigationView.setCheckedItem(R.id.nav_home);
     }
 
-    // =========================================
-    // 🔥 Share App
-    // =========================================
+    // =========================
+    // Utility Methods
+    // =========================
     private void shareApp() {
         String url = "https://play.google.com/store/apps/details?id=" + getPackageName();
         Intent sendIntent = new Intent(Intent.ACTION_SEND);
         sendIntent.setType("text/plain");
-        sendIntent.putExtra(Intent.EXTRA_TEXT,
-                "Download this amazing Status Downloader app:\n" + url);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, "Download this amazing Status Downloader app:\n" + url);
         startActivity(Intent.createChooser(sendIntent, "Share App"));
     }
 
-    // =========================================
-    // 🔥 Rate App
-    // =========================================
-    private void rateApp() {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=" + getPackageName())));
-        } catch (Exception e) {
-            startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName())));
-        }
-    }
-
-    // =========================================
-    // 🔥 Feedback
-    // =========================================
     private void sendFeedback() {
         Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
         emailIntent.setData(Uri.parse("mailto:mariaadeeb982@gmail.com"));
@@ -162,23 +153,22 @@ public class MainActivity extends AppCompatActivity {
         startActivity(emailIntent);
     }
 
-    // =========================================
-    // 🔥 Joined Date Logic
-    // =========================================
-    private void setJoinedDate() {
+    private void openUrl(String url, String fallbackUrl) {
         try {
-            TextView joinedText = findViewById(R.id.joinedText);
-            if (joinedText != null) {
-                PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
-                long time = info.firstInstallTime;
-                String date = DateFormat.format("MMMM dd, yyyy", time).toString();
-                joinedText.setText("Joined Status Downloader Plus on " + date + ".");
-            }
-        } catch (Throwable ignored) {
-            // ignored
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (Exception e) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)));
         }
     }
 
+    // =========================
+    // Open Gallery Tab
+    // =========================
+    public void openGalleryTab(boolean showVideos) {
+        Bundle args = new Bundle();
+        args.putBoolean("showVideos", showVideos);
+        navController.navigate(R.id.nav_gallery, args);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -188,16 +178,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onSupportNavigateUp() {
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-                || super.onSupportNavigateUp();
-    }
-
-    // =========================================
-    // 🔥 Open Gallery with specific tab
-    // =========================================
-    public void openGalleryTab(boolean showVideos) {
-        Bundle args = new Bundle();
-        args.putBoolean("showVideos", showVideos);
-        navController.navigate(R.id.nav_gallery, args);
+        return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp();
     }
 }

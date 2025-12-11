@@ -16,6 +16,7 @@ swiperefreshlayout = "1.1.0"
 roomCommonJvm = "2.8.3"
 roomRuntimeAndroid = "2.8.3"
 playServicesAdsApi = "24.8.0"
+adsMobileSdk = "0.22.0-beta04"
 
 
 [libraries]
@@ -35,6 +36,7 @@ swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefre
 room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
 room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 play-services-ads-api = { group = "com.google.android.gms", name = "play-services-ads-api", version.ref = "playServicesAdsApi" }
+ads-mobile-sdk = { group = "com.google.android.libraries.ads.mobile.sdk", name = "ads-mobile-sdk", version.ref = "adsMobileSdk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

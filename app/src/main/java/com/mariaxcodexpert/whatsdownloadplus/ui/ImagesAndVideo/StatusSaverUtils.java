@@ -1,4 +1,4 @@
-package com.mariaxcodexpert.whatsdownloadplus.utils;
+package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.content.ContentValues;
 import android.content.Context;
