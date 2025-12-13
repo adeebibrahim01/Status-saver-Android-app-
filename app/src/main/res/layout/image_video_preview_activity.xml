@@ -59,182 +59,134 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"/>
 
-    <!-- Bottom action cards layout -->
-    <HorizontalScrollView
+    <LinearLayout
         android:id="@+id/actionLayout"
         android:layout_width="0dp"
         android:layout_height="100dp"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:background="@drawable/card_bg_preview_square"
-        android:paddingVertical="8dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
+        <!-- Share Card -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:id="@+id/cardShare"
+            android:layout_width="72dp"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/card_bg_preview"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
 
-            <!-- Share Card -->
-            <LinearLayout
-                android:id="@+id/cardShare"
-                android:layout_width="72dp"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/card_bg_preview"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
+            <ImageView
+                android:id="@+id/btnShare"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_share_white"
+                app:tint="#FFF"/>
 
-                <ImageView
-                    android:id="@+id/btnShare"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_share_white"
-                    app:tint="#FFF"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Share"
-                    android:textColor="#FFF"
-                    android:textSize="12sp"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:singleLine="true"/>
-            </LinearLayout>
-
-            <!-- Download Card -->
-            <LinearLayout
-                android:id="@+id/cardDownload"
-                android:layout_width="72dp"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/card_bg_preview"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/btnDownload"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_download_white"
-                    app:tint="#FFF"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Save"
-                    android:textColor="#FFF"
-                    android:textSize="12sp"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:singleLine="true"/>
-            </LinearLayout>
-
-            <!-- Crop/Edit Card -->
-            <LinearLayout
-                android:id="@+id/cardCrop"
-                android:layout_width="72dp"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/card_bg_preview"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:visibility="visible"> <!-- Will be hidden via code for video -->
-
-                <ImageView
-                    android:id="@+id/btnCrop"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_crop_white"
-                    app:tint="#FFF"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Edit"
-                    android:textColor="#FFF"
-                    android:textSize="12sp"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:singleLine="true"/>
-            </LinearLayout>
-
-            <!-- Forward Card -->
-            <LinearLayout
-                android:id="@+id/cardForward"
-                android:layout_width="72dp"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/card_bg_preview"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/btnForward"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_forward_white"
-                    app:tint="#FFF"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Forward"
-                    android:textColor="#FFF"
-                    android:textSize="12sp"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:singleLine="true"/>
-            </LinearLayout>
-
-            <!-- Info Card -->
-            <LinearLayout
-                android:id="@+id/cardInfo"
-                android:layout_width="72dp"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="@drawable/card_bg_preview"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground">
-
-                <ImageView
-                    android:id="@+id/btnInfo"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_info_white"
-                    app:tint="#FFF"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Info"
-                    android:textColor="#FFF"
-                    android:textSize="12sp"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:singleLine="true"/>
-            </LinearLayout>
-
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Share"
+                android:textColor="#FFF"
+                android:textSize="12sp"
+                android:gravity="center"/>
         </LinearLayout>
-    </HorizontalScrollView>
+
+        <!-- Crop/Edit Card (Middle) -->
+        <LinearLayout
+            android:id="@+id/cardCrop"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/card_bg_preview"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <ImageView
+                android:id="@+id/btnCrop"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_crop_white"
+                app:tint="#FFF"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Edit"
+                android:textColor="#FFF"
+                android:textSize="12sp"
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Forward Card -->
+        <LinearLayout
+            android:id="@+id/cardForward"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/card_bg_preview"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <ImageView
+                android:id="@+id/btnForward"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_forward_white"
+                app:tint="#FFF"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Forward"
+                android:textColor="#FFF"
+                android:textSize="12sp"
+                android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Info Card -->
+        <LinearLayout
+            android:id="@+id/cardInfo"
+            android:layout_width="72dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/card_bg_preview"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <ImageView
+                android:id="@+id/btnInfo"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_info_white"
+                app:tint="#FFF"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Info"
+                android:textColor="#FFF"
+                android:textSize="12sp"
+                android:gravity="center"/>
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

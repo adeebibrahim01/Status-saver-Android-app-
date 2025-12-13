@@ -1,23 +1,17 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.app.AlertDialog;
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.VideoView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,13 +20,7 @@ import com.bumptech.glide.Glide;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.yalantis.ucrop.UCrop;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 public class ImageVideoPreviewActivity extends AppCompatActivity {
 
@@ -40,9 +28,11 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     public static final String EXTRA_IS_VIDEO = "extra_is_video";
     private static final int UCROP_REQUEST_CODE = 69;
 
-    private ImageView imagePreview, btnClose, btnShare, btnDownload, btnCrop, btnForward, btnInfo, playOverlay;
+    private ImageView imagePreview, btnClose, btnShare, btnCrop, btnForward, btnInfo, playOverlay;
     private VideoView videoPreview;
     private LinearLayout cardCrop;
+
+    private TextView textDownloadsave; // Can keep if you want to show info, otherwise remove
     private boolean isVideo;
     private Uri mediaUri;
 
@@ -61,17 +51,18 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         videoPreview = findViewById(R.id.videoPreview);
         btnClose = findViewById(R.id.btnClosePreview);
         btnShare = findViewById(R.id.btnShare);
-        btnDownload = findViewById(R.id.btnDownload);
         btnCrop = findViewById(R.id.btnCrop);
         cardCrop = findViewById(R.id.cardCrop);
         btnForward = findViewById(R.id.btnForward);
         btnInfo = findViewById(R.id.btnInfo);
         playOverlay = findViewById(R.id.playOverlay);
+
     }
 
     private void initMedia() {
         mediaUri = getIntent().getParcelableExtra(EXTRA_URI);
         isVideo = getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false);
+
         cardCrop.setVisibility(isVideo ? View.GONE : View.VISIBLE);
 
         if (mediaUri != null) {
@@ -84,7 +75,6 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         btnClose.setOnClickListener(v -> finish());
         btnShare.setOnClickListener(v -> shareMedia());
         btnForward.setOnClickListener(v -> shareMedia());
-        btnDownload.setOnClickListener(v -> downloadMedia());
         btnCrop.setOnClickListener(v -> cropImage());
         btnInfo.setOnClickListener(v -> showMediaInfo());
     }
@@ -131,7 +121,7 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
 
     private void cropImage() {
         if (isVideo || mediaUri == null) return;
-        Uri destUri = Uri.fromFile(new File(getCacheDir(), "cropped_" + System.currentTimeMillis() + ".jpg"));
+        Uri destUri = Uri.fromFile(new java.io.File(getCacheDir(), "cropped_" + System.currentTimeMillis() + ".jpg"));
         UCrop.of(mediaUri, destUri)
                 .withAspectRatio(1, 1)
                 .withMaxResultSize(1080, 1080)
@@ -159,48 +149,6 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                         .putExtra(Intent.EXTRA_STREAM, mediaUri),
                 "Share via"
         ));
-    }
-
-    private void downloadMedia() {
-        if (mediaUri == null) return;
-        try {
-            Uri outUri = getOutputUri(isVideo ? "mp4" : "jpg");
-            copyUri(mediaUri, outUri);
-            Toast.makeText(this, "Saved to Status Saver ✅", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to save ❌", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private Uri getOutputUri(String ext) throws Exception {
-        String filename = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String mimeType = isVideo ? "video/mp4" : "image/jpeg";
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename);
-            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Status Saver");
-
-            return getContentResolver().insert(
-                    isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    values
-            );
-        } else {
-            File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Status Saver");
-            if (!folder.exists()) folder.mkdirs();
-            return Uri.fromFile(new File(folder, filename + "." + ext));
-        }
-    }
-
-    private void copyUri(Uri src, Uri dest) throws Exception {
-        try (InputStream in = getContentResolver().openInputStream(src);
-             OutputStream out = getContentResolver().openOutputStream(dest)) {
-            byte[] buffer = new byte[1024];
-            int read;
-            while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
-        }
     }
 
     private void showMediaInfo() {
@@ -234,22 +182,18 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                     .create();
             btnOk.setOnClickListener(v -> dialog.dismiss());
             dialog.show();
-
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to get media info", Toast.LENGTH_SHORT).show();
         }
     }
 
-    // ---------------------- GENERIC HELPERS ----------------------
     private String getFileName(Uri uri) {
         String name = "Unknown";
-        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+        try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
-                int idx = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
+                int idx = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DISPLAY_NAME);
                 if (idx != -1) name = cursor.getString(idx);
-            } else if ("file".equals(uri.getScheme())) {
-                name = new File(uri.getPath()).getName();
             }
         } catch (Exception ignored) {}
         return name;
@@ -257,38 +201,40 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
 
     private long getFileSize(Uri uri) {
         long size = 0;
-        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+        try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
-                int idx = cursor.getColumnIndex(MediaStore.MediaColumns.SIZE);
+                int idx = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.SIZE);
                 if (idx != -1) size = cursor.getLong(idx) / 1024;
-            } else if ("file".equals(uri.getScheme())) {
-                size = new File(uri.getPath()).length() / 1024;
             }
         } catch (Exception ignored) {}
         return size;
     }
 
-    private String[] getVideoMetadata(Uri uri) throws IOException {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(this, uri);
-        int width = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-        int height = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-        long durMs = Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-        retriever.release();
+    private String[] getVideoMetadata(Uri uri) {
+        try {
+            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+            retriever.setDataSource(this, uri);
+            int width = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+            int height = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+            long durMs = Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+            retriever.release();
 
-        long hours = durMs / (1000 * 60 * 60);
-        long minutes = (durMs / (1000 * 60)) % 60;
-        long seconds = (durMs / 1000) % 60;
-        String duration = (hours > 0 ? hours + "h " : "") + minutes + "m " + seconds + "s";
+            long hours = durMs / (1000 * 60 * 60);
+            long minutes = (durMs / (1000 * 60)) % 60;
+            long seconds = (durMs / 1000) % 60;
+            String duration = (hours > 0 ? hours + "h " : "") + minutes + "m " + seconds + "s";
 
-        return new String[]{String.valueOf(width), String.valueOf(height), duration};
+            return new String[]{String.valueOf(width), String.valueOf(height), duration};
+        } catch (Exception e) {
+            return new String[]{"0", "0", "0s"};
+        }
     }
 
     private String[] getImageResolution(Uri uri) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
+        android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         try (InputStream input = getContentResolver().openInputStream(uri)) {
-            BitmapFactory.decodeStream(input, null, options);
+            android.graphics.BitmapFactory.decodeStream(input, null, options);
         } catch (Exception ignored) {}
         return new String[]{String.valueOf(options.outWidth), String.valueOf(options.outHeight)};
     }

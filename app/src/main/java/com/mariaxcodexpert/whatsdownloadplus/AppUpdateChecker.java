@@ -1,86 +1,94 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.google.android.gms.tasks.Task;
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.InstallException;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.InstallErrorCode;
+import com.google.android.play.core.install.model.UpdateAvailability;
 
 public class AppUpdateChecker {
 
     private static final String TAG = "AppUpdateChecker";
+    private static final int UPDATE_REQUEST_CODE = 1001;
+
     private final Activity activity;
-    private final String packageName;
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final AppUpdateManager appUpdateManager;
 
     public AppUpdateChecker(Activity activity) {
         this.activity = activity;
-        this.packageName = activity.getPackageName();
+        this.appUpdateManager = AppUpdateManagerFactory.create(activity);
     }
 
+    // Check for updates (Safe & Silent)
     public void checkForUpdate() {
-        executor.execute(() -> {
-            try {
-                String playStoreUrl = "https://play.google.com/store/apps/details?id=" + packageName + "&hl=en";
-                HttpURLConnection connection = (HttpURLConnection) new URL(playStoreUrl).openConnection();
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
 
-                InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-                Scanner scanner = new Scanner(reader).useDelimiter("\\A");
-                String html = scanner.hasNext() ? scanner.next() : "";
+        Task<AppUpdateInfo> task = appUpdateManager.getAppUpdateInfo();
 
-                String marker = "Current Version";
-                int index = html.indexOf(marker);
-                if (index == -1) return;
+        task.addOnSuccessListener(appUpdateInfo -> {
 
-                String snippet = html.substring(index, Math.min(index + 50, html.length()));
-                String latestVersion = snippet.replaceAll("[^0-9.]", "");
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+                    appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
 
-                PackageManager pm = activity.getPackageManager();
-                PackageInfo info = pm.getPackageInfo(packageName, 0);
-                String currentVersion = info.versionName;
+                try {
+                    appUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.IMMEDIATE,
+                            activity,
+                            UPDATE_REQUEST_CODE
+                    );
 
-                if (!currentVersion.equals(latestVersion)) {
-                    mainHandler.post(this::showUpdateDialog);
+                } catch (Exception e) {
+                    // REAL failure → optional fallback
+                    openPlayStore();
                 }
-
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to check update", e);
             }
-        });
-    }
+            // else → silently ignore (no update / not allowed)
 
-    private void showUpdateDialog() {
-        new AlertDialog.Builder(activity)
-                .setTitle("Update Available")
-                .setMessage("A new version of this app is available. Please update to continue using all features.")
-                .setCancelable(false)
-                .setPositiveButton("Update", (dialog, which) -> openPlayStore())
-                .setNegativeButton("Later", null)
-                .show();
+        });
+
+        task.addOnFailureListener(e -> {
+
+            // ✅ SILENTLY IGNORE: App not owned (sideload / APK install)
+            if (e instanceof InstallException) {
+                InstallException ie = (InstallException) e;
+
+                if (ie.getErrorCode() == InstallErrorCode.ERROR_APP_NOT_OWNED) {
+                    return; // 🔇 absolutely nothing
+                }
+            }
+
+            // Other unexpected errors (optional log)
+            Log.w(TAG, "Update check failed silently");
+        });
     }
 
     private void openPlayStore() {
         try {
-            activity.startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=" + packageName)));
+            activity.startActivity(new Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=" + activity.getPackageName())
+            ));
         } catch (ActivityNotFoundException e) {
-            activity.startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)));
+            activity.startActivity(new Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=" + activity.getPackageName())
+            ));
+        }
+    }
+
+    // Handle update result
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == UPDATE_REQUEST_CODE) {
+            // 🔇 User cancel / fail → no action
         }
     }
 }

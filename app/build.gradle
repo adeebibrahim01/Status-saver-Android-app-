@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.mariaxcodexpert.whatsdownloadplus"
-        minSdk 24
+        minSdk 29
         targetSdk 35
         versionCode 8
         versionName "1.0.8"
@@ -50,6 +50,7 @@ dependencies {
     // Navigation
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
+    implementation libs.play.services.ads.api
 
     // Room
     def room_version = "2.6.0"
@@ -74,12 +75,18 @@ dependencies {
     // Image cropping
     implementation 'com.github.yalantis:ucrop:2.2.8'
 
-    // Google Ads SDK (Stable)
-    implementation 'com.google.android.gms:play-services-ads:23.5.0'
+    // Google Ads SDK (Stable, supports AdMob + AdManager)
+//    implementation 'com.google.android.gms:play-services-ads:23.5.0'
 
-    // AdMobAdapter for Non-Personalized Ads (NPA)
+    // Optional: AdMobAdapter for Non-Personalized Ads (NPA)
+    // Only needed for consent-based non-personalized ads
     implementation 'com.google.android.gms:play-services-ads-identifier:18.1.0'
 
-    // Consent form (optional)
-    implementation 'com.google.android.ump:user-messaging-platform:2.2.0'
+    // Consent form (UMP)
+    implementation "com.google.android.ump:user-messaging-platform:4.0.0"
+
+    // In-App Updates & Review
+    implementation "com.google.android.play:app-update:2.1.0"
+    implementation "com.google.android.play:review:2.0.1"
+
 }

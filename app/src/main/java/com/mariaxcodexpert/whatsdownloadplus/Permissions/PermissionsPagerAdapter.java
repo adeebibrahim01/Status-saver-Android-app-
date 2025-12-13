@@ -1,10 +1,14 @@
 package com.mariaxcodexpert.whatsdownloadplus.Permissions;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,38 +42,64 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         int layoutRes = layouts[position];
 
-        if (layoutRes == R.layout.layout_select_app && holder.selectWhatsapp != null) {
-            holder.selectWhatsapp.setOnClickListener(v -> viewPager.setCurrentItem(position + 1, true));
-        } else if (layoutRes == R.layout.layout_permissions) {
+        // -------------------------
+        // Page 1: Select WhatsApp
+        // -------------------------
+        if (layoutRes == R.layout.layout_select_app && holder.whatsappCheckbox != null) {
+            holder.whatsappCheckbox.setOnClickListener(v -> {
+                if (holder.whatsappCheckbox.isChecked()) {
+                    Toast.makeText(context, "WhatsApp Selected", Toast.LENGTH_SHORT).show();
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> viewPager.setCurrentItem(position + 1, true), 400);
+                } else {
+                    Toast.makeText(context, "You must select WhatsApp to continue", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        // -------------------------
+        // Page 2: Storage & Status Folder
+        // -------------------------
+        else if (layoutRes == R.layout.layout_permissions) {
 
             // Storage button
             if (holder.storageBtn != null) {
+                updateButtonState(holder.storageBtn, activity.isStorageGranted(), "Allow Storage");
                 holder.storageBtn.setOnClickListener(v -> activity.requestStoragePermission());
-
-                if (activity.isStorageGranted()) {
-                    holder.storageBtn.setText("Granted ✅");
-                    holder.storageBtn.setEnabled(false);
-                    holder.storageBtn.setAlpha(0.7f);
-                } else {
-                    holder.storageBtn.setText("Allow Storage");
-                    holder.storageBtn.setEnabled(true);
-                    holder.storageBtn.setAlpha(1f);
-                }
             }
 
             // Status folder button
             if (holder.statusFolderBtn != null) {
-                if (activity.selectedStatusFolderUri != null) {
-                    holder.statusFolderBtn.setText("Granted ✅");
+                boolean folderGranted = activity.selectedStatusFolderUri != null;
+
+                // Check if selected folder is valid WhatsApp folder
+                if (folderGranted && !activity.isValidWhatsAppFolder(activity.selectedStatusFolderUri)) {
+                    folderGranted = false;
+                    activity.selectedStatusFolderUri = null;
+                    Toast.makeText(context, "Incorrect folder selected. Please select WhatsApp .Statuses folder.", Toast.LENGTH_LONG).show();
+                }
+
+                updateButtonState(holder.statusFolderBtn, folderGranted, "Select Folder");
+
+                if (!folderGranted) {
+                    holder.statusFolderBtn.setOnClickListener(v -> activity.openStatusFolderPicker());
+                } else {
                     holder.statusFolderBtn.setEnabled(false);
                     holder.statusFolderBtn.setAlpha(0.7f);
-                } else {
-                    holder.statusFolderBtn.setText("Select Folder");
-                    holder.statusFolderBtn.setEnabled(true);
-                    holder.statusFolderBtn.setAlpha(1f);
-                    holder.statusFolderBtn.setOnClickListener(v -> activity.openStatusFolderPicker());
                 }
             }
+        }
+    }
+
+    /** Helper to update button UI based on granted state */
+    private void updateButtonState(Button btn, boolean granted, String defaultLabel) {
+        if (granted) {
+            btn.setText("✅");
+            btn.setEnabled(false);
+            btn.setAlpha(0.7f);
+        } else {
+            btn.setText(defaultLabel);
+            btn.setEnabled(true);
+            btn.setAlpha(1f);
         }
     }
 
@@ -83,14 +113,18 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
         return layouts.length;
     }
 
+    // -------------------------
+    // ViewHolder
+    // -------------------------
     static class ViewHolder extends RecyclerView.ViewHolder {
-        Button selectWhatsapp, storageBtn, statusFolderBtn;
+        CheckBox whatsappCheckbox;
+        Button storageBtn, statusFolderBtn;
 
         public ViewHolder(@NonNull View itemView, int layoutRes) {
             super(itemView);
-            if (layoutRes == R.layout.layout_select_app)
-                selectWhatsapp = itemView.findViewById(R.id.selectWhatsappButton);
-            else if (layoutRes == R.layout.layout_permissions) {
+            if (layoutRes == R.layout.layout_select_app) {
+                whatsappCheckbox = itemView.findViewById(R.id.selectWhatsappcheckbox);
+            } else if (layoutRes == R.layout.layout_permissions) {
                 storageBtn = itemView.findViewById(R.id.allowStorageButton);
                 statusFolderBtn = itemView.findViewById(R.id.allowStatusFolderButton);
             }

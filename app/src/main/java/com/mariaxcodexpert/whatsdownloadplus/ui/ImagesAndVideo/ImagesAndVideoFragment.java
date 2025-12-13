@@ -1,10 +1,12 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
-import android.content.SharedPreferences;
+import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,14 +20,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.google.android.material.tabs.TabLayout;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.content.Context.MODE_PRIVATE;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ImagesAndVideoFragment extends Fragment {
 
@@ -36,11 +39,21 @@ public class ImagesAndVideoFragment extends Fragment {
     private ConstraintLayout emptyStateLayout;
     private LottieAnimationView lottieEmptyState;
     private TextView tvEmptyMessage;
+    private ProgressBar progressBar;
 
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private final List<DocumentFile> imageList = new ArrayList<>();
     private final List<DocumentFile> videoList = new ArrayList<>();
+
     private Uri statusFolderUri;
     private ImagesAndVideoViewModel viewModel;
+    private ExecutorService executor;
+    private RequestManager glide;
+
+    private static final long MIN_PROGRESS_DURATION = 2000;
+
+    // 🔐 TAB REQUEST CONTROL (MAIN FIX)
+    private int tabRequestId = 0;
 
     @Nullable
     @Override
@@ -54,37 +67,35 @@ public class ImagesAndVideoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Use proper ViewModelProvider call
+        executor = Executors.newFixedThreadPool(3);
         viewModel = new ViewModelProvider(requireActivity()).get(ImagesAndVideoViewModel.class);
+        glide = Glide.with(this);
 
         initViews(view);
         loadStatusFolderUri();
         setupTabs();
         setupSwipeRefresh();
 
-        adapter = new ImagesAndVideoAdapter(requireContext(), imageList, false);
-        galleryRecycler.setAdapter(adapter);
+        showLoading(this::loadStatuses);
 
-        boolean showVideoTab = getArguments() != null && getArguments().getBoolean("showVideos", false);
+        adapter = new ImagesAndVideoAdapter(
+                requireContext(),
+                new ArrayList<>(),
+                false,
+                glide,
+                this::hideProgressAndShowRecycler
+        );
+
+        galleryRecycler.setAdapter(adapter);
+        galleryRecycler.setItemViewCacheSize(20);
+        ((GridLayoutManager) galleryRecycler.getLayoutManager())
+                .setInitialPrefetchItemCount(3);
+
+        boolean showVideoTab = getArguments() != null &&
+                getArguments().getBoolean("showVideos", false);
         selectTab(showVideoTab ? 1 : 0);
 
         observeViewModel();
-    }
-
-    private void observeViewModel() {
-        viewModel.getImages().observe(getViewLifecycleOwner(), images -> {
-            imageList.clear();
-            imageList.addAll(images);
-            if (tabLayout.getSelectedTabPosition() == 0) adapter.updateData(imageList, false);
-            updateEmptyState();
-        });
-
-        viewModel.getVideos().observe(getViewLifecycleOwner(), videos -> {
-            videoList.clear();
-            videoList.addAll(videos);
-            if (tabLayout.getSelectedTabPosition() == 1) adapter.updateData(videoList, true);
-            updateEmptyState();
-        });
     }
 
     private void initViews(View view) {
@@ -92,142 +103,208 @@ public class ImagesAndVideoFragment extends Fragment {
         tabLayout = view.findViewById(R.id.tabLayout);
         galleryRecycler = view.findViewById(R.id.galleryRecycler);
         galleryRecycler.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        galleryRecycler.setHasFixedSize(true);
-
         emptyStateLayout = view.findViewById(R.id.emptyStateLayout);
         lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
+        progressBar = view.findViewById(R.id.progressBarLoading);
+    }
+
+    private void observeViewModel() {
+
+        viewModel.getImages().observe(getViewLifecycleOwner(), images -> {
+            imageList.clear();
+            imageList.addAll(images);
+
+            if (tabLayout.getSelectedTabPosition() == 0) {
+                adapter.updateDataAsync(imageList, false);
+            }
+            updateEmptyState();
+        });
+
+        viewModel.getVideos().observe(getViewLifecycleOwner(), videos -> {
+            videoList.clear();
+            videoList.addAll(videos);
+
+            if (tabLayout.getSelectedTabPosition() == 1) {
+                adapter.updateDataAsync(videoList, true);
+            }
+            updateEmptyState();
+        });
     }
 
     private void setupTabs() {
+
         tabLayout.addTab(tabLayout.newTab().setText("Images"));
         tabLayout.addTab(tabLayout.newTab().setText("Videos"));
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                boolean showVideo = tab.getPosition() == 1;
-                adapter.updateData(showVideo ? videoList : imageList, showVideo);
-                updateActionBarTitle(showVideo);
-                updateEmptyState();
+
+                final int myRequestId = ++tabRequestId;
+                final boolean showVideo = tab.getPosition() == 1;
+                final List<DocumentFile> list = showVideo ? videoList : imageList;
+
+                // 🔥 Show loader ONLY if list is empty
+                if (list.isEmpty()) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    galleryRecycler.setVisibility(View.GONE);
+                    emptyStateLayout.setVisibility(View.GONE);
+                } else {
+                    progressBar.setVisibility(View.GONE);
+                    galleryRecycler.setVisibility(View.VISIBLE);
+                }
+
+                safeExecute(() -> {
+                    adapter.updateDataAsync(list, showVideo);
+
+                    // Post UI update on main thread
+                    handler.post(() -> {
+                        if (!isAdded() || myRequestId != tabRequestId) return;
+
+                        progressBar.setVisibility(View.GONE);
+                        updateEmptyState();
+                    });
+                });
             }
+
             @Override public void onTabUnselected(TabLayout.Tab tab) {}
             @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
     }
 
+
     private void setupSwipeRefresh() {
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadStatuses();
-            swipeRefreshLayout.setRefreshing(false);
-        });
+        swipeRefreshLayout.setOnRefreshListener(
+                () -> showLoading(this::loadStatuses)
+        );
     }
 
     private void loadStatusFolderUri() {
-        SharedPreferences prefs = requireContext().getSharedPreferences("AppPrefs", MODE_PRIVATE);
-        String uriStr = prefs.getString("statusFolderUri", null);
-        if (uriStr != null) statusFolderUri = Uri.parse(uriStr);
-        else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            File folder = new File("/storage/emulated/0/WhatsApp/Media/.Statuses");
-            if (folder.exists() && folder.isDirectory()) statusFolderUri = Uri.fromFile(folder);
-        }
+        Context ctx = requireContext();
+        String uri = ctx.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                .getString("statusFolderUri", null);
+        statusFolderUri = uri != null ? Uri.parse(uri) : null;
     }
 
     private void selectTab(int index) {
-        TabLayout.Tab tab = tabLayout.getTabAt(index);
-        if (tab != null) tab.select();
-        loadStatuses();
+        if (tabLayout.getTabAt(index) != null)
+            tabLayout.getTabAt(index).select();
     }
 
     private void loadStatuses() {
-        List<DocumentFile> images = new ArrayList<>();
-        List<DocumentFile> videos = new ArrayList<>();
-        if (statusFolderUri == null) return;
+        if (statusFolderUri == null || executor == null || executor.isShutdown())
+            return;
 
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P)
-            scanFolder(new File(statusFolderUri.getPath()), images, videos);
-        else
-            scanFolder(DocumentFile.fromTreeUri(requireContext(), statusFolderUri), images, videos);
+        safeExecute(() -> {
 
-        viewModel.setImages(images);
-        viewModel.setVideos(videos);
+            DocumentFile folder =
+                    DocumentFile.fromTreeUri(requireContext(), statusFolderUri);
+            if (folder == null || !folder.isDirectory()) return;
+
+            List<DocumentFile> images = new ArrayList<>();
+            List<DocumentFile> videos = new ArrayList<>();
+            scanFolder(folder, images, videos);
+
+            handler.post(() -> {
+                if (isAdded()) {
+                    viewModel.setImages(images);
+                    viewModel.setVideos(videos);
+                }
+            });
+        });
     }
 
-    private void scanFolder(Object folder, List<DocumentFile> images, List<DocumentFile> videos) {
-        if (folder instanceof File) {
-            File f = (File) folder;
-            File[] files = f.listFiles();
-            if (files == null) return;
-            for (File file : files) {
-                if (file.isFile()) {
-                    if (isImageFile(file.getName())) images.add(DocumentFile.fromFile(file));
-                    else if (isVideoFile(file.getName())) videos.add(DocumentFile.fromFile(file));
-                } else if (file.isDirectory()) scanFolder(file, images, videos);
-            }
-        } else if (folder instanceof DocumentFile) {
-            DocumentFile df = (DocumentFile) folder;
-            for (DocumentFile file : df.listFiles()) {
-                if (file.isFile()) {
-                    String name = file.getName() != null ? file.getName() : "";
-                    if (isImageFile(name)) images.add(file);
-                    else if (isVideoFile(name)) videos.add(file);
-                } else if (file.isDirectory()) scanFolder(file, images, videos);
-            }
+    private void scanFolder(DocumentFile folder,
+                            List<DocumentFile> images,
+                            List<DocumentFile> videos) {
+
+        for (DocumentFile file : folder.listFiles()) {
+            if (file.isFile()) addFile(file, images, videos);
+            else if (file.isDirectory())
+                scanFolder(file, images, videos);
         }
     }
 
-    private boolean isImageFile(String name) {
-        if (name == null) return false;
-        name = name.toLowerCase();
-        return name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || name.endsWith(".webp");
-    }
+    private void addFile(DocumentFile file,
+                         List<DocumentFile> images,
+                         List<DocumentFile> videos) {
 
-    private boolean isVideoFile(String name) {
-        if (name == null) return false;
-        name = name.toLowerCase();
-        return name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".3gp");
-    }
+        if (file.getName() == null) return;
+        String n = file.getName().toLowerCase();
 
-    private void updateActionBarTitle(boolean showVideo) {
-        if (getActivity() != null) {
-            String title = showVideo ? "Videos" : "Images";
-            ((androidx.appcompat.app.AppCompatActivity) getActivity()).getSupportActionBar().setTitle(title);
-        }
+        if (n.endsWith(".jpg") || n.endsWith(".jpeg")
+                || n.endsWith(".png") || n.endsWith(".webp"))
+            images.add(file);
+        else if (n.endsWith(".mp4") || n.endsWith(".mkv")
+                || n.endsWith(".3gp"))
+            videos.add(file);
     }
 
     private void updateEmptyState() {
-        boolean showVideoTab = tabLayout.getSelectedTabPosition() == 1;
-        List<DocumentFile> currentList = showVideoTab ? videoList : imageList;
 
-        if (currentList.isEmpty()) {
-            galleryRecycler.setVisibility(View.GONE);
-            emptyStateLayout.setVisibility(View.VISIBLE);
+        boolean showVideo = tabLayout.getSelectedTabPosition() == 1;
+        List<DocumentFile> current = showVideo ? videoList : imageList;
 
-            // Show animation
-            lottieEmptyState.setVisibility(View.VISIBLE);
+        boolean empty = current.isEmpty();
+        galleryRecycler.setVisibility(empty ? View.GONE : View.VISIBLE);
+        emptyStateLayout.setVisibility(empty ? View.VISIBLE : View.GONE);
+
+        if (empty) {
             lottieEmptyState.setAnimation(R.raw.empty_status);
             lottieEmptyState.playAnimation();
-
-            // Show proper text
-            tvEmptyMessage.setVisibility(View.VISIBLE);
-            tvEmptyMessage.setText(showVideoTab
+            tvEmptyMessage.setText(showVideo
                     ? "Videos not available 😔\nPlease check WhatsApp status first"
                     : "Images not available 😔\nPlease check WhatsApp status first");
-
         } else {
-            galleryRecycler.setVisibility(View.VISIBLE);
-            emptyStateLayout.setVisibility(View.GONE);
-
             lottieEmptyState.pauseAnimation();
-            lottieEmptyState.setVisibility(View.GONE);
-            tvEmptyMessage.setVisibility(View.GONE);
+            tvEmptyMessage.setText("");
         }
     }
 
+    private void showLoading(Runnable task) {
+
+        long start = System.currentTimeMillis();
+        progressBar.setVisibility(View.VISIBLE);
+        galleryRecycler.setVisibility(View.GONE);
+        emptyStateLayout.setVisibility(View.GONE);
+
+        // Ensure SwipeRefreshLayout spinner is visible
+        swipeRefreshLayout.setRefreshing(true);
+
+        safeExecute(() -> {
+            if (task != null) task.run();
+
+            long elapsed = System.currentTimeMillis() - start;
+            long delay = Math.max(0, MIN_PROGRESS_DURATION - elapsed);
+
+            handler.postDelayed(() -> {
+                hideProgressAndShowRecycler();
+                swipeRefreshLayout.setRefreshing(false); // stop the spinner
+            }, delay);
+        });
+    }
+
+
+    private void hideProgressAndShowRecycler() {
+        progressBar.setVisibility(View.GONE);
+        galleryRecycler.setVisibility(View.VISIBLE);
+        updateEmptyState();
+    }
+
+    private void safeExecute(Runnable r) {
+        try {
+            if (executor != null && !executor.isShutdown())
+                executor.execute(r);
+        } catch (Exception ignored) {}
+    }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         if (adapter != null) adapter.shutdownScheduler();
+        if (executor != null && !executor.isShutdown())
+            executor.shutdownNow();
+        executor = null;
     }
 }

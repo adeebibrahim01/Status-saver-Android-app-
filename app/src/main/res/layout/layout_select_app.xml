@@ -50,7 +50,7 @@
             android:fontFamily="sans-serif-medium"/>
 
         <CheckBox
-            android:id="@+id/selectWhatsappButton"
+            android:id="@+id/selectWhatsappcheckbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:buttonTint="@color/whatsapp_greeen"/>

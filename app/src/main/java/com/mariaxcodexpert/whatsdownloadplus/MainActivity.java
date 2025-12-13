@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
@@ -12,8 +13,6 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.google.android.material.navigation.NavigationView;
-import com.mariaxcodexpert.whatsdownloadplus.ConsentFormManager;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.ActivityMainBinding;
 
 import java.util.HashMap;
@@ -25,11 +24,27 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
     private ConsentFormManager consentFormManager;
-
+    // AppUpdateChecker instance
+    private AppUpdateChecker updateChecker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+
+        // ==============================
+        // GDPR + ADS HANDLING (Simplified)
+        // ==============================
+        // Consent + Ads
+        ConsentFormManager.init(this);
+
+        ConsentFormManager.getInstance().requestConsentForm(() -> {
+            // After consent is ready
+            if (AdManager.canRequestAds()) {
+                AdManager.init(this); // ensure ad is loaded
+            }
+
+        });
         // ViewBinding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -42,21 +57,21 @@ public class MainActivity extends AppCompatActivity {
         setupToolbarTitleUpdater();
         setupFAB();
 
-        // ==============================
-        // GDPR + ADS HANDLING (Simplified)
-        // ==============================
-        ConsentFormManager.init(this);
 
-        ConsentFormManager.getInstance().requestConsentForm(() -> {
-            // After consent is ready (EU or Non-EU)
-            AdManager.init(this);
-
-            // ✅ Check for app updates here
-            new AppUpdateChecker(this).checkForUpdate();
-        });
-
+        // Initialize update checker
+        updateChecker = new AppUpdateChecker(this);
+        updateChecker.checkForUpdate(); // ✅ This is now called properly
     }
 
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (updateChecker != null) {
+            updateChecker.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 
     // =========================
     // AppBarConfiguration
@@ -180,4 +195,6 @@ public class MainActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp();
     }
+
+
 }

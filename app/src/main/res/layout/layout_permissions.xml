@@ -15,7 +15,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-
             <!-- 1. Storage Access -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -57,8 +56,7 @@
 
                     <TextView
                         android:id="@+id/permissionDescriptionStorage"
-                        android:text="Allow storage access so that when a status is downloaded, it can be saved directly to your device.
-"
+                        android:text="Allow storage access so that when a status is downloaded, it can be saved directly to your device."
                         android:textColor="#666666"
                         android:textSize="13sp"
                         android:layout_width="wrap_content"
@@ -77,8 +75,7 @@
                     android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
 
-
-            <!-- 3. WhatsApp Status Folder -->
+            <!-- 2. WhatsApp Status Folder -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -137,6 +134,8 @@
                     android:layout_height="40dp"
                     android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
+
+
 
             <TextView
                 android:layout_width="match_parent"

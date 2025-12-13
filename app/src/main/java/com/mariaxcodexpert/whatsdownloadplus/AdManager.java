@@ -5,10 +5,10 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
@@ -21,121 +21,142 @@ public class AdManager {
 
     private static final String TAG = "AdManager";
 
+    // -----------------------
+    // TESTING MODE
+    // -----------------------
+    private static final boolean TESTING = true;
     private static final String TEST_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712";
     private static final String REAL_INTERSTITIAL = "ca-app-pub-9822767396000072/9444114867";
 
     private static InterstitialAd interstitialAd;
     private static boolean isLoading = false;
+    private static int retryCount = 0;
+    private static final int MAX_RETRY = 5;
     private static final Handler handler = new Handler(Looper.getMainLooper());
 
-    // -----------------------
-    // Initialize ads (with consent check)
-    // -----------------------
+    private static WeakReference<Activity> lastActivity;
+
+    // ===========================================================
+    // INIT
+    // ===========================================================
     public static void init(Context context) {
         ConsentFormManager consent = ConsentFormManager.getInstance();
 
         if (consent != null) {
-            // EU user → request consent first
-            consent.requestConsentForm(() -> loadInterstitial(context));
+            consent.requestConsentForm(() -> preloadAd(context));
         } else {
-            // Non-EU → load ad directly
-            loadInterstitial(context);
+            preloadAd(context);
         }
     }
 
-    // -----------------------
-    // Load interstitial ad
-    // -----------------------
-    public static void loadInterstitial(Context context) {
+    // ===========================================================
+    // PRELOAD AD
+    // ===========================================================
+    private static void preloadAd(Context context) {
         if (interstitialAd != null || isLoading) return;
 
-        isLoading = true;
-        WeakReference<Context> weak = new WeakReference<>(context);
-        AdRequest request = new AdRequest.Builder().build();
+        ConsentFormManager consent = ConsentFormManager.getInstance();
+        boolean canRequest = consent == null || consent.canRequestAds();
 
-        InterstitialAd.load(context, REAL_INTERSTITIAL, request, new InterstitialAdLoadCallback() {
+        isLoading = true;
+        String adUnitId = TESTING ? TEST_INTERSTITIAL : REAL_INTERSTITIAL;
+        Log.d(TAG, "Preloading Interstitial: " + (TESTING ? "TEST ID" : "REAL ID") +
+                " | CanRequestAds: " + canRequest);
+
+        WeakReference<Context> weakContext = new WeakReference<>(context);
+
+        AdRequest.Builder builder = new AdRequest.Builder();
+
+        if (consent != null && !consent.canRequestAds()) {
+            // Non-personalized ad if user didn't consent
+            builder.addNetworkExtrasBundle(AdMobAdapter.class,
+                    ConsentFormManager.getNonPersonalizedBundle());
+        }
+
+        AdRequest request = builder.build();
+
+        InterstitialAd.load(context, adUnitId, request, new InterstitialAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull InterstitialAd ad) {
                 interstitialAd = ad;
                 isLoading = false;
-                Log.d(TAG, "Interstitial Loaded ✅");
+                retryCount = 0;
+                Log.d(TAG, "Interstitial Loaded ✔");
+
+                interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                    @Override
+                    public void onAdDismissedFullScreenContent() {
+                        Log.d(TAG, "Ad dismissed, preloading next");
+                        interstitialAd = null;
+                        Activity act = lastActivity != null ? lastActivity.get() : null;
+                        if (act != null) preloadAd(act);
+                    }
+
+                    @Override
+                    public void onAdFailedToShowFullScreenContent(@NonNull com.google.android.gms.ads.AdError error) {
+                        Log.e(TAG, "Ad failed to show: " + error.getMessage());
+                        interstitialAd = null;
+                        Activity act = lastActivity != null ? lastActivity.get() : null;
+                        if (act != null) preloadAd(act);
+                    }
+                });
             }
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError error) {
                 interstitialAd = null;
                 isLoading = false;
-                Log.e(TAG, "Ad Failed: " + error.getMessage());
-                showToast(context, "Ad failed to load");
+                Log.e(TAG, "Ad Failed to Load: " + error.getMessage());
 
-                handler.postDelayed(() -> {
-                    Context ctx = weak.get();
-                    if (ctx != null) loadInterstitial(ctx);
-                }, 4000);
+                if (retryCount < MAX_RETRY) {
+                    retryCount++;
+                    long delay = Math.min((long) Math.pow(2, retryCount) * 1000, 15000);
+                    handler.postDelayed(() -> {
+                        Context ctx = weakContext.get();
+                        if (ctx != null) preloadAd(ctx);
+                    }, delay);
+                }
             }
         });
     }
 
-    // -----------------------
-    // Show interstitial ad
-    // -----------------------
-    public static void showInterstitial(Activity activity, AdCallback adCallback) {
+    // ===========================================================
+    // SHOW INTERSTITIAL
+    // ===========================================================
+    public static void showInterstitial(Activity activity, AdCallback callback) {
+        lastActivity = new WeakReference<>(activity);
+
         if (interstitialAd == null) {
-            // No ad → run callback immediately
-            if (adCallback != null) adCallback.onAdClosed();
-            loadInterstitial(activity); // preload for next
+            Log.d(TAG, "Ad not ready, preloading...");
+            preloadAd(activity);
+            if (callback != null) callback.onAdClosed();
             return;
         }
-
-        WeakReference<Activity> weak = new WeakReference<>(activity);
-
-        interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
-            @Override
-            public void onAdDismissedFullScreenContent() {
-                interstitialAd = null;
-                Activity act = weak.get();
-                if (act != null) loadInterstitial(act); // preload next ad
-                if (adCallback != null) adCallback.onAdClosed(); // 🔥 trigger callback after ad closes
-            }
-
-            @Override
-            public void onAdFailedToShowFullScreenContent(@NonNull com.google.android.gms.ads.AdError adError) {
-                interstitialAd = null;
-                Activity act = weak.get();
-                if (act != null) loadInterstitial(act); // preload next ad
-                if (adCallback != null) adCallback.onAdClosed(); // 🔥 trigger callback if ad fails
-            }
-        });
 
         interstitialAd.show(activity);
     }
 
-    // -----------------------
-    // Check if interstitial ad is loaded
-    // -----------------------
+    // ===========================================================
+    // CHECK IF LOADED
+    // ===========================================================
     public static boolean isAdLoaded() {
         return interstitialAd != null;
     }
 
-    // -----------------------
-    // Check if ads can be requested (EU consent)
-    // -----------------------
+    // ===========================================================
+    // CAN REQUEST ADS
+    // ===========================================================
     public static boolean canRequestAds() {
         ConsentFormManager consent = ConsentFormManager.getInstance();
-        if (consent == null) return true; // Non-EU fallback
-        return consent.canRequestAds();
+        return consent == null || consent.canRequestAds();
     }
 
-    // -----------------------
-    // Ad callback interface
-    // -----------------------
+    // ===========================================================
+    // CALLBACK
+    // ===========================================================
     public interface AdCallback {
         void onAdClosed();
-    }
-
-    private static void showToast(final Context context, final String msg) {
-        new Handler(Looper.getMainLooper()).post(() ->
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-        );
+        void onAdFailedToShow();
+        void onAdShown();
     }
 }

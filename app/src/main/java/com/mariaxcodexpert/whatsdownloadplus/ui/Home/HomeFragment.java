@@ -51,10 +51,11 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        binding.cardImages.setOnClickListener(v -> openGallery(false)); // false = Images
-        binding.cardVideos.setOnClickListener(v -> openGallery(true)); // true = Videos
+        binding.cardImages.setOnClickListener(v -> openGallery(false));  // false = Images
+        binding.cardVideos.setOnClickListener(v -> openGallery(true));  // true = Videos
         binding.cardSaved.setOnClickListener(v -> navigateToDownload());
     }
+
 
     private void openGallery(boolean showVideos) {
         Bundle args = new Bundle();

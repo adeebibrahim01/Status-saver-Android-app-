@@ -1,20 +1,27 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.ump.ConsentDebugSettings;
 import com.google.android.ump.ConsentInformation;
 import com.google.android.ump.ConsentRequestParameters;
 import com.google.android.ump.UserMessagingPlatform;
-import com.google.android.ump.ConsentForm;
 
 public class ConsentFormManager {
 
     private final Activity activity;
     private ConsentInformation consentInformation;
     private static ConsentFormManager instance;
+
+    // Flag to avoid showing form multiple times
+    private boolean formAlreadyShown = false;
+
+    // Flag for testing mode
+    private static final boolean IS_TESTING = true;
 
     private ConsentFormManager(@NonNull Activity activity) {
         this.activity = activity;
@@ -29,10 +36,28 @@ public class ConsentFormManager {
     }
 
     public void requestConsentForm(Runnable onConsentReady) {
+        if (!IS_TESTING) {
+            // Skip form if not testing
+            onConsentReady.run();
+            return;
+        }
+
+        if (formAlreadyShown) {
+            // Already shown → skip
+            onConsentReady.run();
+            return;
+        }
+
         consentInformation = UserMessagingPlatform.getConsentInformation(activity);
+
+        ConsentDebugSettings debugSettings = new ConsentDebugSettings.Builder(activity)
+                .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+                .addTestDeviceHashedId("EFB3EC451980C80F0A145C61936CE2ED")
+                .build();
 
         ConsentRequestParameters params = new ConsentRequestParameters.Builder()
                 .setTagForUnderAgeOfConsent(false)
+                .setConsentDebugSettings(debugSettings)
                 .build();
 
         consentInformation.requestConsentInfoUpdate(
@@ -40,14 +65,9 @@ public class ConsentFormManager {
                 params,
                 () -> {
                     if (consentInformation.isConsentFormAvailable()) {
-                        UserMessagingPlatform.loadConsentForm(activity,
-                                consentForm -> consentForm.show(activity, formError -> onConsentReady.run()),
-                                formError -> {
-                                    Log.e("ConsentForm", "Load error: " + formError.getMessage());
-                                    onConsentReady.run();
-                                });
+                        loadAndShowForm(onConsentReady);
                     } else {
-                        onConsentReady.run(); // Non-EU → directly load ads
+                        onConsentReady.run();
                     }
                 },
                 formError -> {
@@ -57,21 +77,38 @@ public class ConsentFormManager {
         );
     }
 
-
     private void loadAndShowForm(Runnable onConsentReady) {
         UserMessagingPlatform.loadConsentForm(
                 activity,
-                consentForm -> consentForm.show(activity, formError -> onConsentReady.run()),
-                formError -> onConsentReady.run()
+                consentForm -> {
+                    if (!formAlreadyShown) {
+                        consentForm.show(activity, formError -> {
+                            if (formError != null) {
+                                Log.e("ConsentForm", "Form error: " + formError.getMessage());
+                            }
+                            formAlreadyShown = true; // mark as shown
+                            onConsentReady.run();
+                        });
+                    } else {
+                        onConsentReady.run();
+                    }
+                },
+                formError -> {
+                    Log.e("ConsentForm", "Load form error: " + formError.getMessage());
+                    onConsentReady.run();
+                }
         );
     }
 
     public boolean canRequestAds() {
-        // If consentInformation is null, assume non-EU user → ads allowed
         if (consentInformation == null) return true;
-
-        // Return true if consent status allows ads (Non-EU: always true)
-        return consentInformation.canRequestAds();
+        return consentInformation.getConsentStatus() == ConsentInformation.ConsentStatus.OBTAINED
+                || consentInformation.canRequestAds();
     }
 
+    public static Bundle getNonPersonalizedBundle() {
+        Bundle extras = new Bundle();
+        extras.putString("npa", "1");
+        return extras;
+    }
 }

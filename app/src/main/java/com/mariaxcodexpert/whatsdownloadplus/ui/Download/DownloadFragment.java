@@ -5,12 +5,10 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,11 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.airbnb.lottie.LottieAnimationView;
-import com.bumptech.glide.Glide;
-import com.mariaxcodexpert.whatsdownloadplus.Permissions.PermissionsActivity;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,9 +32,9 @@ public class DownloadFragment extends Fragment {
     private DownloadAdapter adapter;
     private final List<Uri> mediaUris = new ArrayList<>();
     private final List<Boolean> isVideoList = new ArrayList<>();
-    private ImageView ivEmptyGif;
     private TextView tvEmptyMessage;
     private LottieAnimationView lottieEmptyState;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -49,11 +44,8 @@ public class DownloadFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_download, container, false);
         recyclerView = view.findViewById(R.id.recyclerView);
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
-        // onCreateView
         lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
-
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
-
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setHasFixedSize(true);
@@ -63,17 +55,11 @@ public class DownloadFragment extends Fragment {
             swipeRefreshLayout.setRefreshing(false);
         });
 
-        PermissionsActivity permissionsActivity = null;
-        if (getActivity() instanceof PermissionsActivity) {
-            permissionsActivity = (PermissionsActivity) getActivity();
-        }
-
         adapter = new DownloadAdapter(
                 getContext(),
                 mediaUris,
                 isVideoList,
-                permissionsActivity,
-                this::deleteFile,
+                null,
                 this::updateEmptyMessage
         );
 
@@ -107,8 +93,6 @@ public class DownloadFragment extends Fragment {
         }
     }
 
-
-
     private void loadStatusSaverMedia() {
         mediaUris.clear();
         isVideoList.clear();
@@ -119,8 +103,6 @@ public class DownloadFragment extends Fragment {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             loadImages(context);
             loadVideos(context);
-        } else {
-            loadLegacyFolderMedia();
         }
 
         adapter.notifyDataSetChanged();
@@ -169,64 +151,5 @@ public class DownloadFragment extends Fragment {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private void loadLegacyFolderMedia() {
-        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Status Saver");
-        if (folder.exists() && folder.isDirectory()) {
-            addFilesFromFolder(folder);
-        }
-    }
-
-    private void addFilesFromFolder(File folder) {
-        File[] files = folder.listFiles();
-        if (files == null) return;
-
-        for (File file : files) {
-            if (file.isFile()) {
-                Uri uri = Uri.fromFile(file);
-                String name = file.getName().toLowerCase();
-                if (name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".3gp")) {
-                    mediaUris.add(uri);
-                    isVideoList.add(true);
-                } else if (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || name.endsWith(".webp")) {
-                    mediaUris.add(uri);
-                    isVideoList.add(false);
-                }
-            } else if (file.isDirectory()) {
-                addFilesFromFolder(file);
-            }
-        }
-    }
-
-    private void deleteFile(int position) {
-        if (position < 0 || position >= mediaUris.size()) return;
-
-        Uri uri = mediaUris.get(position);
-        boolean isVideo = isVideoList.get(position);
-
-        try {
-            boolean deleted = false;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                deleted = requireContext().getContentResolver().delete(uri, null, null) > 0;
-            } else {
-                File file = new File(uri.getPath());
-                deleted = file.exists() && file.delete();
-            }
-
-            if (deleted) {
-                mediaUris.remove(position);
-                isVideoList.remove(position);
-                adapter.notifyItemRemoved(position);
-                adapter.notifyItemRangeChanged(position, mediaUris.size());
-               } else {
-                Toast.makeText(getContext(), "Failed to delete file", Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(getContext(), "Error deleting file", Toast.LENGTH_SHORT).show();
-        }
-
-        updateEmptyMessage();
     }
 }

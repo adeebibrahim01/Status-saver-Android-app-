@@ -55,7 +55,15 @@
             android:clipToPadding="false"
             android:scrollbars="vertical"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
+        <!-- Circular ProgressBar -->
+        <ProgressBar
+            android:id="@+id/progressBarLoading"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="visible"/>
         <!-- Empty state overlay -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/emptyStateLayout"

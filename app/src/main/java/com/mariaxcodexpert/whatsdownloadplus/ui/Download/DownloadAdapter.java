@@ -5,7 +5,6 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,10 +16,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.mariaxcodexpert.whatsdownloadplus.Permissions.PermissionsActivity;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
-import java.io.File;
 import java.util.List;
 
 public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.StatusViewHolder> {
@@ -31,20 +28,16 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     private final DeleteCallback deleteCallback;
     private final EmptyCheckCallback emptyCheckCallback;
 
-    // Interface to handle delete from fragment
     public interface DeleteCallback {
         void onDelete(int position);
     }
 
-    // Interface to check empty state
     public interface EmptyCheckCallback {
         void onCheckEmpty();
     }
 
     public DownloadAdapter(Context context, List<Uri> mediaUris, List<Boolean> isVideoList,
-                           PermissionsActivity permissionsActivity,
-                           DeleteCallback deleteCallback,
-                           EmptyCheckCallback emptyCheckCallback) {
+                           DeleteCallback deleteCallback, EmptyCheckCallback emptyCheckCallback) {
         this.context = context;
         this.mediaUris = mediaUris;
         this.isVideoList = isVideoList;
@@ -64,7 +57,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         Uri uri = mediaUris.get(position);
         boolean isVideo = isVideoList.get(position);
 
-        // Load thumbnail
+        // Glide image loading WITHOUT any fade or animation
         Glide.with(context)
                 .load(uri)
                 .placeholder(R.drawable.image_bg)
@@ -74,7 +67,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
         holder.videoIcon.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
-        // Click to open full screen
+        // Open full screen media
         holder.imageThumb.setOnClickListener(v -> {
             int pos = holder.getBindingAdapterPosition();
             if (pos == RecyclerView.NO_POSITION) return;
@@ -88,7 +81,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
             context.startActivity(intent);
         });
 
-        // Delete icon click
+        // Delete media
         holder.deleteIcon.setOnClickListener(v -> {
             int pos = holder.getBindingAdapterPosition();
             if (pos == RecyclerView.NO_POSITION) return;
@@ -101,29 +94,23 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         });
     }
 
-    // Delete file fallback
     private void deleteFile(int pos, boolean isVideo) {
         Uri fileUri = mediaUris.get(pos);
         boolean deleted = false;
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ContentResolver resolver = context.getContentResolver();
-                Uri contentUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                        : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                long id = ContentUris.parseId(fileUri);
-                Uri deleteUri = ContentUris.withAppendedId(contentUri, id);
-                deleted = resolver.delete(deleteUri, null, null) > 0;
-            } else {
-                File file = new File(fileUri.getPath());
-                deleted = file.exists() && file.delete();
-            }
+            ContentResolver resolver = context.getContentResolver();
+            Uri contentUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            long id = ContentUris.parseId(fileUri);
+            Uri deleteUri = ContentUris.withAppendedId(contentUri, id);
+            deleted = resolver.delete(deleteUri, null, null) > 0;
 
             if (deleted) {
                 removeItem(pos);
                 Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(context, "Can't delete file! Check folder permissions.", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Can't delete file! Check permissions.", Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
             e.printStackTrace();
