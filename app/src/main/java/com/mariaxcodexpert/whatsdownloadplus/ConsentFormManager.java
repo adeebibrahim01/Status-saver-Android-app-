@@ -21,7 +21,7 @@ public class ConsentFormManager {
     private boolean formAlreadyShown = false;
 
     // Flag for testing mode
-    private static final boolean IS_TESTING = true;
+    private static final boolean IS_TESTING = false;
 
     private ConsentFormManager(@NonNull Activity activity) {
         this.activity = activity;

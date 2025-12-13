@@ -29,7 +29,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     private final EmptyCheckCallback emptyCheckCallback;
 
     public interface DeleteCallback {
-        void onDelete(int position);
+        void onDelete(Uri uri); // pass URI instead of position
     }
 
     public interface EmptyCheckCallback {
@@ -54,10 +54,13 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
     @Override
     public void onBindViewHolder(@NonNull StatusViewHolder holder, int position) {
-        Uri uri = mediaUris.get(position);
-        boolean isVideo = isVideoList.get(position);
+        int pos = holder.getBindingAdapterPosition();
+        if (pos == RecyclerView.NO_POSITION || pos >= mediaUris.size()) return;
 
-        // Glide image loading WITHOUT any fade or animation
+        Uri uri = mediaUris.get(pos);
+        boolean isVideo = isVideoList.get(pos);
+
+        // Load thumbnail using Glide
         Glide.with(context)
                 .load(uri)
                 .placeholder(R.drawable.image_bg)
@@ -69,11 +72,11 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
         // Open full screen media
         holder.imageThumb.setOnClickListener(v -> {
-            int pos = holder.getBindingAdapterPosition();
-            if (pos == RecyclerView.NO_POSITION) return;
+            int clickPos = holder.getBindingAdapterPosition();
+            if (clickPos == RecyclerView.NO_POSITION || clickPos >= mediaUris.size()) return;
 
-            Uri mediaUri = mediaUris.get(pos);
-            boolean videoFlag = isVideoList.get(pos);
+            Uri mediaUri = mediaUris.get(clickPos);
+            boolean videoFlag = isVideoList.get(clickPos);
 
             Intent intent = new Intent(context, FullScreenMediaActivity.class);
             intent.putExtra(FullScreenMediaActivity.EXTRA_URI, mediaUri);
@@ -83,18 +86,23 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
         // Delete media
         holder.deleteIcon.setOnClickListener(v -> {
-            int pos = holder.getBindingAdapterPosition();
-            if (pos == RecyclerView.NO_POSITION) return;
+            int clickPos = holder.getBindingAdapterPosition();
+            if (clickPos == RecyclerView.NO_POSITION || clickPos >= mediaUris.size()) return;
+
+            Uri uriToDelete = mediaUris.get(clickPos);
+            boolean isVideos = isVideoList.get(clickPos);
+
+            deleteFile(clickPos, isVideos);
 
             if (deleteCallback != null) {
-                deleteCallback.onDelete(pos);
-            } else {
-                deleteFile(pos, isVideo);
+                deleteCallback.onDelete(uriToDelete); // Safe deletion callback
             }
         });
     }
 
     private void deleteFile(int pos, boolean isVideo) {
+        if (pos < 0 || pos >= mediaUris.size()) return;
+
         Uri fileUri = mediaUris.get(pos);
         boolean deleted = false;
 
@@ -119,6 +127,8 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     }
 
     private void removeItem(int pos) {
+        if (pos < 0 || pos >= mediaUris.size()) return;
+
         mediaUris.remove(pos);
         isVideoList.remove(pos);
         notifyItemRemoved(pos);

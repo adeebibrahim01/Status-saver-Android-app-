@@ -1,10 +1,12 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -26,7 +28,9 @@ import com.google.android.material.tabs.TabLayout;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -51,9 +55,10 @@ public class ImagesAndVideoFragment extends Fragment {
     private RequestManager glide;
 
     private static final long MIN_PROGRESS_DURATION = 2000;
-
-    // 🔐 TAB REQUEST CONTROL (MAIN FIX)
     private int tabRequestId = 0;
+
+    // Persistent downloaded files
+    private final Set<String> savedFilesCache = new HashSet<>();
 
     @Nullable
     @Override
@@ -71,18 +76,27 @@ public class ImagesAndVideoFragment extends Fragment {
         viewModel = new ViewModelProvider(requireActivity()).get(ImagesAndVideoViewModel.class);
         glide = Glide.with(this);
 
+        // Load persistent saved files
+        Set<String> savedSet = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                .getStringSet("savedFiles", new HashSet<>());
+        savedFilesCache.clear();
+        savedFilesCache.addAll(savedSet);
+
         initViews(view);
         loadStatusFolderUri();
         setupTabs();
         setupSwipeRefresh();
 
-        showLoading(this::loadStatuses);
+        // Adapter now receives saved files cache for persistent download state
+        // Rebuild cache from existing files to fix download icon after app restart
+        rebuildSavedFilesCache();
 
         adapter = new ImagesAndVideoAdapter(
                 requireContext(),
                 new ArrayList<>(),
                 false,
                 glide,
+                savedFilesCache,
                 this::hideProgressAndShowRecycler
         );
 
@@ -96,6 +110,50 @@ public class ImagesAndVideoFragment extends Fragment {
         selectTab(showVideoTab ? 1 : 0);
 
         observeViewModel();
+
+        // Initial load
+        showLoading(this::loadStatuses);
+    }
+
+    private void rebuildSavedFilesCache() {
+        Set<String> savedSet = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                .getStringSet("savedFiles", new HashSet<>());
+
+        Set<String> existingFiles = new HashSet<>(savedSet);
+
+        // Scan MediaStore for existing files in Status Saver folder
+        String[] projections = { MediaStore.MediaColumns.DISPLAY_NAME };
+        String selection = MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+        String[] selectionArgs = { "%Status Saver%" };
+
+        try (Cursor cursor = requireContext().getContentResolver()
+                .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projections, selection, selectionArgs, null)) {
+            if (cursor != null) {
+                int idx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+                while (cursor.moveToNext()) {
+                    existingFiles.add(cursor.getString(idx));
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try (Cursor cursor = requireContext().getContentResolver()
+                .query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, projections, selection, selectionArgs, null)) {
+            if (cursor != null) {
+                int idx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+                while (cursor.moveToNext()) {
+                    existingFiles.add(cursor.getString(idx));
+                }
+            }
+        } catch (Exception ignored) {}
+
+        savedFilesCache.clear();
+        savedFilesCache.addAll(existingFiles);
+
+        // Update SharedPreferences
+        requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .putStringSet("savedFiles", new HashSet<>(savedFilesCache))
+                .apply();
     }
 
     private void initViews(View view) {
@@ -115,6 +173,8 @@ public class ImagesAndVideoFragment extends Fragment {
             imageList.clear();
             imageList.addAll(images);
 
+            removeDeletedFromSavedCache(imageList);
+
             if (tabLayout.getSelectedTabPosition() == 0) {
                 adapter.updateDataAsync(imageList, false);
             }
@@ -125,6 +185,8 @@ public class ImagesAndVideoFragment extends Fragment {
             videoList.clear();
             videoList.addAll(videos);
 
+            removeDeletedFromSavedCache(videoList);
+
             if (tabLayout.getSelectedTabPosition() == 1) {
                 adapter.updateDataAsync(videoList, true);
             }
@@ -132,8 +194,26 @@ public class ImagesAndVideoFragment extends Fragment {
         });
     }
 
-    private void setupTabs() {
+    private void removeDeletedFromSavedCache(List<DocumentFile> list) {
+        // Remove any entries in savedFilesCache that no longer exist in the folder
+        Set<String> stillExisting = new HashSet<>();
+        for (DocumentFile f : list) {
+            String name = f.getName();
+            if (name != null && savedFilesCache.contains(name)) {
+                stillExisting.add(name);
+            }
+        }
+        savedFilesCache.clear();
+        savedFilesCache.addAll(stillExisting);
 
+        // Update SharedPreferences
+        requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                .edit()
+                .putStringSet("savedFiles", new HashSet<>(savedFilesCache))
+                .apply();
+    }
+
+    private void setupTabs() {
         tabLayout.addTab(tabLayout.newTab().setText("Images"));
         tabLayout.addTab(tabLayout.newTab().setText("Videos"));
 
@@ -145,7 +225,6 @@ public class ImagesAndVideoFragment extends Fragment {
                 final boolean showVideo = tab.getPosition() == 1;
                 final List<DocumentFile> list = showVideo ? videoList : imageList;
 
-                // 🔥 Show loader ONLY if list is empty
                 if (list.isEmpty()) {
                     progressBar.setVisibility(View.VISIBLE);
                     galleryRecycler.setVisibility(View.GONE);
@@ -158,10 +237,8 @@ public class ImagesAndVideoFragment extends Fragment {
                 safeExecute(() -> {
                     adapter.updateDataAsync(list, showVideo);
 
-                    // Post UI update on main thread
                     handler.post(() -> {
                         if (!isAdded() || myRequestId != tabRequestId) return;
-
                         progressBar.setVisibility(View.GONE);
                         updateEmptyState();
                     });
@@ -173,11 +250,8 @@ public class ImagesAndVideoFragment extends Fragment {
         });
     }
 
-
     private void setupSwipeRefresh() {
-        swipeRefreshLayout.setOnRefreshListener(
-                () -> showLoading(this::loadStatuses)
-        );
+        swipeRefreshLayout.setOnRefreshListener(() -> showLoading(this::loadStatuses));
     }
 
     private void loadStatusFolderUri() {
@@ -193,13 +267,10 @@ public class ImagesAndVideoFragment extends Fragment {
     }
 
     private void loadStatuses() {
-        if (statusFolderUri == null || executor == null || executor.isShutdown())
-            return;
+        if (statusFolderUri == null || executor == null || executor.isShutdown()) return;
 
         safeExecute(() -> {
-
-            DocumentFile folder =
-                    DocumentFile.fromTreeUri(requireContext(), statusFolderUri);
+            DocumentFile folder = DocumentFile.fromTreeUri(requireContext(), statusFolderUri);
             if (folder == null || !folder.isDirectory()) return;
 
             List<DocumentFile> images = new ArrayList<>();
@@ -215,34 +286,24 @@ public class ImagesAndVideoFragment extends Fragment {
         });
     }
 
-    private void scanFolder(DocumentFile folder,
-                            List<DocumentFile> images,
-                            List<DocumentFile> videos) {
-
+    private void scanFolder(DocumentFile folder, List<DocumentFile> images, List<DocumentFile> videos) {
         for (DocumentFile file : folder.listFiles()) {
             if (file.isFile()) addFile(file, images, videos);
-            else if (file.isDirectory())
-                scanFolder(file, images, videos);
+            else if (file.isDirectory()) scanFolder(file, images, videos);
         }
     }
 
-    private void addFile(DocumentFile file,
-                         List<DocumentFile> images,
-                         List<DocumentFile> videos) {
-
+    private void addFile(DocumentFile file, List<DocumentFile> images, List<DocumentFile> videos) {
         if (file.getName() == null) return;
         String n = file.getName().toLowerCase();
 
-        if (n.endsWith(".jpg") || n.endsWith(".jpeg")
-                || n.endsWith(".png") || n.endsWith(".webp"))
+        if (n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".png") || n.endsWith(".webp"))
             images.add(file);
-        else if (n.endsWith(".mp4") || n.endsWith(".mkv")
-                || n.endsWith(".3gp"))
+        else if (n.endsWith(".mp4") || n.endsWith(".mkv") || n.endsWith(".3gp"))
             videos.add(file);
     }
 
     private void updateEmptyState() {
-
         boolean showVideo = tabLayout.getSelectedTabPosition() == 1;
         List<DocumentFile> current = showVideo ? videoList : imageList;
 
@@ -263,13 +324,10 @@ public class ImagesAndVideoFragment extends Fragment {
     }
 
     private void showLoading(Runnable task) {
-
         long start = System.currentTimeMillis();
         progressBar.setVisibility(View.VISIBLE);
         galleryRecycler.setVisibility(View.GONE);
         emptyStateLayout.setVisibility(View.GONE);
-
-        // Ensure SwipeRefreshLayout spinner is visible
         swipeRefreshLayout.setRefreshing(true);
 
         safeExecute(() -> {
@@ -280,11 +338,10 @@ public class ImagesAndVideoFragment extends Fragment {
 
             handler.postDelayed(() -> {
                 hideProgressAndShowRecycler();
-                swipeRefreshLayout.setRefreshing(false); // stop the spinner
+                swipeRefreshLayout.setRefreshing(false);
             }, delay);
         });
     }
-
 
     private void hideProgressAndShowRecycler() {
         progressBar.setVisibility(View.GONE);
@@ -303,8 +360,7 @@ public class ImagesAndVideoFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         if (adapter != null) adapter.shutdownScheduler();
-        if (executor != null && !executor.isShutdown())
-            executor.shutdownNow();
+        if (executor != null && !executor.isShutdown()) executor.shutdownNow();
         executor = null;
     }
 }

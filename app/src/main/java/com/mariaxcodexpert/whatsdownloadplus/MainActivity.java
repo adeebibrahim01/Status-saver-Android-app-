@@ -61,6 +61,11 @@ public class MainActivity extends AppCompatActivity {
         // Initialize update checker
         updateChecker = new AppUpdateChecker(this);
         updateChecker.checkForUpdate(); // ✅ This is now called properly
+
+
+        // Start feedback prompt manager
+        FeedbackPromptManager feedbackManager = new FeedbackPromptManager(this);
+        feedbackManager.start();
     }
 
 
@@ -124,10 +129,11 @@ public class MainActivity extends AppCompatActivity {
             int id = destination.getId();
             if (id == R.id.nav_home) {
                 setToolbarTitle("Home");
-            } else if (id == R.id.nav_gallery) {
-                boolean showVideos = args != null && args.getBoolean("showVideos", false);
-                setToolbarTitle(showVideos ? "Videos" : "Images");
-            } else if (id == R.id.nav_download) {
+            }else if (id == R.id.nav_gallery) {
+                String appName = getString(R.string.app_name); // dynamically fetch app name
+                setToolbarTitle(appName);
+            }
+            else if (id == R.id.nav_download) {
                 setToolbarTitle("Download");
             } else if (id == R.id.nav_status_prediction) {
                 setToolbarTitle("AI Status Prediction");

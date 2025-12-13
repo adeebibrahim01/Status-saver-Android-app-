@@ -1,14 +1,15 @@
 package com.mariaxcodexpert.whatsdownloadplus.Permissions;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Toast;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -63,7 +64,11 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
 
             // Storage button
             if (holder.storageBtn != null) {
-                updateButtonState(holder.storageBtn, activity.isStorageGranted(), "Allow Storage");
+                boolean storageGranted = activity.isStorageGranted();
+
+                // Update button based on current API level
+                updateButtonState(holder.storageBtn, storageGranted, "Allow Storage");
+
                 holder.storageBtn.setOnClickListener(v -> activity.requestStoragePermission());
             }
 
@@ -71,7 +76,7 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
             if (holder.statusFolderBtn != null) {
                 boolean folderGranted = activity.selectedStatusFolderUri != null;
 
-                // Check if selected folder is valid WhatsApp folder
+                // Validate folder
                 if (folderGranted && !activity.isValidWhatsAppFolder(activity.selectedStatusFolderUri)) {
                     folderGranted = false;
                     activity.selectedStatusFolderUri = null;

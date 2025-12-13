@@ -3,6 +3,7 @@ package com.mariaxcodexpert.whatsdownloadplus.Permissions;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.UriPermission;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,9 +14,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
-
 import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
@@ -33,6 +34,10 @@ public class PermissionsActivity extends AppCompatActivity {
     private int[] layouts = {R.layout.layout_select_app, R.layout.layout_permissions};
     private Intent mainActivityIntent;
 
+    // Flags
+    private boolean introStarted = false;
+    private boolean hasNavigated = false;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +50,6 @@ public class PermissionsActivity extends AppCompatActivity {
         PermissionsPagerAdapter adapter = new PermissionsPagerAdapter(this, layouts, viewPager);
         viewPager.setAdapter(adapter);
         viewPager.setOffscreenPageLimit(layouts.length);
-
         viewPager.setUserInputEnabled(false);
 
         findViewById(R.id.btnLeft).setOnClickListener(v -> goToPage1());
@@ -53,12 +57,12 @@ public class PermissionsActivity extends AppCompatActivity {
 
         restoreFolderUri();
 
-        if (isStorageGranted() && selectedStatusFolderUri != null) {
+        if (prefs.getBoolean("introCompleted", false) && isStorageGranted() && selectedStatusFolderUri != null) {
             redirectToMain();
-            return;
+        } else {
+            introStarted = true;
+            viewPager.setCurrentItem(0, false); // Show first page initially
         }
-
-        checkIntroCompleted();
     }
 
     private void goToPage1() {
@@ -101,53 +105,66 @@ public class PermissionsActivity extends AppCompatActivity {
         }
     }
 
-    private void checkIntroCompleted() {
-        if (prefs.getBoolean("introCompleted", false)) {
-            redirectToMain();
+    // -----------------------------
+    // Storage permission methods
+    // -----------------------------
+    public boolean isStorageGranted() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
+            return checkSelfPermission(android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED &&
+                    checkSelfPermission(android.Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
+        } else { // Android 10 - 12
+            return checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
     }
 
-    void redirectToMain() {
-        startActivity(mainActivityIntent);
-        finish();
-    }
-
-    // -------------------------
-    // Storage Permission (Android 10+)
-    // -------------------------
-    public boolean isStorageGranted() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                checkSelfPermission(android.Manifest.permission.READ_MEDIA_IMAGES) ==
-                        android.content.pm.PackageManager.PERMISSION_GRANTED &&
-                checkSelfPermission(android.Manifest.permission.READ_MEDIA_VIDEO) ==
-                        android.content.pm.PackageManager.PERMISSION_GRANTED;
-    }
-
     public void requestStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (isStorageGranted()) return; // Already granted
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
             requestPermissions(new String[]{
                     android.Manifest.permission.READ_MEDIA_IMAGES,
                     android.Manifest.permission.READ_MEDIA_VIDEO
             }, REQUEST_STORAGE);
+        } else { // Android 10 - 12
+            requestPermissions(new String[]{
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+            }, REQUEST_STORAGE);
         }
     }
 
-    // -------------------------
-    // Status Folder Permission
-    // -------------------------
+    // -----------------------------
+    // SAF folder picker
+    // -----------------------------
     public void openStatusFolderPicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         startActivityForResult(intent, REQUEST_FOLDER);
     }
 
-    // -------------------------
-    // Check All Permissions & Proceed
-    // -------------------------
+    // -----------------------------
+    // Validate all permissions
+    // -----------------------------
     public void checkAllPermissionsAndProceed() {
+        if (!introStarted || hasNavigated) return; // safe check
+
+
+
+        validateFolderPermission();
+
         boolean storage = isStorageGranted();
         boolean folder = selectedStatusFolderUri != null;
 
-        // Validate folder permission
+        if (storage && folder) {
+            prefs.edit().putBoolean("introCompleted", true).apply();
+            redirectToMain();
+        }
+
+        if (viewPager.getAdapter() instanceof PermissionsPagerAdapter adapter) {
+            adapter.refreshPermissionsPage();
+        }
+
+    }
+
+    private void validateFolderPermission() {
         if (selectedStatusFolderUri != null) {
             boolean validPermission = false;
             for (UriPermission perm : getContentResolver().getPersistedUriPermissions()) {
@@ -162,34 +179,49 @@ public class PermissionsActivity extends AppCompatActivity {
                 prefs.edit().remove(KEY_STATUS_FOLDER_URI).apply();
                 Toast.makeText(this, "Folder permission lost. Please select again.", Toast.LENGTH_SHORT).show();
             } else if (!isValidWhatsAppFolder(selectedStatusFolderUri)) {
-                // Wrong folder selected
                 selectedStatusFolderUri = null;
                 prefs.edit().remove(KEY_STATUS_FOLDER_URI).apply();
                 Toast.makeText(this, "Incorrect folder selected. Please select the WhatsApp .Statuses folder.", Toast.LENGTH_LONG).show();
             }
         }
+    }
 
-        if (viewPager.getAdapter() instanceof PermissionsPagerAdapter adapter) {
-            adapter.refreshPermissionsPage();
-        }
 
-        if (storage && selectedStatusFolderUri != null) {
-            redirectToMain();
+    boolean isValidWhatsAppFolder(Uri treeUri) {
+        try {
+            DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
+            if (pickedDir == null || !pickedDir.isDirectory()) return false;
+
+            // Folder name check (.Statuses)
+            String name = pickedDir.getName();
+            if (name == null || !name.equalsIgnoreCase(".Statuses")) {
+                return false;
+            }
+
+            // Optional: check at least one media file exists
+            for (DocumentFile file : pickedDir.listFiles()) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    if (fileName != null &&
+                            (fileName.endsWith(".jpg")
+                                    || fileName.endsWith(".png")
+                                    || fileName.endsWith(".mp4"))) {
+                        return true; // VALID WhatsApp Status folder
+                    }
+                }
+            }
+
+            // Folder empty ho sakta hai, phir bhi valid
+            return true;
+
+        } catch (Exception e) {
+            return false;
         }
     }
 
-    // -------------------------
-    // Verify WhatsApp .Statuses folder
-    // -------------------------
-    boolean isValidWhatsAppFolder(Uri uri) {
-        String path = uri.getPath();
-        // Check if path contains WhatsApp/Media/.Statuses (case-insensitive)
-        return path != null && path.toLowerCase().contains("whatsapp") && path.toLowerCase().contains(".statuses");
-    }
-
-    // -------------------------
-    // Permission Results
-    // -------------------------
+    // -----------------------------
+    // Handle permission results
+    // -----------------------------
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -198,14 +230,22 @@ public class PermissionsActivity extends AppCompatActivity {
         if (requestCode == REQUEST_STORAGE) {
             boolean granted = true;
             for (int result : grantResults) {
-                if (result != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
                     granted = false;
                     break;
                 }
             }
 
             if (!granted) {
-                if (!shouldShowRequestPermissionRationale(android.Manifest.permission.READ_MEDIA_IMAGES)) {
+                boolean permanentlyDenied = false;
+                for (String permission : permissions) {
+                    if (!shouldShowRequestPermissionRationale(permission)) {
+                        permanentlyDenied = true;
+                        break;
+                    }
+                }
+
+                if (permanentlyDenied) {
                     Toast.makeText(this, "Storage permission denied permanently. Enable in settings.", Toast.LENGTH_LONG).show();
                     openAppSettings();
                 } else {
@@ -223,6 +263,9 @@ public class PermissionsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    // -----------------------------
+    // Handle folder picker result
+    // -----------------------------
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -249,5 +292,13 @@ public class PermissionsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkAllPermissionsAndProceed();
+    }
+
+    private void redirectToMain() {
+        if (hasNavigated) return;
+        hasNavigated = true;
+
+        startActivity(mainActivityIntent);
+        finish();
     }
 }

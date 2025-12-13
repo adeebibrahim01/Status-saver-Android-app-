@@ -15,6 +15,7 @@ public class Splash_screen extends AppCompatActivity {
 
     private static final String PREFS_NAME = "AppPrefs";
     private static final String KEY_STATUS_FOLDER_URI = "statusFolderUri";
+    private static final long SPLASH_DELAY_MS = 1500;
 
     private SharedPreferences prefs;
     private Uri selectedStatusFolderUri;
@@ -28,44 +29,47 @@ public class Splash_screen extends AppCompatActivity {
         setContentView(R.layout.activity_splash_screen);
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-
         restoreFolderUri();
 
-        // Delay for splash effect (1.5s)
-        new Handler(Looper.getMainLooper()).postDelayed(this::checkPermissionsAndRedirect, 1500);
+        new Handler(Looper.getMainLooper()).postDelayed(this::checkPermissionsAndRedirect, SPLASH_DELAY_MS);
     }
 
     /**
-     * Restore previously selected folder URI (if any) and validate persisted permission
+     * Restore previously selected folder URI (if any) and validate persisted permission.
+     * Removes invalid URI from preferences.
      */
     private void restoreFolderUri() {
         String savedUri = prefs.getString(KEY_STATUS_FOLDER_URI, null);
         if (savedUri != null) {
-            selectedStatusFolderUri = Uri.parse(savedUri);
+            Uri uri = Uri.parse(savedUri);
             try {
-                // Take persistable permission if not already
-                int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
-                getContentResolver().takePersistableUriPermission(selectedStatusFolderUri, takeFlags);
+                final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                selectedStatusFolderUri = uri;
             } catch (SecurityException e) {
+                // Invalid or revoked URI, clean up SharedPreferences
                 selectedStatusFolderUri = null;
+                prefs.edit().remove(KEY_STATUS_FOLDER_URI).apply();
             }
         }
     }
 
     /**
-     * Navigate to appropriate activity based on folder permission
+     * Navigate to MainActivity or PermissionsActivity based on folder permission.
+     * Ensures only single navigation even if called multiple times.
      */
     private void checkPermissionsAndRedirect() {
         if (hasNavigated) return;
         hasNavigated = true;
 
-        boolean folderGranted = selectedStatusFolderUri != null;
-
-        if (folderGranted) {
-            startActivity(new Intent(this, MainActivity.class));
+        Intent intent;
+        if (selectedStatusFolderUri != null) {
+            intent = new Intent(this, MainActivity.class);
         } else {
-            startActivity(new Intent(this, PermissionsActivity.class));
+            intent = new Intent(this, PermissionsActivity.class);
         }
+
+        startActivity(intent);
         finish();
     }
 }

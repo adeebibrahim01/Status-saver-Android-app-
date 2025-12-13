@@ -23,7 +23,9 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DownloadFragment extends Fragment {
 
@@ -34,6 +36,7 @@ public class DownloadFragment extends Fragment {
     private final List<Boolean> isVideoList = new ArrayList<>();
     private TextView tvEmptyMessage;
     private LottieAnimationView lottieEmptyState;
+    private Set<String> savedFilesCache = new HashSet<>();
 
     @Nullable
     @Override
@@ -50,6 +53,11 @@ public class DownloadFragment extends Fragment {
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setHasFixedSize(true);
 
+        savedFilesCache = new HashSet<>(requireContext()
+                .getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                .getStringSet("savedFiles", new HashSet<>()));
+
+
         swipeRefreshLayout.setOnRefreshListener(() -> {
             loadStatusSaverMedia();
             swipeRefreshLayout.setRefreshing(false);
@@ -59,9 +67,28 @@ public class DownloadFragment extends Fragment {
                 getContext(),
                 mediaUris,
                 isVideoList,
-                null,
+                uri -> { // Safe deletion callback
+                    String name = uri.getLastPathSegment();
+                    if (name != null) {
+                        savedFilesCache.remove(name);
+                        requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                                .edit()
+                                .putStringSet("savedFiles", new HashSet<>(savedFilesCache))
+                                .apply();
+                    }
+                    // Remove from lists if still present
+                    int index = mediaUris.indexOf(uri);
+                    if (index != -1) {
+                        mediaUris.remove(index);
+                        isVideoList.remove(index);
+                        adapter.notifyItemRemoved(index);
+                        adapter.notifyItemRangeChanged(index, mediaUris.size());
+                    }
+                    updateEmptyMessage();
+                },
                 this::updateEmptyMessage
         );
+
 
         recyclerView.setAdapter(adapter);
 
@@ -69,6 +96,8 @@ public class DownloadFragment extends Fragment {
 
         return view;
     }
+
+
 
     @Override
     public void onResume() {
@@ -152,4 +181,5 @@ public class DownloadFragment extends Fragment {
             e.printStackTrace();
         }
     }
+
 }

@@ -24,7 +24,7 @@ public class AdManager {
     // -----------------------
     // TESTING MODE
     // -----------------------
-    private static final boolean TESTING = true;
+    private static final boolean TESTING = false;
     private static final String TEST_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712";
     private static final String REAL_INTERSTITIAL = "ca-app-pub-9822767396000072/9444114867";
 
