@@ -39,8 +39,6 @@
             android:layout_marginTop="6dp"/>
     </LinearLayout>
 
-
-
     <!-- FIXED GRID USING 2 ROWS (3 CARDS EACH) -->
     <LinearLayout
         android:id="@+id/menuGridFixed"
@@ -60,7 +58,7 @@
             android:padding="8dp"
             android:gravity="center_horizontal">
 
-            <!-- ROW 1 -->
+            <!-- ROW 1: Existing Cards -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -90,7 +88,6 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:src="@drawable/ic_wa_images"
-
                             android:elevation="6dp"/>
 
                         <TextView
@@ -155,14 +152,6 @@
                             android:layout_marginTop="2dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
-
-            <!-- ROW 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_horizontal">
 
                 <!-- Saved Card -->
                 <com.google.android.material.card.MaterialCardView
@@ -207,10 +196,153 @@
                             android:layout_marginTop="2dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
 
-        </LinearLayout>
+            <!-- ROW 2: New Cards (Today / Last 7 Days / Active Streak) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_horizontal">
 
+                <!-- Today Downloads Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardTodayDownloads"
+                    android:layout_width="0dp"
+                    android:layout_height="140dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/ic_today"
+                            android:elevation="6dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Today"
+                            android:textColor="#075E54"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="6dp"/>
+
+                        <TextView
+                            android:id="@+id/tvTodayCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#707070"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Last 7 Days Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardLast7Days"
+                    android:layout_width="0dp"
+                    android:layout_height="140dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/ic_week"
+                            android:elevation="6dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Last 7 Days"
+                            android:textColor="#075E54"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="6dp"/>
+
+                        <TextView
+                            android:id="@+id/tvLast7DaysCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#707070"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Active Streak Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardActiveStreak"
+                    android:layout_width="0dp"
+                    android:layout_height="140dp"
+                    android:layout_weight="1"
+                    android:layout_margin="6dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="#FFFFFF"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp">
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/ic_streak"
+                            android:elevation="6dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Streak"
+                            android:textColor="#075E54"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="6dp"/>
+
+                        <TextView
+                            android:id="@+id/tvActiveStreak"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#707070"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
     <!-- JOINED INFO -->
