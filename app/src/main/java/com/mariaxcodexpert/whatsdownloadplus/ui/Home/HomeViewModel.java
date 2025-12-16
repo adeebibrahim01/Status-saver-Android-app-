@@ -31,9 +31,9 @@ public class HomeViewModel extends AndroidViewModel {
 
             long firstInstallTime = packageInfo.firstInstallTime;
             String formattedDate = DateFormat.format("MMMM dd, yyyy", new Date(firstInstallTime)).toString();
-            joinedDate.setValue("Joined on " + formattedDate + ".");
+            joinedDate.setValue("\uD83C\uDF89 Joined on " + formattedDate + ".");
         } catch (PackageManager.NameNotFoundException e) {
-            joinedDate.setValue("Joined");
+            joinedDate.setValue("\uD83C\uDF89 Joined");
         }
     }
 

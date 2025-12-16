@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.google.android.material.tabs.TabLayout;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -59,12 +60,12 @@ public class ImagesAndVideoFragment extends Fragment {
 
     // Persistent downloaded files
     private final Set<String> savedFilesCache = new HashSet<>();
-
     @Nullable
     @Override
     public View onCreateView(@NonNull android.view.LayoutInflater inflater,
                              @Nullable android.view.ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         return inflater.inflate(R.layout.fragment_imagesandvideo, container, false);
     }
 
@@ -75,6 +76,7 @@ public class ImagesAndVideoFragment extends Fragment {
         executor = Executors.newFixedThreadPool(3);
         viewModel = new ViewModelProvider(requireActivity()).get(ImagesAndVideoViewModel.class);
         glide = Glide.with(this);
+
 
         // Load persistent saved files
         Set<String> savedSet = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
@@ -88,7 +90,6 @@ public class ImagesAndVideoFragment extends Fragment {
         setupSwipeRefresh();
 
         // Adapter now receives saved files cache for persistent download state
-        // Rebuild cache from existing files to fix download icon after app restart
         rebuildSavedFilesCache();
 
         adapter = new ImagesAndVideoAdapter(
@@ -105,6 +106,13 @@ public class ImagesAndVideoFragment extends Fragment {
         ((GridLayoutManager) galleryRecycler.getLayoutManager())
                 .setInitialPrefetchItemCount(3);
 
+        // ======= SET EMPTY STATE LISTENER =======
+        adapter.setEmptyStateListener(isEmpty -> {
+            emptyStateLayout.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+            lottieEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+            tvEmptyMessage.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        });
+
         boolean showVideoTab = getArguments() != null &&
                 getArguments().getBoolean("showVideos", false);
         selectTab(showVideoTab ? 1 : 0);
@@ -113,7 +121,10 @@ public class ImagesAndVideoFragment extends Fragment {
 
         // Initial load
         showLoading(this::loadStatuses);
+
+
     }
+
 
     private void rebuildSavedFilesCache() {
         Set<String> savedSet = requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)

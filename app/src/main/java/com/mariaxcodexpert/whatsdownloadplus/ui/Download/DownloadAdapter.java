@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     private final List<Boolean> isVideoList;
     private final DeleteCallback deleteCallback;
     private final EmptyCheckCallback emptyCheckCallback;
+    private final DownloadStatsManager statsManager;
 
     public interface DeleteCallback {
         void onDelete(Uri uri); // pass URI instead of position
@@ -37,12 +39,14 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     }
 
     public DownloadAdapter(Context context, List<Uri> mediaUris, List<Boolean> isVideoList,
-                           DeleteCallback deleteCallback, EmptyCheckCallback emptyCheckCallback) {
+                           DeleteCallback deleteCallback, EmptyCheckCallback emptyCheckCallback, DownloadStatsManager statsManager) {
         this.context = context;
         this.mediaUris = mediaUris;
         this.isVideoList = isVideoList;
         this.deleteCallback = deleteCallback;
         this.emptyCheckCallback = emptyCheckCallback;
+        // Initialize DownloadStatsManager
+        this.statsManager = new DownloadStatsManager(context);
     }
 
     @NonNull
@@ -116,6 +120,8 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
             if (deleted) {
                 removeItem(pos);
+                // ✅ Update download stats
+                statsManager.removeDownload();
                 Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(context, "Can't delete file! Check permissions.", Toast.LENGTH_LONG).show();

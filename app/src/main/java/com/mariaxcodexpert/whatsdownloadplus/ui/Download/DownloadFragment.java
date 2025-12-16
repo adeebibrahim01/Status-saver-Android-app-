@@ -21,6 +21,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -63,6 +64,10 @@ public class DownloadFragment extends Fragment {
             swipeRefreshLayout.setRefreshing(false);
         });
 
+// 1️⃣ Initialize DownloadStatsManager
+        DownloadStatsManager statsManager = new DownloadStatsManager(requireContext());
+
+// 2️⃣ Initialize adapter and pass statsManager
         adapter = new DownloadAdapter(
                 getContext(),
                 mediaUris,
@@ -86,7 +91,8 @@ public class DownloadFragment extends Fragment {
                     }
                     updateEmptyMessage();
                 },
-                this::updateEmptyMessage
+                this::updateEmptyMessage,
+                statsManager  // ✅ Pass statsManager here
         );
 
 

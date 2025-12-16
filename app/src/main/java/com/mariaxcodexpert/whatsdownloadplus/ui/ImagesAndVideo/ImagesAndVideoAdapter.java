@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.RequestManager;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,6 +55,17 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
     private static final String VIDEO_EXT = ".mp4";
     private final Object updateLock = new Object();
     private int updateVersion = 0;
+    private boolean hasLoadedOnce = false;
+    public interface OnFileSavedListener {
+        void onFileSaved(DocumentFile file);
+    }
+
+    private OnFileSavedListener onFileSavedListener;
+
+    public void setOnFileSavedListener(OnFileSavedListener listener) {
+        this.onFileSavedListener = listener;
+    }
+
 
     /* ======================= MODEL ======================= */
     public static class MediaItem {
@@ -84,6 +96,17 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
         startCountdownUpdater();
         updateDataAsync(mediaList, isVideo);
     }
+
+    public interface OnEmptyStateListener {
+        void onEmptyState(boolean isEmpty);
+    }
+
+    private OnEmptyStateListener emptyStateListener;
+
+    public void setEmptyStateListener(OnEmptyStateListener listener) {
+        this.emptyStateListener = listener;
+    }
+
 
     /* ======================= DATA UPDATE ======================= */
     public void updateDataAsync(List<DocumentFile> newFiles, boolean isVideo) {
@@ -121,7 +144,6 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
                     return oldItems.get(oldPos).expiryTime == newItems.get(newPos).expiryTime;
                 }
             });
-
             handler.post(() -> {
                 synchronized (updateLock) { if (myVersion != updateVersion) return; }
                 synchronized (mediaItems) {
@@ -130,8 +152,21 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
                 }
                 diffResult.dispatchUpdatesTo(this);
                 if (onDataLoaded != null) onDataLoaded.run();
+
+                // ✅ Notify about empty state only after first real load
+                if (emptyStateListener != null) {
+                    boolean actuallyEmpty = mediaItems.isEmpty();
+                    if (hasLoadedOnce) {
+                        emptyStateListener.onEmptyState(actuallyEmpty);
+                    }
+                    hasLoadedOnce = true;
+                }
             });
+
+
+
         });
+
     }
 
     /* ======================= ADAPTER ======================= */
@@ -198,22 +233,41 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
 
             if (ok) {
                 String name = getFileName(file);
-                savedFilesCache.add(name);
 
+                // Update in-memory cache
+                synchronized (savedFilesCache) {
+                    savedFilesCache.add(name);
+                }
+
+                // Update SharedPreferences safely
                 Set<String> savedSet = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
                         .getStringSet("savedFiles", new HashSet<>());
                 Set<String> newSet = new HashSet<>(savedSet);
                 newSet.add(name);
                 context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
                         .edit().putStringSet("savedFiles", newSet).apply();
+
+                // Update download stats
+                DownloadStatsManager statsManager = new DownloadStatsManager(context);
+                statsManager.addDownload(); // increments today & last 7 days counters
             }
 
+            // Update UI on main thread
             handler.post(() -> {
-                if (ok) setDownloadState(holder, true);
-                else Toast.makeText(context, "Failed to save ❌", Toast.LENGTH_SHORT).show();
+                if (ok) {
+                    setDownloadState(holder, true);
+
+                    // Notify fragment / adapter about the download
+                    if (onFileSavedListener != null) {
+                        onFileSavedListener.onFileSaved(file);
+                    }
+                } else {
+                    Toast.makeText(context, "Failed to save ❌", Toast.LENGTH_SHORT).show();
+                }
             });
         });
     }
+
 
     private boolean saveFile(DocumentFile file) {
         try {
