@@ -115,9 +115,6 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
         Uri fileUri = mediaUris.get(pos);
 
-        // 1️⃣ Get timestamp before deletion
-        long downloadTimeMillis = getMediaDate(fileUri, isVideo);
-
         try {
             ContentResolver resolver = context.getContentResolver();
             Uri contentUri = isVideo
@@ -127,21 +124,18 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
             long id = ContentUris.parseId(fileUri);
             Uri deleteUri = ContentUris.withAppendedId(contentUri, id);
 
+            // Remove from DB first
+            if (savedFilesDB != null) {
+                String name = getFileNameFromUri(fileUri, isVideo);
+                if (name != null) savedFilesDB.removeFile(name);
+            }
+
+            // Then remove from device
             boolean deleted = resolver.delete(deleteUri, null, null) > 0;
 
             if (deleted) {
-                // 2️⃣ Remove from adapter
+                // Remove from adapter
                 removeItem(pos);
-
-                // 3️⃣ Remove from SavedFilesDB safely
-                if (savedFilesDB != null) {
-                    String name = getFileNameFromUri(fileUri, isVideo);
-                    if (name != null) savedFilesDB.removeFile(name);
-                }
-
-                // 4️⃣ Remove from DownloadStatsManager safely
-                if (statsManager != null) statsManager.removeDownload(downloadTimeMillis);
-
                 Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(context, "Can't delete file! Check permissions.", Toast.LENGTH_LONG).show();
@@ -153,56 +147,52 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         }
     }
 
-    private long getMediaDate(Uri uri, boolean isVideo) {
-        long date = System.currentTimeMillis();
-        String[] projection = { MediaStore.MediaColumns.DATE_ADDED, MediaStore.MediaColumns.DATE_MODIFIED };
-        Uri contentUri = isVideo
-                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        try (Cursor cursor = context.getContentResolver().query(contentUri, projection,
-                MediaStore.MediaColumns._ID + "=?",
-                new String[]{String.valueOf(ContentUris.parseId(uri))},
-                null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                long added = cursor.getLong(0) * 1000;
-                long modified = cursor.getLong(1) * 1000;
-                date = added > 0 ? added : modified;
-            }
-        } catch (Exception ignored) {}
-
-        return date;
-    }
 
     private String getFileNameFromUri(Uri uri, boolean isVideo) {
-        String name = null;
         String[] projection = { MediaStore.MediaColumns.DISPLAY_NAME };
         Uri contentUri = isVideo
                 ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
                 : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-        try (Cursor cursor = context.getContentResolver().query(contentUri, projection,
+        try (Cursor cursor = context.getContentResolver().query(
+                contentUri, projection,
                 MediaStore.MediaColumns._ID + "=?",
                 new String[]{String.valueOf(ContentUris.parseId(uri))}, null)) {
+
             if (cursor != null && cursor.moveToFirst()) {
-                name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+                String name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+                if (name != null) return name.trim();
             }
         } catch (Exception ignored) {}
-        return name;
+        return null;
     }
+
+
 
     private void removeItem(int pos) {
         if (pos < 0 || pos >= mediaUris.size()) return;
 
+        Uri removedUri = mediaUris.get(pos);
+        boolean isVideo = isVideoList.get(pos);
+
+        // Remove from adapter lists
         mediaUris.remove(pos);
         isVideoList.remove(pos);
         notifyItemRemoved(pos);
         notifyItemRangeChanged(pos, mediaUris.size());
 
+        // Update DB stats
+        if (savedFilesDB != null) {
+            String name = getFileNameFromUri(removedUri, isVideo);
+            if (name != null) savedFilesDB.removeFile(name);
+        }
+
+        // Notify fragment to refresh empty state / counts
         if (emptyCheckCallback != null) {
             emptyCheckCallback.onCheckEmpty();
         }
     }
+
 
     @Override
     public int getItemCount() {

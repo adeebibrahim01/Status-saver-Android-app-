@@ -141,6 +141,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
+            android:background="@drawable/whatsapp_top_bg_transparent"
             android:padding="8dp">
 
             <!-- Today Card -->

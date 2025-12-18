@@ -136,15 +136,11 @@ public class HomeFragment extends Fragment {
             // Pass savedFilesDB to DownloadStatsManager
             DownloadStatsManager statsManager = new DownloadStatsManager(context, savedFilesDB);
 
-            // Get today and last 7 days downloads
-            int todayCount = statsManager.getTodayDownloads();
-            int last7DaysCount = statsManager.getLast7DaysDownloads();
-
             // Update UI on main thread
             requireActivity().runOnUiThread(() -> {
                 if (binding != null) {
-                    binding.tvTodayCount.setText(String.valueOf(todayCount));
-                    binding.tvLast7DaysCount.setText(String.valueOf(last7DaysCount));
+                    binding.tvTodayCount.setText(String.valueOf(savedFilesDB.getTodayCount()));;
+                    binding.tvLast7DaysCount.setText(String.valueOf(savedFilesDB.getLast7DaysCount()));
                 }
             });
         });

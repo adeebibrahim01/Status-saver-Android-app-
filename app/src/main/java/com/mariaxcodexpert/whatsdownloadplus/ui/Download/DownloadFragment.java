@@ -85,28 +85,7 @@ public class DownloadFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadStatusSaverMedia();
-        adapter.notifyDataSetChanged();
-    }
 
-    // ✅ Centralized delete handling
-    private void handleDelete(Uri uri, DownloadStatsManager statsManager) {
-        int index = mediaUris.indexOf(uri);
-        if (index == -1) return;
-
-        boolean isVideo = isVideoList.get(index);
-        String name = getFileNameFromUri(uri, isVideo);
-
-        if (name != null) {
-            savedFilesDB.removeFile(name); // Remove from DB/cache
-        }
-
-        // Remove from RecyclerView lists
-        mediaUris.remove(index);
-        isVideoList.remove(index);
-        adapter.notifyItemRemoved(index);
-        adapter.notifyItemRangeChanged(index, mediaUris.size());
-
-        updateEmptyMessage();
     }
 
     private void updateEmptyMessage() {
@@ -123,7 +102,13 @@ public class DownloadFragment extends Fragment {
             lottieEmptyState.setVisibility(View.GONE);
             lottieEmptyState.pauseAnimation();
         }
+
+        // Update counts somewhere in your UI
+        int todayCount = savedFilesDB.getTodayCount();
+        int last7DaysCount = savedFilesDB.getLast7DaysCount();
+        // Update your TextViews / counters with these values
     }
+
 
     private void loadStatusSaverMedia() {
         mediaUris.clear();
@@ -185,20 +170,4 @@ public class DownloadFragment extends Fragment {
         }
     }
 
-    private String getFileNameFromUri(Uri uri, boolean isVideo) {
-        String name = null;
-        String[] projection = { MediaStore.MediaColumns.DISPLAY_NAME };
-        Uri contentUri = isVideo
-                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        try (Cursor cursor = requireContext().getContentResolver().query(contentUri, projection,
-                MediaStore.MediaColumns._ID + "=?",
-                new String[]{String.valueOf(ContentUris.parseId(uri))}, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
-            }
-        } catch (Exception ignored) {}
-        return name;
-    }
 }

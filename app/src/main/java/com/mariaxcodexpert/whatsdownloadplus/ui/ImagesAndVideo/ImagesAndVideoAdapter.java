@@ -45,9 +45,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
     private final ExecutorService executor = Executors.newFixedThreadPool(3);
     private RecyclerView recyclerView;
 
-    private DownloadStatsManager statsManager;
-
-
     private final SavedFilesDB savedFilesDB;
 
     public ImagesAndVideoAdapter(Context context, RequestManager glide, boolean isVideo, SavedFilesDB savedFilesDB) {
@@ -56,10 +53,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         this.glide = glide;
         this.isVideo = isVideo;
         this.savedFilesDB = savedFilesDB;
-
-        // Use existing SavedFilesDB instance
-        statsManager = new DownloadStatsManager(context, savedFilesDB);
-
         startCountdownUpdater();
     }
 
@@ -212,8 +205,8 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                     if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.GONE);
                     if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.GONE);
 
-                    // Add to DB/cache
-                    if (file.getName() != null) savedFilesDB.addFile(file.getName());
+
+                    if (name != null) savedFilesDB.addFile(name);
 
                     // Set UI state
                     setDownloadState(holder, true);
@@ -222,10 +215,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                     long timestamp = file.lastModified(); // file ka actual last modified time
                     if (timestamp <= 0) timestamp = System.currentTimeMillis(); // fallback
 
-                    // ✅ Use existing statsManager instance instead of creating new one
-                    if (statsManager != null) {
-                        statsManager.addDownload(timestamp);
-                    }
                 });
 
 
@@ -243,8 +232,9 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         }
 
         // Remove from DB if saved
-        if (file.getName() != null && savedFilesDB.isFileSaved(file.getName())) {
-            savedFilesDB.removeFile(file.getName());
+        if (file.getName() != null ){
+            savedFilesDB.removeFile(file.getUri().toString());
+
         }
 
         handler.post(() -> {
@@ -259,10 +249,10 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
 
 
-    // New:
     private boolean isFileAlreadySaved(DocumentFile f) {
-        return f.getName() != null && savedFilesDB.isFileSaved(f.getName());
+        return savedFilesDB.isFileSaved(f.getUri().toString());
     }
+
 
     private void setDownloadState(GalleryViewHolder h, boolean saved) {
         if (h.downloadIcon != null)
