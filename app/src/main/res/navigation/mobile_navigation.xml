@@ -16,51 +16,22 @@
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment"
-        android:label="@string/menu_gallery"
+        android:label="@string/app_name"
         tools:layout="@layout/fragment_imagesandvideo" />
 
     <!-- Download -->
     <fragment
         android:id="@+id/nav_download"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Download.DownloadFragment"
-        android:label="Download"
+        android:label="@string/app_name"
         tools:layout="@layout/fragment_download" />
-
-    <!-- Keyword Tracker -->
-    <fragment
-        android:id="@+id/nav_key_tracker"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.tracker.TrackerFragment"
-        android:label="Key Tracker" />
 
     <fragment
         android:id="@+id/imageVideoPreviewFragment"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment"
+
         android:label="Preview" />
 
-
-
-
-    <!-- Notifications for Android 10 Below -->
-    <fragment
-        android:id="@+id/nav_notifications_below"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Notifications10below.NotificationsFragment10below"
-        android:label="Notifications"
-        tools:layout="@layout/fragment_notifications" />
-
-    <!-- Notifications for Android 10 & Above -->
-    <fragment
-        android:id="@+id/nav_notifications_above"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Notifications.NotificationsFragment"
-        android:label="Notifications"
-        tools:layout="@layout/fragment_notifications" />
-
-
-    <!-- Status Prediction -->
-    <fragment
-        android:id="@+id/nav_status_prediction"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.prediction.StatusPredictionFragment"
-        android:label="Status Prediction"
-        tools:layout="@layout/fragment_status_prediction" />
 
     <!-- Only Privacy Policy Fragment -->
     <fragment

@@ -22,15 +22,16 @@
             android:background="@color/whatsapp_green"
             android:elevation="4dp">
 
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/whatsapp_green"
-                android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
-                app:title="Download Images and Videos"
-                app:titleTextColor="@android:color/white"
-                app:titleCentered="true" />
+            <!-- Subtitle (10dp below title) -->
+            <TextView
+                android:id="@+id/toolbarSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Images • Videos • Auto Save"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"/>
 
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabLayout"

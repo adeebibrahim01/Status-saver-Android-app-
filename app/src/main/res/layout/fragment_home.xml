@@ -7,40 +7,119 @@
     android:layout_height="match_parent"
     android:background="#ECE5DD"
     tools:context=".ui.Home.HomeFragment">
-
-    <!-- TOP WHATSAPP HEADER -->
-    <LinearLayout
+    <!-- TOP WHATSAPP HEADER (CLEAN & BALANCED) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/waHeader"
         android:layout_width="0dp"
-        android:layout_height="140dp"
+        android:layout_height="wrap_content"
         android:background="@drawable/whatsapp_top_bg"
-        android:orientation="vertical"
-        android:padding="18dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- APP NAME -->
         <TextView
             android:id="@+id/headerTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
             android:textColor="#FFFFFF"
-            android:textSize="28sp"
-            android:textStyle="bold"/>
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.03"
+            android:fontFamily="sans-serif-medium"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
-        <TextView
-            android:id="@+id/headerSubtitle"
+        <!-- SECURE LINE (ICON + TEXT) -->
+        <LinearLayout
+            android:id="@+id/secureLine"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Save Images • Videos • Notifications"
-            android:textColor="#D0F1C9"
-            android:textSize="14sp"
-            android:layout_marginTop="6dp"/>
-    </LinearLayout>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="6dp"
+            app:layout_constraintTop_toBottomOf="@id/headerTitle"
+            app:layout_constraintStart_toStartOf="@id/headerTitle">
 
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:src="@drawable/ic_lock_secure"
+                android:contentDescription="Secure"
+                app:tint="#E6F6EA" />
+
+            <TextView
+                android:id="@+id/headerSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Secure WhatsApp Status Saver"
+                android:textColor="#E6F6EA"
+                android:textSize="14sp"
+                android:letterSpacing="0.02"
+                android:fontFamily="sans-serif"/>
+        </LinearLayout>
+
+        <!-- FEATURE LINE -->
+        <TextView
+            android:id="@+id/headerFeatures"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Private • Fast • Auto Save"
+            android:textColor="#CFEFD6"
+            android:textSize="12sp"
+            android:letterSpacing="0.04"
+            android:layout_marginTop="4dp"
+            app:layout_constraintTop_toBottomOf="@id/secureLine"
+            app:layout_constraintStart_toStartOf="@id/headerTitle"/>
+
+        <!-- MEMBER CHIP (BELOW FEATURE LINE, LEFT ALIGNED) -->
+        <TextView
+            android:id="@+id/joinedText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="6dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginTop="4dp"
+            android:text="Trusted since 2019"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.04"
+            android:background="@drawable/bg_joined_chip"
+            app:layout_constraintTop_toBottomOf="@id/headerFeatures"
+            app:layout_constraintStart_toStartOf="@id/headerFeatures"/>
+        <!-- PROJECT VERSION (RIGHT SIDE, SAME LEVEL AS joinedText) -->
+        <TextView
+            android:id="@+id/projectVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="6dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:layout_marginTop="4dp"
+            android:text="v1.0.0"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.04"
+            android:background="@drawable/bg_joined_chip"
+            app:layout_constraintTop_toBottomOf="@id/headerFeatures"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- ADVANCED FIXED GRID (2 ROWS, 3 CARDS EACH) -->
+
+
     <LinearLayout
         android:id="@+id/menuGridFixed"
         android:layout_width="0dp"
@@ -362,24 +441,5 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- JOINED INFO (CENTERED & PREMIUM) -->
-    <TextView
-        android:id="@+id/joinedText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:letterSpacing="0.03"
-        android:paddingStart="12dp"
-        android:paddingTop="6dp"
-        android:paddingEnd="12dp"
-        android:paddingBottom="6dp"
-        android:text="🎉 Joined Status Saver Plus on October 31, 2019"
-        android:textColor="#128C7E"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
@@ -108,29 +109,73 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         if (pos < 0 || pos >= mediaUris.size()) return;
 
         Uri fileUri = mediaUris.get(pos);
-        boolean deleted = false;
+        boolean deleted;
+
+        // ✅ 1️⃣ file ka actual date
+        long downloadTimeMillis = getMediaDate(fileUri, isVideo);
 
         try {
             ContentResolver resolver = context.getContentResolver();
-            Uri contentUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            Uri contentUri = isVideo
+                    ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
                     : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
             long id = ContentUris.parseId(fileUri);
             Uri deleteUri = ContentUris.withAppendedId(contentUri, id);
+
             deleted = resolver.delete(deleteUri, null, null) > 0;
 
             if (deleted) {
                 removeItem(pos);
-                // ✅ Update download stats
-                statsManager.removeDownload();
+
+                // ✅ 2️⃣ CORRECT stats update
+                statsManager.removeDownload(downloadTimeMillis);
+
                 Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(context, "Can't delete file! Check permissions.", Toast.LENGTH_LONG).show();
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(context, "Error deleting file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    private long getMediaDate(Uri uri, boolean isVideo) {
+        long date = System.currentTimeMillis();
+
+        String[] projection = {
+                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATE_MODIFIED
+        };
+
+        Uri contentUri = isVideo
+                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        try (Cursor cursor = context.getContentResolver()
+                .query(contentUri, projection,
+                        MediaStore.MediaColumns._ID + "=?",
+                        new String[]{String.valueOf(ContentUris.parseId(uri))},
+                        null)) {
+
+            if (cursor != null && cursor.moveToFirst()) {
+
+                long added = cursor.getLong(0) * 1000;
+                long modified = cursor.getLong(1) * 1000;
+
+                // Prefer DATE_ADDED, fallback to DATE_MODIFIED
+                date = added > 0 ? added : modified;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return date;
+    }
+
 
     private void removeItem(int pos) {
         if (pos < 0 || pos >= mediaUris.size()) return;

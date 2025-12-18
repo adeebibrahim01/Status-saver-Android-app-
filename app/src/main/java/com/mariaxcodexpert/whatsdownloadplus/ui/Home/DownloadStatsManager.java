@@ -36,23 +36,51 @@ public class DownloadStatsManager {
                 .apply();
     }
 
-    // --- REMOVE DOWNLOAD ---
-    public void removeDownload() {
+    public void removeDownload(long downloadTimeMillis) {
+
         long todayMillis = System.currentTimeMillis();
-        int todayCount = getTodayDownloads();
-        if (todayCount > 0) todayCount--; // decrement safely
 
-        // Update week data
+        // 1️⃣ TODAY CHECK
+        if (isSameDay(downloadTimeMillis, todayMillis)) {
+            int todayCount = getTodayDownloads();
+            if (todayCount > 0) {
+                todayCount--;
+                prefs.edit().putInt(KEY_TODAY_DOWNLOADS, todayCount).apply();
+            }
+        }
+
+        // 2️⃣ WEEK DATA UPDATE
         String weekData = prefs.getString(KEY_WEEK_DOWNLOADS, "");
-        weekData = updateWeekData(weekData, todayMillis, todayCount);
+        if (weekData.isEmpty()) return;
 
-        // Save
-        prefs.edit()
-                .putInt(KEY_TODAY_DOWNLOADS, todayCount)
-                .putLong(KEY_LAST_DOWNLOAD_DATE, todayMillis)
-                .putString(KEY_WEEK_DOWNLOADS, weekData)
-                .apply();
+        StringBuilder sb = new StringBuilder();
+        String[] entries = weekData.split(",");
+        long sevenDaysAgo = todayMillis - 7L * 24 * 60 * 60 * 1000;
+
+        for (String entry : entries) {
+            String[] parts = entry.split(":");
+            if (parts.length != 2) continue;
+
+            long dayMillis = Long.parseLong(parts[0]);
+            int count = Integer.parseInt(parts[1]);
+
+            // sirf last 7 days rakho
+            if (dayMillis >= sevenDaysAgo) {
+
+                // jis din delete hui usi din ka count kam
+                if (isSameDay(dayMillis, downloadTimeMillis)) {
+                    count = Math.max(0, count - 1);
+                }
+
+                sb.append(dayMillis).append(":").append(count).append(",");
+            }
+        }
+
+        if (sb.length() > 0) sb.setLength(sb.length() - 1);
+
+        prefs.edit().putString(KEY_WEEK_DOWNLOADS, sb.toString()).apply();
     }
+
 
     // --- GET TODAY DOWNLOADS ---
     public int getTodayDownloads() {

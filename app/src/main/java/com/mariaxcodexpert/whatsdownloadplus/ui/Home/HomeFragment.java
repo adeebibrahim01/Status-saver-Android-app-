@@ -1,26 +1,26 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
-import com.google.android.material.card.MaterialCardView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+
+import com.mariaxcodexpert.whatsdownloadplus.StatusWatcherWorker;
+import com.mariaxcodexpert.whatsdownloadplus.VersionHelper;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
 
+
+import java.util.Calendar;
 import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment {
@@ -40,6 +40,8 @@ public class HomeFragment extends Fragment {
         viewModel = new ViewModelProvider(this,
                 ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().getApplication()))
                 .get(HomeViewModel.class);
+        // Schedule background status watcher
+//        StatusWatcherWorker.scheduleWork(requireContext());
 
         setupClickListeners();
         observeViewModel();
@@ -49,58 +51,77 @@ public class HomeFragment extends Fragment {
 
         // Update download stats using DownloadStatsManager
         updateDownloadsStats();
-
+        // Inside onCreateView() of HomeFragment
+        VersionHelper versionHelper = new VersionHelper(requireContext()); // good
+        String version = versionHelper.getAppVersion();
+        binding.projectVersion.setText(version);
         requireActivity().setTitle("Home");
         return binding.getRoot();
-
 
 
     }
 
     private void updateStreak() {
         Executors.newSingleThreadExecutor().execute(() -> {
+
             Context context = requireContext();
             final String PREFS_NAME = "status_prefs";
             final String KEY_LAST_OPEN = "last_open_date";
             final String KEY_STREAK = "active_streak";
 
-            // Access SharedPreferences
-            long lastOpenMillis = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .getLong(KEY_LAST_OPEN, 0);
-            int streak = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .getInt(KEY_STREAK, 0);
+            SharedPreferences prefs =
+                    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-            long today = System.currentTimeMillis();
-            long oneDayMillis = 24 * 60 * 60 * 1000;
+            long lastOpenMillis = prefs.getLong(KEY_LAST_OPEN, 0);
+            int streak = prefs.getInt(KEY_STREAK, 0);
+
+            long now = System.currentTimeMillis();
             int newStreak;
 
+            Calendar todayCal = Calendar.getInstance();
+            todayCal.setTimeInMillis(now);
+            zeroTime(todayCal);
+
+            Calendar lastCal = Calendar.getInstance();
+            lastCal.setTimeInMillis(lastOpenMillis);
+            zeroTime(lastCal);
+
             if (lastOpenMillis == 0) {
-                newStreak = 1; // first launch
+                // First launch ever
+                newStreak = 1;
+            } else if (todayCal.equals(lastCal)) {
+                // Same day → no change
+                newStreak = streak;
             } else {
-                long diff = today - lastOpenMillis;
-                if (diff > 0 && diff <= oneDayMillis) {
-                    newStreak = streak; // same day
-                } else if (diff > oneDayMillis && diff <= 2 * oneDayMillis) {
-                    newStreak = streak + 1; // consecutive day
+                lastCal.add(Calendar.DAY_OF_YEAR, 1);
+
+                if (todayCal.equals(lastCal)) {
+                    // Consecutive day
+                    newStreak = streak + 1;
                 } else {
-                    newStreak = 1; // missed day
+                    // Missed day
+                    newStreak = 1;
                 }
             }
 
-            // Save updated streak and last open time
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                    .edit()
+            prefs.edit()
                     .putInt(KEY_STREAK, newStreak)
-                    .putLong(KEY_LAST_OPEN, today)
+                    .putLong(KEY_LAST_OPEN, now)
                     .apply();
 
-            // Update UI on main thread
             requireActivity().runOnUiThread(() -> {
                 if (binding != null && binding.tvActiveStreak != null) {
                     binding.tvActiveStreak.setText(String.valueOf(newStreak));
                 }
             });
         });
+    }
+
+    private void zeroTime(Calendar cal) {
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
     }
 
 
@@ -194,7 +215,6 @@ public class HomeFragment extends Fragment {
     private void navigateToDownload() {
         try {
             navController.navigate(R.id.nav_download);
-            viewModel.setToolbarTitle("Download");
         } catch (Exception e) {
             e.printStackTrace();
         }

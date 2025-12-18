@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,8 +30,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
 
         // ==============================
         // GDPR + ADS HANDLING (Simplified)
@@ -66,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         // Start feedback prompt manager
         FeedbackPromptManager feedbackManager = new FeedbackPromptManager(this);
         feedbackManager.start();
+
+
     }
 
 
@@ -87,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
                 R.id.nav_home,
                 R.id.nav_gallery,
                 R.id.nav_download,
-                R.id.nav_status_prediction,
                 R.id.nav_privacy_policy
         ).setOpenableLayout(drawer).build();
 
@@ -103,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
         drawerActions.put(R.id.nav_home, () -> navController.popBackStack(navController.getGraph().getStartDestinationId(), false));
         drawerActions.put(R.id.nav_gallery, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_gallery), navController));
         drawerActions.put(R.id.nav_download, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_download), navController));
-        drawerActions.put(R.id.nav_status_prediction, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_status_prediction), navController));
         drawerActions.put(R.id.nav_privacy_policy, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_privacy_policy), navController));
         drawerActions.put(R.id.nav_share_app, this::shareApp);
         drawerActions.put(R.id.nav_rate_app, () -> openUrl(
@@ -135,8 +134,6 @@ public class MainActivity extends AppCompatActivity {
             }
             else if (id == R.id.nav_download) {
                 setToolbarTitle("Download");
-            } else if (id == R.id.nav_status_prediction) {
-                setToolbarTitle("AI Status Prediction");
             } else if (id == R.id.nav_privacy_policy) {
                 setToolbarTitle("Privacy Policy");
             }
