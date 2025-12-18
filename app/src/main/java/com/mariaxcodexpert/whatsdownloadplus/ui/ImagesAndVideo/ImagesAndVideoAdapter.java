@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -13,12 +14,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.RequestManager;
@@ -28,148 +30,55 @@ import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAdapter.GalleryViewHolder> {
+public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVideoAdapter.GalleryViewHolder> {
 
     private final Context context;
     private final RequestManager glide;
-    private final List<MediaItem> mediaItems = new ArrayList<>();
-    private final CopyOnWriteArrayList<GalleryViewHolder> visibleHolders = new CopyOnWriteArrayList<>();
+    private final boolean isVideo;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean isVideo;
-    private final Set<String> savedFilesCache = new HashSet<>();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService executor = Executors.newFixedThreadPool(3);
-    private Runnable onDataLoaded;
-    private static final int EXPIRY_HOURS = 24;
-    private static final String IMAGE_EXT = ".jpg";
-    private static final String VIDEO_EXT = ".mp4";
-    private final Object updateLock = new Object();
-    private int updateVersion = 0;
-    private boolean hasLoadedOnce = false;
-    public interface OnFileSavedListener {
-        void onFileSaved(DocumentFile file);
-    }
+    private RecyclerView recyclerView;
 
-    private OnFileSavedListener onFileSavedListener;
-
-    public void setOnFileSavedListener(OnFileSavedListener listener) {
-        this.onFileSavedListener = listener;
-    }
+    private DownloadStatsManager statsManager;
 
 
-    /* ======================= MODEL ======================= */
-    public static class MediaItem {
-        final DocumentFile file;
-        final long expiryTime;
+    private final SavedFilesDB savedFilesDB;
 
-        public MediaItem(DocumentFile file) {
-            this.file = file;
-            this.expiryTime = file.lastModified() + TimeUnit.MILLISECONDS.convert(EXPIRY_HOURS, TimeUnit.HOURS);
-        }
-    }
-
-    /* ======================= CONSTRUCTOR ======================= */
-    public ImagesAndVideoAdapter(Context context,
-                                 List<DocumentFile> mediaList,
-                                 boolean isVideo,
-                                 RequestManager glide,
-                                 Set<String> savedFilesCache,
-                                 Runnable onDataLoaded) {
-
+    public ImagesAndVideoAdapter(Context context, RequestManager glide, boolean isVideo, SavedFilesDB savedFilesDB) {
+        super(DIFF_CALLBACK);
         this.context = context;
         this.glide = glide;
         this.isVideo = isVideo;
-        this.onDataLoaded = onDataLoaded;
+        this.savedFilesDB = savedFilesDB;
 
-        if (savedFilesCache != null) this.savedFilesCache.addAll(savedFilesCache);
+        // Use existing SavedFilesDB instance
+        statsManager = new DownloadStatsManager(context, savedFilesDB);
 
         startCountdownUpdater();
-        updateDataAsync(mediaList, isVideo);
-    }
-
-    public interface OnEmptyStateListener {
-        void onEmptyState(boolean isEmpty);
-    }
-
-    private OnEmptyStateListener emptyStateListener;
-
-    public void setEmptyStateListener(OnEmptyStateListener listener) {
-        this.emptyStateListener = listener;
     }
 
 
-    /* ======================= DATA UPDATE ======================= */
-    public void updateDataAsync(List<DocumentFile> newFiles, boolean isVideo) {
-
-        this.isVideo = isVideo;
-        if (executor == null || executor.isShutdown()) return;
-
-        final int myVersion;
-        synchronized (updateLock) {
-            updateVersion++;
-            myVersion = updateVersion;
+    private static final DiffUtil.ItemCallback<DocumentFile> DIFF_CALLBACK = new DiffUtil.ItemCallback<DocumentFile>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull DocumentFile oldItem, @NonNull DocumentFile newItem) {
+            return oldItem.getUri().equals(newItem.getUri());
         }
 
-        final List<DocumentFile> safeFiles = new ArrayList<>(newFiles);
+        @Override
+        public boolean areContentsTheSame(@NonNull DocumentFile oldItem, @NonNull DocumentFile newItem) {
+            boolean lastModifiedSame = oldItem.lastModified() == newItem.lastModified();
+            boolean savedStateSame = oldItem.getName() != null && newItem.getName() != null &&
+                    oldItem.getName().equals(newItem.getName());
+            return lastModifiedSame && savedStateSame;
+        }
+    };
 
-        executor.execute(() -> {
-
-            List<MediaItem> newItems = new ArrayList<>();
-            for (DocumentFile f : safeFiles) {
-                newItems.add(new MediaItem(f));
-            }
-
-            List<MediaItem> oldItems;
-            synchronized (mediaItems) {
-                oldItems = new ArrayList<>(mediaItems);
-            }
-
-            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
-                @Override public int getOldListSize() { return oldItems.size(); }
-                @Override public int getNewListSize() { return newItems.size(); }
-                @Override public boolean areItemsTheSame(int oldPos, int newPos) {
-                    return oldItems.get(oldPos).file.getUri().equals(newItems.get(newPos).file.getUri());
-                }
-                @Override public boolean areContentsTheSame(int oldPos, int newPos) {
-                    return oldItems.get(oldPos).expiryTime == newItems.get(newPos).expiryTime;
-                }
-            });
-            handler.post(() -> {
-                synchronized (updateLock) { if (myVersion != updateVersion) return; }
-                synchronized (mediaItems) {
-                    mediaItems.clear();
-                    mediaItems.addAll(newItems);
-                }
-                diffResult.dispatchUpdatesTo(this);
-                if (onDataLoaded != null) onDataLoaded.run();
-
-                // ✅ Notify about empty state only after first real load
-                if (emptyStateListener != null) {
-                    boolean actuallyEmpty = mediaItems.isEmpty();
-                    if (hasLoadedOnce) {
-                        emptyStateListener.onEmptyState(actuallyEmpty);
-                    }
-                    hasLoadedOnce = true;
-                }
-            });
-
-
-
-        });
-
-    }
-
-    /* ======================= ADAPTER ======================= */
     @NonNull
     @Override
     public GalleryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -179,211 +88,234 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
 
     @Override
     public void onBindViewHolder(@NonNull GalleryViewHolder holder, int position) {
-
-        MediaItem item;
-        synchronized (mediaItems) {
-            if (position >= mediaItems.size()) return;
-            item = mediaItems.get(position);
+        if (holder.downloadProgress != null) {
+            holder.downloadProgress.setVisibility(View.GONE);
+            holder.downloadProgress.setProgress(0);
         }
 
-        DocumentFile file = item.file;
-        boolean isVideoFile = isVideoFile(file);
+        DocumentFile file = getItem(position);
+        if (file == null) return;
+
+        holder.expiryTime = file.lastModified() + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
 
         glide.load(file.getUri())
                 .override(200, 200)
                 .thumbnail(0.1f)
                 .placeholder(R.drawable.image_bg)
-                .dontAnimate()
                 .into(holder.imageThumb);
 
-        holder.videoIcon.setVisibility(isVideoFile ? View.VISIBLE : View.GONE);
-
-        holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile));
-
-        holder.downloadIcon.setOnClickListener(v -> showAdThenSave(file, holder));
+        holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile(file)));
+        holder.downloadIcon.setOnClickListener(v -> saveFileWithAd(file, holder));
 
         setDownloadState(holder, isFileAlreadySaved(file));
-
-        holder.expiryTime = item.expiryTime;
-
-        if (!visibleHolders.contains(holder)) visibleHolders.add(holder);
     }
 
-    @Override
-    public int getItemCount() {
-        synchronized (mediaItems) { return mediaItems.size(); }
+    public void attachRecyclerView(RecyclerView rv) {
+        this.recyclerView = rv;
     }
 
-    /* ======================= SAVE FILE ======================= */
-    private void showAdThenSave(DocumentFile file, GalleryViewHolder holder) {
-        saveFileWithUI(file, holder);
+    private void openPreview(DocumentFile file, boolean isVideo) {
+        if (file == null || !file.exists()) return;
+        android.content.Intent intent = new android.content.Intent(context, ImageVideoPreviewActivity.class);
+        intent.putExtra(ImageVideoPreviewActivity.EXTRA_URI, file.getUri());
+        intent.putExtra(ImageVideoPreviewActivity.EXTRA_IS_VIDEO, isVideo);
+        context.startActivity(intent);
+    }
 
+    private void saveFileWithAd(DocumentFile file, GalleryViewHolder holder) {
+        if (file == null || isFileAlreadySaved(file) || isFileAlreadyInMediaStore(file.getName())) return;
+
+        // Disable download icon immediately
+        if (holder.downloadIcon != null) holder.downloadIcon.setEnabled(false);
+
+        // Start saving
+        saveFile(file, holder);
+
+        // Show ad if possible
         if (context instanceof Activity && AdManager.canRequestAds()) {
             AdManager.showInterstitial((Activity) context, null);
-        } else {
-            AdManager.init(context);
         }
     }
 
-    private void saveFileWithUI(DocumentFile file, GalleryViewHolder holder) {
-        if (isFileAlreadySaved(file)) return;
 
+    private boolean isFileAlreadyInMediaStore(String fileName) {
+        String[] projection = { MediaStore.MediaColumns._ID };
+        String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=?";
+        String[] args = { fileName };
+
+        Uri uri = isVideo
+                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        try (Cursor c = context.getContentResolver()
+                .query(uri, projection, selection, args, null)) {
+            return c != null && c.moveToFirst();
+        }
+    }
+
+
+    private void saveFile(DocumentFile file, GalleryViewHolder holder) {
         executor.execute(() -> {
-            boolean ok = saveFile(file);
+            Uri uri = null;
+            try {
+                String name = file.getName();
+                String mime = isVideoFile(file) ? "video/mp4" : "image/jpeg";
 
-            if (ok) {
-                String name = getFileName(file);
+                ContentValues v = new ContentValues();
+                v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
+                v.put(MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + "/Status Saver");
 
-                // Update in-memory cache
-                synchronized (savedFilesCache) {
-                    savedFilesCache.add(name);
+                uri = context.getContentResolver().insert(
+                        mime.startsWith("video")
+                                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        v);
+
+                if (uri == null) throw new Exception("Uri null");
+
+                long total = file.length();
+                long copied = 0;
+
+                // 🔄 SHOW PROGRESS BAR (null-safe)
+                handler.post(() -> {
+                    if (holder.downloadProgress != null) {
+                        if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.GONE);
+                        holder.downloadProgress.setVisibility(View.VISIBLE);
+                        holder.downloadProgress.setProgress(0);
+                    }
+                });
+
+                try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
+                     OutputStream out = context.getContentResolver().openOutputStream(uri)) {
+
+                    byte[] buf = new byte[4096];
+                    int r;
+                    while ((r = in.read(buf)) != -1) {
+                        out.write(buf, 0, r);
+                        copied += r;
+
+                        int p = (int) ((copied * 100) / total);
+                        int progress = p;
+
+                        // 🔁 Update progress (null-safe)
+                        handler.post(() -> {
+                            if (holder.downloadProgress != null) {
+                                holder.downloadProgress.setProgress(progress);
+                            }
+                        });
+                    }
                 }
+// ✅ SUCCESS (AFTER FULL COPY)
+                handler.post(() -> {
+                    if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.GONE);
+                    if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.GONE);
 
-                // Update SharedPreferences safely
-                Set<String> savedSet = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                        .getStringSet("savedFiles", new HashSet<>());
-                Set<String> newSet = new HashSet<>(savedSet);
-                newSet.add(name);
-                context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                        .edit().putStringSet("savedFiles", newSet).apply();
+                    // Add to DB/cache
+                    if (file.getName() != null) savedFilesDB.addFile(file.getName());
 
-                // Update download stats
-                DownloadStatsManager statsManager = new DownloadStatsManager(context);
-                statsManager.addDownload(); // increments today & last 7 days counters
-            }
-
-            // Update UI on main thread
-            handler.post(() -> {
-                if (ok) {
+                    // Set UI state
                     setDownloadState(holder, true);
 
-                    // Notify fragment / adapter about the download
-                    if (onFileSavedListener != null) {
-                        onFileSavedListener.onFileSaved(file);
+                    // Add download stat with timestamp
+                    long timestamp = file.lastModified(); // file ka actual last modified time
+                    if (timestamp <= 0) timestamp = System.currentTimeMillis(); // fallback
+
+                    // ✅ Use existing statsManager instance instead of creating new one
+                    if (statsManager != null) {
+                        statsManager.addDownload(timestamp);
                     }
-                } else {
-                    Toast.makeText(context, "Failed to save ❌", Toast.LENGTH_SHORT).show();
-                }
-            });
+                });
+
+
+            } catch (Exception e) {
+                rollbackFailedDownload(file, uri, holder);
+            }
+        });
+    }
+
+    private void rollbackFailedDownload(DocumentFile file, Uri uri, GalleryViewHolder holder) {
+        if (uri != null) {
+            try {
+                context.getContentResolver().delete(uri, null, null);
+            } catch (Exception ignored) {}
+        }
+
+        // Remove from DB if saved
+        if (file.getName() != null && savedFilesDB.isFileSaved(file.getName())) {
+            savedFilesDB.removeFile(file.getName());
+        }
+
+        handler.post(() -> {
+            if (holder.downloadProgress != null)
+                holder.downloadProgress.setVisibility(View.GONE);
+
+            if (holder.downloadIcon != null)
+                holder.downloadIcon.setEnabled(true); // re-enable
+            setDownloadState(holder, false);
         });
     }
 
 
-    private boolean saveFile(DocumentFile file) {
-        try {
-            String name = getFileName(file);
-            String mime = isVideoFile(file) ? "video/mp4" : "image/jpeg";
 
-            ContentValues v = new ContentValues();
-            v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-            v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
-            v.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                    Environment.DIRECTORY_PICTURES + "/Status Saver");
-
-            Uri uri = context.getContentResolver().insert(
-                    mime.startsWith("video")
-                            ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                            : MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
-
-            if (uri == null) return false;
-
-            try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
-                 OutputStream out = context.getContentResolver().openOutputStream(uri)) {
-
-                byte[] buf = new byte[4096];
-                int r;
-                while ((r = in.read(buf)) != -1) out.write(buf, 0, r);
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /* ======================= HELPERS ======================= */
-    private void setDownloadState(GalleryViewHolder h, boolean saved) {
-        h.downloadIcon.setVisibility(saved ? View.GONE : View.VISIBLE);
-        h.downloadStatus.setVisibility(saved ? View.VISIBLE : View.GONE);
-    }
-
+    // New:
     private boolean isFileAlreadySaved(DocumentFile f) {
-        String name = f.getName();
-        if (name == null) return false;
-
-        boolean inCache = savedFilesCache.contains(name);
-        boolean exists = fileExistsInMediaStore(name);
-
-        if (inCache && exists) return true;
-
-        // Remove stale entry
-        savedFilesCache.remove(name);
-        context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                .edit()
-                .putStringSet("savedFiles", new HashSet<>(savedFilesCache))
-                .apply();
-
-        return false;
+        return f.getName() != null && savedFilesDB.isFileSaved(f.getName());
     }
 
-    private boolean fileExistsInMediaStore(String displayName) {
-        String[] projections = { MediaStore.MediaColumns.DISPLAY_NAME };
+    private void setDownloadState(GalleryViewHolder h, boolean saved) {
+        if (h.downloadIcon != null)
+            h.downloadIcon.setVisibility(saved ? View.GONE : View.VISIBLE);
 
-        try (Cursor cursor = context.getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projections,
-                MediaStore.MediaColumns.DISPLAY_NAME + "=?",
-                new String[]{ displayName },
-                null
-        )) { if (cursor != null && cursor.getCount() > 0) return true; } catch (Exception ignored) {}
+        if (h.downloadStatus != null)
+            h.downloadStatus.setVisibility(saved ? View.VISIBLE : View.GONE);
 
-        try (Cursor cursor = context.getContentResolver().query(
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                projections,
-                MediaStore.MediaColumns.DISPLAY_NAME + "=?",
-                new String[]{ displayName },
-                null
-        )) { if (cursor != null && cursor.getCount() > 0) return true; } catch (Exception ignored) {}
-
-        return false;
+        if (h.downloadProgress != null)
+            h.downloadProgress.setVisibility(View.GONE);
     }
 
-    private String getFileName(DocumentFile f) {
-        String n = f.getName();
-        if (n == null) n = "status_" + System.currentTimeMillis();
-        if (!n.matches(".*\\.(jpg|jpeg|png|mp4)$")) {
-            n += isVideoFile(f) ? VIDEO_EXT : IMAGE_EXT;
-        }
-        return n;
-    }
+
 
     private boolean isVideoFile(DocumentFile f) {
         String n = f.getName();
         return n != null && n.matches(".*\\.(mp4|mkv|3gp)$");
     }
 
-    private void openPreview(DocumentFile file, boolean isVideo) {
-        android.content.Intent i = new android.content.Intent(context, ImageVideoPreviewActivity.class);
-        i.putExtra(ImageVideoPreviewActivity.EXTRA_URI, file.getUri());
-        i.putExtra(ImageVideoPreviewActivity.EXTRA_IS_VIDEO, isVideo);
-        context.startActivity(i);
+    private void startCountdownUpdater() {
+        scheduler.scheduleWithFixedDelay(() -> handler.post(() -> {
+            if (recyclerView == null) return;
+
+            for (int i = 0; i < recyclerView.getChildCount(); i++) {
+                View child = recyclerView.getChildAt(i);
+                RecyclerView.ViewHolder vh = recyclerView.getChildViewHolder(child);
+                if (!(vh instanceof GalleryViewHolder)) continue;
+
+                GalleryViewHolder holder = (GalleryViewHolder) vh;
+                long remaining = holder.expiryTime - System.currentTimeMillis();
+                if (remaining < 0) remaining = 0;
+
+                long h = remaining / (1000*60*60);
+                long m = (remaining / (1000*60)) % 60;
+                long s = (remaining / 1000) % 60;
+
+                if (holder.countdownTimer != null)
+                    holder.countdownTimer.setText(remaining == 0 ? "Expired"
+                            : String.format("Expires in %02d:%02d:%02d", h, m, s));
+            }
+        }), 0, 1, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void onViewRecycled(@NonNull GalleryViewHolder holder) {
-        super.onViewRecycled(holder);
-        visibleHolders.remove(holder);
-    }
 
     public void shutdownScheduler() {
         scheduler.shutdownNow();
         executor.shutdownNow();
-        visibleHolders.clear();
     }
 
-    /* ======================= VIEW HOLDER ======================= */
     static class GalleryViewHolder extends RecyclerView.ViewHolder {
         ImageView imageThumb, downloadIcon, videoIcon, downloadStatus;
         TextView countdownTimer;
+        ProgressBar downloadProgress;
         long expiryTime;
 
         GalleryViewHolder(@NonNull View v) {
@@ -393,29 +325,12 @@ public class ImagesAndVideoAdapter extends RecyclerView.Adapter<ImagesAndVideoAd
             downloadStatus = v.findViewById(R.id.downloadStatus);
             videoIcon = v.findViewById(R.id.videoIcon);
             countdownTimer = v.findViewById(R.id.countdownTimer);
+
+            // ✅ YAHAN PASTE KARO
+            downloadProgress = v.findViewById(R.id.downloadProgress);
         }
     }
 
-    /* ======================= COUNTDOWN ======================= */
-    private void startCountdownUpdater() {
-        scheduler.scheduleWithFixedDelay(() -> {
-            long now = System.currentTimeMillis();
-            handler.post(() -> {
-                List<GalleryViewHolder> snapshot = new ArrayList<>(visibleHolders);
-                for (GalleryViewHolder holder : snapshot) {
-                    long remaining = holder.expiryTime - now;
-                    if (remaining < 0) remaining = 0;
-                    long h = remaining / (1000 * 60 * 60);
-                    long m = (remaining / (1000 * 60)) % 60;
-                    long s = (remaining / 1000) % 60;
-                    String text = remaining == 0
-                            ? "Expired"
-                            : String.format("Expires in %02d:%02d:%02d", h, m, s);
-                    if (!text.equals(holder.countdownTimer.getText().toString())) {
-                        holder.countdownTimer.setText(text);
-                    }
-                }
-            });
-        }, 0, 1, TimeUnit.SECONDS);
-    }
+
+
 }

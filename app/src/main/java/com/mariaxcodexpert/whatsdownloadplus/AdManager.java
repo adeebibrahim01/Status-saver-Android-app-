@@ -158,5 +158,7 @@ public class AdManager {
         void onAdClosed();
         void onAdFailedToShow();
         void onAdShown();
+
+        void onAdFailed();
     }
 }

@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Thumbnail (fills card) -->
+        <!-- Thumbnail -->
         <ImageView
             android:id="@+id/imageThumb"
             android:layout_width="match_parent"
@@ -23,7 +23,7 @@
             android:adjustViewBounds="true"
             android:contentDescription="@string/app_name"/>
 
-        <!-- Countdown overlay -->
+        <!-- Countdown -->
         <TextView
             android:id="@+id/countdownTimer"
             android:layout_width="wrap_content"
@@ -45,6 +45,19 @@
             android:padding="6dp"
             android:src="@drawable/ic_play"
             android:layout_gravity="center"/>
+
+        <!-- 🔄 DOWNLOAD PROGRESS BAR -->
+        <ProgressBar
+            android:id="@+id/downloadProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_gravity="bottom"
+            android:max="100"
+            android:progress="0"
+            android:visibility="gone"
+            android:indeterminate="false"
+            android:progressDrawable="@drawable/progress_download"/>
 
         <!-- Download icon -->
         <ImageView

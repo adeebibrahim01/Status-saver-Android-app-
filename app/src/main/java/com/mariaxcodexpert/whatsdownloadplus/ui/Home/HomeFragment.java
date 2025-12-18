@@ -18,6 +18,7 @@ import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.StatusWatcherWorker;
 import com.mariaxcodexpert.whatsdownloadplus.VersionHelper;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
+import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
 
 import java.util.Calendar;
@@ -129,16 +130,21 @@ public class HomeFragment extends Fragment {
         Executors.newSingleThreadExecutor().execute(() -> {
             Context context = requireContext();
 
-            // Use DownloadStatsManager to get today and last 7 days downloads
-            DownloadStatsManager statsManager = new DownloadStatsManager(context);
-            int todayCount = statsManager.getTodayDownloads();        // today downloads
-            int last7DaysCount = statsManager.getLast7DaysDownloads(); // last 7 days total
+            // ✅ Use existing SavedFilesDB instance
+            SavedFilesDB savedFilesDB = new SavedFilesDB(context);
+
+            // Pass savedFilesDB to DownloadStatsManager
+            DownloadStatsManager statsManager = new DownloadStatsManager(context, savedFilesDB);
+
+            // Get today and last 7 days downloads
+            int todayCount = statsManager.getTodayDownloads();
+            int last7DaysCount = statsManager.getLast7DaysDownloads();
 
             // Update UI on main thread
             requireActivity().runOnUiThread(() -> {
                 if (binding != null) {
                     binding.tvTodayCount.setText(String.valueOf(todayCount));
-                    binding.tvLast7DaysCount.setText(String.valueOf(last7DaysCount)); // show last 7 days
+                    binding.tvLast7DaysCount.setText(String.valueOf(last7DaysCount));
                 }
             });
         });

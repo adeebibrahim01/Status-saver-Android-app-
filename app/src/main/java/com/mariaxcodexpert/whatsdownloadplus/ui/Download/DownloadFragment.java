@@ -1,5 +1,6 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Download;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -10,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,11 +22,10 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.airbnb.lottie.LottieAnimationView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
+import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class DownloadFragment extends Fragment {
 
@@ -37,7 +36,8 @@ public class DownloadFragment extends Fragment {
     private final List<Boolean> isVideoList = new ArrayList<>();
     private TextView tvEmptyMessage;
     private LottieAnimationView lottieEmptyState;
-    private Set<String> savedFilesCache = new HashSet<>();
+
+    private SavedFilesDB savedFilesDB;
 
     @Nullable
     @Override
@@ -54,62 +54,59 @@ public class DownloadFragment extends Fragment {
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setHasFixedSize(true);
 
-        savedFilesCache = new HashSet<>(requireContext()
-                .getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                .getStringSet("savedFiles", new HashSet<>()));
+        savedFilesDB = new SavedFilesDB(requireContext()); // initialize DB
+// ✅ Reuse savedFilesDB for DownloadStatsManager
+        DownloadStatsManager statsManager = new DownloadStatsManager(requireContext(), savedFilesDB);
 
+        adapter = new DownloadAdapter(
+                getContext(),
+                mediaUris,
+                isVideoList,
+                uri -> { /* Nothing extra needed */ }, // deletion callback handled in adapter
+                this::updateEmptyMessage,
+                statsManager,
+                savedFilesDB // ✅ Adapter already uses the same DB
+        );
+
+
+        recyclerView.setAdapter(adapter);
 
         swipeRefreshLayout.setOnRefreshListener(() -> {
             loadStatusSaverMedia();
             swipeRefreshLayout.setRefreshing(false);
         });
 
-// 1️⃣ Initialize DownloadStatsManager
-        DownloadStatsManager statsManager = new DownloadStatsManager(requireContext());
-
-// 2️⃣ Initialize adapter and pass statsManager
-        adapter = new DownloadAdapter(
-                getContext(),
-                mediaUris,
-                isVideoList,
-                uri -> { // Safe deletion callback
-                    String name = uri.getLastPathSegment();
-                    if (name != null) {
-                        savedFilesCache.remove(name);
-                        requireContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                                .edit()
-                                .putStringSet("savedFiles", new HashSet<>(savedFilesCache))
-                                .apply();
-                    }
-                    // Remove from lists if still present
-                    int index = mediaUris.indexOf(uri);
-                    if (index != -1) {
-                        mediaUris.remove(index);
-                        isVideoList.remove(index);
-                        adapter.notifyItemRemoved(index);
-                        adapter.notifyItemRangeChanged(index, mediaUris.size());
-                    }
-                    updateEmptyMessage();
-                },
-                this::updateEmptyMessage,
-                statsManager  // ✅ Pass statsManager here
-        );
-
-
-        recyclerView.setAdapter(adapter);
-
         loadStatusSaverMedia();
 
         return view;
     }
-
-
 
     @Override
     public void onResume() {
         super.onResume();
         loadStatusSaverMedia();
         adapter.notifyDataSetChanged();
+    }
+
+    // ✅ Centralized delete handling
+    private void handleDelete(Uri uri, DownloadStatsManager statsManager) {
+        int index = mediaUris.indexOf(uri);
+        if (index == -1) return;
+
+        boolean isVideo = isVideoList.get(index);
+        String name = getFileNameFromUri(uri, isVideo);
+
+        if (name != null) {
+            savedFilesDB.removeFile(name); // Remove from DB/cache
+        }
+
+        // Remove from RecyclerView lists
+        mediaUris.remove(index);
+        isVideoList.remove(index);
+        adapter.notifyItemRemoved(index);
+        adapter.notifyItemRangeChanged(index, mediaUris.size());
+
+        updateEmptyMessage();
     }
 
     private void updateEmptyMessage() {
@@ -188,4 +185,20 @@ public class DownloadFragment extends Fragment {
         }
     }
 
+    private String getFileNameFromUri(Uri uri, boolean isVideo) {
+        String name = null;
+        String[] projection = { MediaStore.MediaColumns.DISPLAY_NAME };
+        Uri contentUri = isVideo
+                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        try (Cursor cursor = requireContext().getContentResolver().query(contentUri, projection,
+                MediaStore.MediaColumns._ID + "=?",
+                new String[]{String.valueOf(ContentUris.parseId(uri))}, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+            }
+        } catch (Exception ignored) {}
+        return name;
+    }
 }

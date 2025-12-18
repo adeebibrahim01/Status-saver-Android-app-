@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
+import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
 import java.util.List;
 
@@ -30,9 +31,10 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     private final DeleteCallback deleteCallback;
     private final EmptyCheckCallback emptyCheckCallback;
     private final DownloadStatsManager statsManager;
+    private final SavedFilesDB savedFilesDB; // ✅ Added
 
     public interface DeleteCallback {
-        void onDelete(Uri uri); // pass URI instead of position
+        void onDelete(Uri uri);
     }
 
     public interface EmptyCheckCallback {
@@ -40,15 +42,18 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     }
 
     public DownloadAdapter(Context context, List<Uri> mediaUris, List<Boolean> isVideoList,
-                           DeleteCallback deleteCallback, EmptyCheckCallback emptyCheckCallback, DownloadStatsManager statsManager) {
+                           DeleteCallback deleteCallback, EmptyCheckCallback emptyCheckCallback,
+                           DownloadStatsManager statsManager, SavedFilesDB savedFilesDB) {
         this.context = context;
         this.mediaUris = mediaUris;
         this.isVideoList = isVideoList;
-        this.deleteCallback = deleteCallback;
+        this.deleteCallback = deleteCallback; // Optional, just for callback
         this.emptyCheckCallback = emptyCheckCallback;
-        // Initialize DownloadStatsManager
-        this.statsManager = new DownloadStatsManager(context);
+        this.statsManager = statsManager;
+        this.savedFilesDB = savedFilesDB; // Already here
     }
+
+
 
     @NonNull
     @Override
@@ -100,7 +105,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
             deleteFile(clickPos, isVideos);
 
             if (deleteCallback != null) {
-                deleteCallback.onDelete(uriToDelete); // Safe deletion callback
+                deleteCallback.onDelete(uriToDelete);
             }
         });
     }
@@ -109,9 +114,8 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         if (pos < 0 || pos >= mediaUris.size()) return;
 
         Uri fileUri = mediaUris.get(pos);
-        boolean deleted;
 
-        // ✅ 1️⃣ file ka actual date
+        // 1️⃣ Get timestamp before deletion
         long downloadTimeMillis = getMediaDate(fileUri, isVideo);
 
         try {
@@ -123,13 +127,20 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
             long id = ContentUris.parseId(fileUri);
             Uri deleteUri = ContentUris.withAppendedId(contentUri, id);
 
-            deleted = resolver.delete(deleteUri, null, null) > 0;
+            boolean deleted = resolver.delete(deleteUri, null, null) > 0;
 
             if (deleted) {
+                // 2️⃣ Remove from adapter
                 removeItem(pos);
 
-                // ✅ 2️⃣ CORRECT stats update
-                statsManager.removeDownload(downloadTimeMillis);
+                // 3️⃣ Remove from SavedFilesDB safely
+                if (savedFilesDB != null) {
+                    String name = getFileNameFromUri(fileUri, isVideo);
+                    if (name != null) savedFilesDB.removeFile(name);
+                }
+
+                // 4️⃣ Remove from DownloadStatsManager safely
+                if (statsManager != null) statsManager.removeDownload(downloadTimeMillis);
 
                 Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_SHORT).show();
             } else {
@@ -144,38 +155,41 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
     private long getMediaDate(Uri uri, boolean isVideo) {
         long date = System.currentTimeMillis();
-
-        String[] projection = {
-                MediaStore.MediaColumns.DATE_ADDED,
-                MediaStore.MediaColumns.DATE_MODIFIED
-        };
-
+        String[] projection = { MediaStore.MediaColumns.DATE_ADDED, MediaStore.MediaColumns.DATE_MODIFIED };
         Uri contentUri = isVideo
                 ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
                 : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-        try (Cursor cursor = context.getContentResolver()
-                .query(contentUri, projection,
-                        MediaStore.MediaColumns._ID + "=?",
-                        new String[]{String.valueOf(ContentUris.parseId(uri))},
-                        null)) {
-
+        try (Cursor cursor = context.getContentResolver().query(contentUri, projection,
+                MediaStore.MediaColumns._ID + "=?",
+                new String[]{String.valueOf(ContentUris.parseId(uri))},
+                null)) {
             if (cursor != null && cursor.moveToFirst()) {
-
                 long added = cursor.getLong(0) * 1000;
                 long modified = cursor.getLong(1) * 1000;
-
-                // Prefer DATE_ADDED, fallback to DATE_MODIFIED
                 date = added > 0 ? added : modified;
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
 
         return date;
     }
 
+    private String getFileNameFromUri(Uri uri, boolean isVideo) {
+        String name = null;
+        String[] projection = { MediaStore.MediaColumns.DISPLAY_NAME };
+        Uri contentUri = isVideo
+                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        try (Cursor cursor = context.getContentResolver().query(contentUri, projection,
+                MediaStore.MediaColumns._ID + "=?",
+                new String[]{String.valueOf(ContentUris.parseId(uri))}, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
+            }
+        } catch (Exception ignored) {}
+        return name;
+    }
 
     private void removeItem(int pos) {
         if (pos < 0 || pos >= mediaUris.size()) return;

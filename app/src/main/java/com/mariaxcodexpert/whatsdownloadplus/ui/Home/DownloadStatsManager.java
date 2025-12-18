@@ -1,172 +1,112 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Handler;
+import android.os.Looper;
+
+import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DownloadStatsManager {
 
-    private static final String PREFS_NAME = "status_prefs";
-    private static final String KEY_TODAY_DOWNLOADS = "today_downloads";
-    private static final String KEY_LAST_DOWNLOAD_DATE = "last_download_date";
-    private static final String KEY_WEEK_DOWNLOADS = "week_downloads"; // format: "dayMillis:count,..."
+    private final SavedFilesDB savedFilesDB; // reuse the existing DB
+    private final Set<Long> cache = new HashSet<>();
+    private OnDatabaseChangeListener listener;
 
-    private final SharedPreferences prefs;
-
-    public DownloadStatsManager(Context context) {
-        prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    public DownloadStatsManager(Context context, SavedFilesDB savedFilesDB) {
+        this.savedFilesDB = savedFilesDB;
+        loadCache(); // load from existing table safely
     }
 
-    // --- ADD DOWNLOAD ---
-    public void addDownload() {
-        long todayMillis = System.currentTimeMillis();
-        int todayCount = getTodayDownloads();
-        todayCount++; // increment
-
-        // Update week data
-        String weekData = prefs.getString(KEY_WEEK_DOWNLOADS, "");
-        weekData = updateWeekData(weekData, todayMillis, todayCount);
-
-        // Save
-        prefs.edit()
-                .putInt(KEY_TODAY_DOWNLOADS, todayCount)
-                .putLong(KEY_LAST_DOWNLOAD_DATE, todayMillis)
-                .putString(KEY_WEEK_DOWNLOADS, weekData)
-                .apply();
+    /** Listener interface */
+    public interface OnDatabaseChangeListener {
+        void onDatabaseChanged();
     }
 
-    public void removeDownload(long downloadTimeMillis) {
+    public void setOnDatabaseChangeListener(OnDatabaseChangeListener listener) {
+        this.listener = listener;
+    }
 
-        long todayMillis = System.currentTimeMillis();
-
-        // 1️⃣ TODAY CHECK
-        if (isSameDay(downloadTimeMillis, todayMillis)) {
-            int todayCount = getTodayDownloads();
-            if (todayCount > 0) {
-                todayCount--;
-                prefs.edit().putInt(KEY_TODAY_DOWNLOADS, todayCount).apply();
+    /** Load cache safely from saved_files table */
+    private synchronized void loadCache() {
+        cache.clear();
+        try {
+            Set<String> files = savedFilesDB.getAllSavedFiles();
+            for (String fileName : files) {
+                // convert file_name to timestamp if needed, or just use index
+                // Here, assuming you store timestamp in file_name format, otherwise skip this
+                try {
+                    cache.add(Long.parseLong(fileName));
+                } catch (NumberFormatException ignored) {}
             }
+        } catch (Exception ignored) {
+            // table missing → treat as empty
+            cache.clear();
         }
-
-        // 2️⃣ WEEK DATA UPDATE
-        String weekData = prefs.getString(KEY_WEEK_DOWNLOADS, "");
-        if (weekData.isEmpty()) return;
-
-        StringBuilder sb = new StringBuilder();
-        String[] entries = weekData.split(",");
-        long sevenDaysAgo = todayMillis - 7L * 24 * 60 * 60 * 1000;
-
-        for (String entry : entries) {
-            String[] parts = entry.split(":");
-            if (parts.length != 2) continue;
-
-            long dayMillis = Long.parseLong(parts[0]);
-            int count = Integer.parseInt(parts[1]);
-
-            // sirf last 7 days rakho
-            if (dayMillis >= sevenDaysAgo) {
-
-                // jis din delete hui usi din ka count kam
-                if (isSameDay(dayMillis, downloadTimeMillis)) {
-                    count = Math.max(0, count - 1);
-                }
-
-                sb.append(dayMillis).append(":").append(count).append(",");
-            }
-        }
-
-        if (sb.length() > 0) sb.setLength(sb.length() - 1);
-
-        prefs.edit().putString(KEY_WEEK_DOWNLOADS, sb.toString()).apply();
+        notifyChange();
     }
 
+    public synchronized void addDownload(long timestamp) {
+        if (timestamp <= 0) timestamp = System.currentTimeMillis();
+        if (cache.contains(timestamp)) return;
 
-    // --- GET TODAY DOWNLOADS ---
+        // Use the savedFilesDB to store as string
+        savedFilesDB.addFile(String.valueOf(timestamp));
+        cache.add(timestamp);
+        notifyChange();
+    }
+
+    public synchronized void removeDownload(long timestamp) {
+        if (!cache.contains(timestamp)) return;
+
+        savedFilesDB.removeFile(String.valueOf(timestamp));
+        cache.remove(timestamp);
+        notifyChange();
+    }
+
     public int getTodayDownloads() {
-        checkAndResetTodayIfNeeded();
-        return prefs.getInt(KEY_TODAY_DOWNLOADS, 0);
+        long[] range = getTodayTimeRange();
+        return getCountInRange(range[0], range[1]);
     }
 
-    // --- GET LAST 7 DAYS DOWNLOADS ---
     public int getLast7DaysDownloads() {
-        long todayMillis = System.currentTimeMillis();
-        String weekData = prefs.getString(KEY_WEEK_DOWNLOADS, "");
-        int total = 0;
-
-        if (weekData.isEmpty()) return 0;
-
-        String[] entries = weekData.split(",");
-        long sevenDaysAgo = todayMillis - 7L * 24 * 60 * 60 * 1000;
-
-        for (String entry : entries) {
-            String[] parts = entry.split(":");
-            if (parts.length != 2) continue;
-            long dayMillis = Long.parseLong(parts[0]);
-            int count = Integer.parseInt(parts[1]);
-            if (dayMillis >= sevenDaysAgo) {
-                total += count;
-            }
-        }
-        return total;
+        long now = System.currentTimeMillis();
+        long sevenDaysAgo = now - 7L * 24 * 60 * 60 * 1000;
+        return getCountInRange(sevenDaysAgo, now);
     }
 
-    // --- HELPER: reset today if new day ---
-    private void checkAndResetTodayIfNeeded() {
-        long todayMillis = System.currentTimeMillis();
-        long lastDownload = prefs.getLong(KEY_LAST_DOWNLOAD_DATE, 0);
-
-        if (!isSameDay(todayMillis, lastDownload)) {
-            prefs.edit()
-                    .putInt(KEY_TODAY_DOWNLOADS, 0)
-                    .putLong(KEY_LAST_DOWNLOAD_DATE, todayMillis)
-                    .apply();
+    private synchronized int getCountInRange(long startTime, long endTime) {
+        int count = 0;
+        for (Long time : cache) {
+            if (time >= startTime && time <= endTime) count++;
         }
+        return count;
     }
 
-    // --- HELPER: same day check ---
-    private boolean isSameDay(long time1, long time2) {
-        Calendar cal1 = Calendar.getInstance();
-        cal1.setTimeInMillis(time1);
-        Calendar cal2 = Calendar.getInstance();
-        cal2.setTimeInMillis(time2);
-        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR)
-                && cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
+    private long[] getTodayTimeRange() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long start = cal.getTimeInMillis();
+
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        cal.add(Calendar.MILLISECOND, -1);
+        long end = cal.getTimeInMillis();
+
+        return new long[]{start, end};
     }
 
-    // --- HELPER: update week data (for add/remove) ---
-    private String updateWeekData(String oldData, long todayMillis, int todayCount) {
-        StringBuilder sb = new StringBuilder();
-        String[] entries = oldData.isEmpty() ? new String[0] : oldData.split(",");
-        long sevenDaysAgo = todayMillis - 7L * 24 * 60 * 60 * 1000;
-        boolean todayAdded = false;
-
-        for (String entry : entries) {
-            String[] parts = entry.split(":");
-            if (parts.length != 2) continue;
-            long dayMillis = Long.parseLong(parts[0]);
-            int count = Integer.parseInt(parts[1]);
-
-            // Keep only last 7 days
-            if (dayMillis >= sevenDaysAgo) {
-                if (isSameDay(dayMillis, todayMillis)) {
-                    if (!todayAdded) {
-                        sb.append(todayMillis).append(":").append(todayCount).append(",");
-                        todayAdded = true;
-                    }
-                } else {
-                    sb.append(dayMillis).append(":").append(count).append(",");
-                }
-            }
+    private void notifyChange() {
+        if (listener != null) {
+            new Handler(Looper.getMainLooper()).post(listener::onDatabaseChanged);
         }
-
-        // Append today if not added yet
-        if (!todayAdded) {
-            sb.append(todayMillis).append(":").append(todayCount);
-        } else if (sb.charAt(sb.length() - 1) == ',') {
-            sb.setLength(sb.length() - 1);
-        }
-
-        return sb.toString();
     }
 }
