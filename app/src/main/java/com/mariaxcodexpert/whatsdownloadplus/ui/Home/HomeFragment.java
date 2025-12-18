@@ -2,7 +2,10 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +15,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
@@ -21,8 +26,12 @@ import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
 import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.Executors;
+import android.view.View;
+import android.widget.Toast;
 
 public class HomeFragment extends Fragment {
 
@@ -41,26 +50,106 @@ public class HomeFragment extends Fragment {
         viewModel = new ViewModelProvider(this,
                 ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().getApplication()))
                 .get(HomeViewModel.class);
-        // Schedule background status watcher
-//        StatusWatcherWorker.scheduleWork(requireContext());
 
         setupClickListeners();
         observeViewModel();
 
-        // Update streak on every app open
+        // Update streak & downloads
         updateStreak();
-
-        // Update download stats using DownloadStatsManager
         updateDownloadsStats();
-        // Inside onCreateView() of HomeFragment
-        VersionHelper versionHelper = new VersionHelper(requireContext()); // good
+
+        // Set app version
+        VersionHelper versionHelper = new VersionHelper(requireContext());
         String version = versionHelper.getAppVersion();
         binding.projectVersion.setText(version);
         requireActivity().setTitle("Home");
+
+        RecyclerView rvRecentDownloads = binding.rvRecentDownloads;
+        rvRecentDownloads.setLayoutManager(
+                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
+        );
+
+// Load recent media from Status Saver folder
+        List<MediaItem> recentItems = getRecentMediaFromFolder();
+        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(getContext(), recentItems);
+        rvRecentDownloads.setAdapter(adapter);
         return binding.getRoot();
-
-
     }
+    private List<MediaItem> getRecentMediaFromFolder() {
+        List<MediaItem> list = new ArrayList<>();
+        Context context = getContext();
+        if (context == null) {
+            Toast.makeText(getContext(), "Context is null", Toast.LENGTH_SHORT).show();
+            return list;
+        }
+
+        String folderName = "Status Saver"; // Correct folder name
+
+        // --- Images ---
+        Uri imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        String[] imageProjection = { MediaStore.Images.Media._ID, MediaStore.Images.Media.RELATIVE_PATH };
+        String imageSelection = MediaStore.Images.Media.RELATIVE_PATH + " LIKE ?";
+        String[] imageSelectionArgs = { "%" + folderName + "%" };
+        String imageSortOrder = MediaStore.Images.Media.DATE_ADDED + " DESC";
+
+        try (Cursor cursor = context.getContentResolver().query(
+                imagesUri, imageProjection, imageSelection, imageSelectionArgs, imageSortOrder
+        )) {
+            if (cursor == null) {
+                Toast.makeText(context, "Image cursor is null", Toast.LENGTH_SHORT).show();
+            } else if (cursor.getCount() == 0) {
+                Toast.makeText(context, "No images found in folder: " + folderName, Toast.LENGTH_SHORT).show();
+            } else {
+                int idIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(idIndex);
+                    Uri contentUri = Uri.withAppendedPath(imagesUri, String.valueOf(id));
+                    list.add(new MediaItem(contentUri, false));
+                }
+                Toast.makeText(context, "Images found: " + list.size(), Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Error loading images: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
+        // --- Videos ---
+        Uri videosUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        String[] videoProjection = { MediaStore.Video.Media._ID, MediaStore.Video.Media.RELATIVE_PATH };
+        String videoSelection = MediaStore.Video.Media.RELATIVE_PATH + " LIKE ?";
+        String[] videoSelectionArgs = { "%" + folderName + "%" };
+        String videoSortOrder = MediaStore.Video.Media.DATE_ADDED + " DESC";
+
+        try (Cursor cursor = context.getContentResolver().query(
+                videosUri, videoProjection, videoSelection, videoSelectionArgs, videoSortOrder
+        )) {
+            if (cursor == null) {
+                Toast.makeText(context, "Video cursor is null", Toast.LENGTH_SHORT).show();
+            } else if (cursor.getCount() == 0) {
+                Toast.makeText(context, "No videos found in folder: " + folderName, Toast.LENGTH_SHORT).show();
+            } else {
+                int idIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
+                while (cursor.moveToNext()) {
+                    long id = cursor.getLong(idIndex);
+                    Uri contentUri = Uri.withAppendedPath(videosUri, String.valueOf(id));
+                    list.add(new MediaItem(contentUri, true));
+                }
+                Toast.makeText(context, "Videos found: " + list.size(), Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(context, "Error loading videos: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
+        if (list.isEmpty()) {
+            Toast.makeText(context, "Recent Downloads folder is empty", Toast.LENGTH_SHORT).show();
+        }
+
+        return list;
+    }
+
+
+
 
     private void updateStreak() {
         Executors.newSingleThreadExecutor().execute(() -> {

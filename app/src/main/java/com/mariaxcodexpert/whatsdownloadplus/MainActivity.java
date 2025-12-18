@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
         // ViewBinding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());

@@ -3,6 +3,7 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -25,6 +26,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.RequestManager;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
+import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
+import com.mariaxcodexpert.whatsdownloadplus.PushNotificationHelper;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 
@@ -231,11 +234,8 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             } catch (Exception ignored) {}
         }
 
-        // Remove from DB if saved
-        if (file.getName() != null ){
-            savedFilesDB.removeFile(file.getUri().toString());
+        if (file.getName() != null) savedFilesDB.removeFile(file.getName());
 
-        }
 
         handler.post(() -> {
             if (holder.downloadProgress != null)
@@ -250,7 +250,7 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
 
     private boolean isFileAlreadySaved(DocumentFile f) {
-        return savedFilesDB.isFileSaved(f.getUri().toString());
+        return f.getName() != null && savedFilesDB.isFileSaved(f.getName());
     }
 
 
@@ -269,8 +269,9 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
     private boolean isVideoFile(DocumentFile f) {
         String n = f.getName();
-        return n != null && n.matches(".*\\.(mp4|mkv|3gp)$");
+        return n != null && n.toLowerCase().matches(".*\\.(mp4|mkv|3gp)$");
     }
+
 
     private void startCountdownUpdater() {
         scheduler.scheduleWithFixedDelay(() -> handler.post(() -> {
@@ -285,13 +286,43 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 long remaining = holder.expiryTime - System.currentTimeMillis();
                 if (remaining < 0) remaining = 0;
 
-                long h = remaining / (1000*60*60);
-                long m = (remaining / (1000*60)) % 60;
+                long h = remaining / (1000 * 60 * 60);
+                long m = (remaining / (1000 * 60)) % 60;
                 long s = (remaining / 1000) % 60;
 
-                if (holder.countdownTimer != null)
+                if (holder.countdownTimer != null) {
+                    // Update countdown text
                     holder.countdownTimer.setText(remaining == 0 ? "Expired"
                             : String.format("Expires in %02d:%02d:%02d", h, m, s));
+
+                    // Update text color based on remaining hours
+                    if (h > 10) {
+                        holder.countdownTimer.setTextColor(0xFF4CAF50); // Green
+                    } else if (h > 3) {
+                        holder.countdownTimer.setTextColor(0xFFFFC107); // Yellow
+                    } else if (h >= 1) {
+                        holder.countdownTimer.setTextColor(0xFFF44336); // Red
+                    } else {
+                        holder.countdownTimer.setTextColor(0xFF9E9E9E); // Gray when expired
+                    }
+
+                    // Send notification exactly when 1 hour remains
+                    if (!holder.notificationSent && h == 1 && m == 0 && s == 0) {
+                        Intent intent = new Intent(context, MainActivity.class);
+                        intent.putExtra("openFragment", "ImagesAndVideo");
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                        PushNotificationHelper helper = new PushNotificationHelper(context);
+                        helper.sendNotification(
+                                "Status About to Expire",
+                                "A status is about to expire—view it before it disappears in 1 hour.",
+                                intent,
+                                1001
+                        );
+
+                        holder.notificationSent = true; // mark as sent
+                    }
+                }
             }
         }), 0, 1, TimeUnit.SECONDS);
     }
@@ -307,6 +338,7 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         TextView countdownTimer;
         ProgressBar downloadProgress;
         long expiryTime;
+        public boolean notificationSent = false;
 
         GalleryViewHolder(@NonNull View v) {
             super(v);

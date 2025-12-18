@@ -1,6 +1,7 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,6 +24,8 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.google.android.material.tabs.TabLayout;
+import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
+import com.mariaxcodexpert.whatsdownloadplus.PushNotificationHelper;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.util.ArrayList;
@@ -79,6 +82,11 @@ public class ImagesAndVideoFragment extends Fragment {
         selectTab(showVideoTab ? 1 : 0);
 
         loadStatuses();
+
+
+
+
+
     }
 
     private void initViews(View view) {
@@ -157,7 +165,37 @@ public class ImagesAndVideoFragment extends Fragment {
     }
 
     private void selectTab(int index) {
-        if (tabLayout.getTabAt(index) != null) tabLayout.getTabAt(index).select();
+        if (tabLayout.getTabAt(index) != null) {
+            TabLayout.Tab tab = tabLayout.getTabAt(index);
+            tab.select();
+
+            // Trigger visibility update manually
+            boolean showVideo = index == 1;
+            recyclerImages.setVisibility(showVideo ? View.GONE : View.VISIBLE);
+            recyclerVideos.setVisibility(showVideo ? View.VISIBLE : View.GONE);
+            updateEmptyState();
+        }
+    }
+
+    private void updateTabVisibility() {
+        boolean showVideo = tabLayout.getSelectedTabPosition() == 1;
+
+        recyclerImages.setVisibility(!showVideo && !imageList.isEmpty() ? View.VISIBLE : View.GONE);
+        recyclerVideos.setVisibility(showVideo && !videoList.isEmpty() ? View.VISIBLE : View.GONE);
+
+        boolean empty = (showVideo ? videoList.isEmpty() : imageList.isEmpty());
+        emptyStateLayout.setVisibility(empty ? View.VISIBLE : View.GONE);
+
+        if (empty) {
+            lottieEmptyState.setAnimation(R.raw.empty_status);
+            lottieEmptyState.playAnimation();
+            tvEmptyMessage.setText(showVideo
+                    ? "Videos not available 😔\nPlease check WhatsApp status first"
+                    : "Images not available 😔\nPlease check WhatsApp status first");
+        } else {
+            lottieEmptyState.pauseAnimation();
+            tvEmptyMessage.setText("");
+        }
     }
 
     private void loadStatuses() {
@@ -180,11 +218,27 @@ public class ImagesAndVideoFragment extends Fragment {
 
             handler.post(() -> {
                 if (!isAdded()) return;
+
+                // Update ViewModel
                 viewModel.setImages(images);
                 viewModel.setVideos(videos);
+
+                // Update local lists & adapters
+                imageList.clear();
+                imageList.addAll(images);
+                imageAdapter.submitList(new ArrayList<>(imageList));
+
+                videoList.clear();
+                videoList.addAll(videos);
+                videoAdapter.submitList(new ArrayList<>(videoList));
+
+                // Update visibility after data is loaded
+                updateTabVisibility();
+
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
             });
+
         });
     }
 
@@ -216,6 +270,7 @@ public class ImagesAndVideoFragment extends Fragment {
             tvEmptyMessage.setText("");
         }
     }
+
 
     @Override
     public void onDestroyView() {
