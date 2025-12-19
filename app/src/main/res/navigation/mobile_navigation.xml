@@ -29,7 +29,6 @@
     <fragment
         android:id="@+id/imageVideoPreviewFragment"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment"
-
         android:label="Preview" />
 
 

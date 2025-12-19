@@ -27,25 +27,27 @@
                 android:id="@+id/toolbarSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Images • Videos • Auto Save"
+                android:text="Images • Videos • Quick Save"
                 android:textColor="@android:color/white"
                 android:textSize="16sp"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"/>
 
-            <!-- Tabs -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/whatsapp_green"
+
                 app:tabIndicatorColor="@android:color/white"
-                app:tabIndicatorHeight="3dp"
+                app:tabIndicatorHeight="4dp"
+                app:tabRippleColor="@android:color/transparent"
                 app:tabTextColor="#A9D9A9"
                 app:tabSelectedTextColor="@android:color/white"
                 app:tabMode="fixed"
                 app:tabGravity="fill"
-                app:tabRippleColor="@android:color/transparent" />
+                app:tabIndicatorAnimationMode="elastic" />
+
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- RecyclerViews -->

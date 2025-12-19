@@ -6,14 +6,19 @@ import androidx.lifecycle.ViewModel;
 
 public class DownloadViewModel extends ViewModel {
 
-    private final MutableLiveData<String> mText;
+    // Fragment text (optional)
+    private final MutableLiveData<String> mText = new MutableLiveData<>();
+
+    // ✅ Toolbar title LiveData
+    private final MutableLiveData<String> toolbarTitle = new MutableLiveData<>();
 
     public DownloadViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is Download fragment");
+        // Directly set app name here
+        toolbarTitle.setValue("WhatsDownload Plus");
     }
 
     public LiveData<String> getText() {
         return mText;
     }
+
 }

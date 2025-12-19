@@ -84,16 +84,17 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
     @Override
     public void onBindViewHolder(@NonNull GalleryViewHolder holder, int position) {
-        if (holder.downloadProgress != null) {
-            holder.downloadProgress.setVisibility(View.GONE);
-            holder.downloadProgress.setProgress(0);
-        }
-
         DocumentFile file = getItem(position);
         if (file == null) return;
 
-        holder.expiryTime = file.lastModified() + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
+        // Only set expiryTime once
+        if (holder.expiryTime == 0) {
+            long fileTime = getStatusCreationTime(file);  // <--- Use creation time here
+            holder.expiryTime = fileTime + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
+            holder.notificationSent = false;
+        }
 
+        // Load thumbnail
         glide.load(file.getUri())
                 .override(200, 200)
                 .thumbnail(0.1f)
@@ -105,6 +106,25 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
         setDownloadState(holder, isFileAlreadySaved(file));
     }
+
+
+    private long getStatusCreationTime(DocumentFile file) {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                java.nio.file.Path path = java.nio.file.Paths.get(file.getUri().getPath());
+                java.nio.file.attribute.BasicFileAttributes attr = java.nio.file.Files.readAttributes(path, java.nio.file.attribute.BasicFileAttributes.class);
+                return attr.creationTime().toMillis();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // fallback
+        long t = file.lastModified();
+        return t > 0 ? t : System.currentTimeMillis();
+    }
+
+
+
 
     public void attachRecyclerView(RecyclerView rv) {
         this.recyclerView = rv;
@@ -277,13 +297,17 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         scheduler.scheduleWithFixedDelay(() -> handler.post(() -> {
             if (recyclerView == null) return;
 
+            long currentTime = System.currentTimeMillis();
+
             for (int i = 0; i < recyclerView.getChildCount(); i++) {
                 View child = recyclerView.getChildAt(i);
                 RecyclerView.ViewHolder vh = recyclerView.getChildViewHolder(child);
                 if (!(vh instanceof GalleryViewHolder)) continue;
 
                 GalleryViewHolder holder = (GalleryViewHolder) vh;
-                long remaining = holder.expiryTime - System.currentTimeMillis();
+
+                // ❌ Do NOT reset expiryTime here
+                long remaining = holder.expiryTime - currentTime;
                 if (remaining < 0) remaining = 0;
 
                 long h = remaining / (1000 * 60 * 60);
@@ -295,10 +319,10 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                     holder.countdownTimer.setText(remaining == 0 ? "Expired"
                             : String.format("Expires in %02d:%02d:%02d", h, m, s));
 
-                    // Update text color based on remaining hours
-                    if (h > 10) {
+                    // Update text color
+                    if (h >= 10) {
                         holder.countdownTimer.setTextColor(0xFF4CAF50); // Green
-                    } else if (h > 3) {
+                    } else if (h >= 3) {
                         holder.countdownTimer.setTextColor(0xFFFFC107); // Yellow
                     } else if (h >= 1) {
                         holder.countdownTimer.setTextColor(0xFFF44336); // Red
@@ -320,12 +344,13 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                                 1001
                         );
 
-                        holder.notificationSent = true; // mark as sent
+                        holder.notificationSent = true;
                     }
                 }
             }
         }), 0, 1, TimeUnit.SECONDS);
     }
+
 
 
     public void shutdownScheduler() {

@@ -15,6 +15,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -36,7 +37,7 @@ public class DownloadFragment extends Fragment {
     private final List<Boolean> isVideoList = new ArrayList<>();
     private TextView tvEmptyMessage;
     private LottieAnimationView lottieEmptyState;
-
+    private DownloadViewModel viewModel; // ✅ class-level variable
     private SavedFilesDB savedFilesDB;
 
     @Nullable
@@ -50,6 +51,7 @@ public class DownloadFragment extends Fragment {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
+
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setHasFixedSize(true);
@@ -80,6 +82,9 @@ public class DownloadFragment extends Fragment {
 
         return view;
     }
+
+
+
 
     @Override
     public void onResume() {

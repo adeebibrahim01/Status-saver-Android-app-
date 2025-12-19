@@ -1,5 +1,6 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -28,9 +29,11 @@ import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class HomeFragment extends Fragment {
@@ -38,6 +41,7 @@ public class HomeFragment extends Fragment {
     private FragmentHomeBinding binding;
     private NavController navController;
     private HomeViewModel viewModel;
+    private static final int MAX_ITEMS = 10;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -71,83 +75,88 @@ public class HomeFragment extends Fragment {
 
 // Load recent media from Status Saver folder
         List<MediaItem> recentItems = getRecentMediaFromFolder();
-        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(getContext(), recentItems);
+        TextView tvEmptyMessage = binding.tvRecentDownloadsEmpty; // Add this TextView in your XML below RecyclerView
+        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(getContext(), recentItems, tvEmptyMessage);
+
         rvRecentDownloads.setAdapter(adapter);
         return binding.getRoot();
     }
+
     private List<MediaItem> getRecentMediaFromFolder() {
-        List<MediaItem> list = new ArrayList<>();
+
         Context context = getContext();
-        if (context == null) {
-            Toast.makeText(getContext(), "Context is null", Toast.LENGTH_SHORT).show();
-            return list;
+        if (context == null) return Collections.emptyList();
+
+        List<MediaItem> result = new ArrayList<>(MAX_ITEMS);
+
+        // Images
+        fetchMedia(
+                context,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                false,
+                result
+        );
+
+        // Videos
+        if (result.size() < MAX_ITEMS) {
+            fetchMedia(
+                    context,
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    true,
+                    result
+            );
         }
 
-        String folderName = "Status Saver"; // Correct folder name
+        // Final safety sort
+        Collections.sort(result, (a, b) ->
+                Long.compare(b.dateAdded, a.dateAdded));
 
-        // --- Images ---
-        Uri imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        String[] imageProjection = { MediaStore.Images.Media._ID, MediaStore.Images.Media.RELATIVE_PATH };
-        String imageSelection = MediaStore.Images.Media.RELATIVE_PATH + " LIKE ?";
-        String[] imageSelectionArgs = { "%" + folderName + "%" };
-        String imageSortOrder = MediaStore.Images.Media.DATE_ADDED + " DESC";
-
-        try (Cursor cursor = context.getContentResolver().query(
-                imagesUri, imageProjection, imageSelection, imageSelectionArgs, imageSortOrder
-        )) {
-            if (cursor == null) {
-                Toast.makeText(context, "Image cursor is null", Toast.LENGTH_SHORT).show();
-            } else if (cursor.getCount() == 0) {
-                Toast.makeText(context, "No images found in folder: " + folderName, Toast.LENGTH_SHORT).show();
-            } else {
-                int idIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
-                while (cursor.moveToNext()) {
-                    long id = cursor.getLong(idIndex);
-                    Uri contentUri = Uri.withAppendedPath(imagesUri, String.valueOf(id));
-                    list.add(new MediaItem(contentUri, false));
-                }
-                Toast.makeText(context, "Images found: " + list.size(), Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Error loading images: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-
-        // --- Videos ---
-        Uri videosUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-        String[] videoProjection = { MediaStore.Video.Media._ID, MediaStore.Video.Media.RELATIVE_PATH };
-        String videoSelection = MediaStore.Video.Media.RELATIVE_PATH + " LIKE ?";
-        String[] videoSelectionArgs = { "%" + folderName + "%" };
-        String videoSortOrder = MediaStore.Video.Media.DATE_ADDED + " DESC";
-
-        try (Cursor cursor = context.getContentResolver().query(
-                videosUri, videoProjection, videoSelection, videoSelectionArgs, videoSortOrder
-        )) {
-            if (cursor == null) {
-                Toast.makeText(context, "Video cursor is null", Toast.LENGTH_SHORT).show();
-            } else if (cursor.getCount() == 0) {
-                Toast.makeText(context, "No videos found in folder: " + folderName, Toast.LENGTH_SHORT).show();
-            } else {
-                int idIndex = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
-                while (cursor.moveToNext()) {
-                    long id = cursor.getLong(idIndex);
-                    Uri contentUri = Uri.withAppendedPath(videosUri, String.valueOf(id));
-                    list.add(new MediaItem(contentUri, true));
-                }
-                Toast.makeText(context, "Videos found: " + list.size(), Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(context, "Error loading videos: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-
-        if (list.isEmpty()) {
-            Toast.makeText(context, "Recent Downloads folder is empty", Toast.LENGTH_SHORT).show();
-        }
-
-        return list;
+        return result;
     }
 
+
+    private void fetchMedia(
+            Context context,
+            Uri uri,
+            boolean isVideo,
+            List<MediaItem> out
+    ) {
+        if (out.size() >= MAX_ITEMS) return;
+
+        String[] projection = {
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.RELATIVE_PATH
+        };
+
+        String selection = MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+        String[] args = { "%Status%" }; // 🔥 more flexible
+
+        String sortOrder = MediaStore.MediaColumns.DATE_ADDED + " DESC";
+
+        try (Cursor cursor = context.getContentResolver().query(
+                uri,
+                projection,
+                selection,
+                args,
+                sortOrder
+        )) {
+            if (cursor == null) return;
+
+            int idCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID);
+            int dateCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED);
+
+            while (cursor.moveToNext() && out.size() < MAX_ITEMS) {
+                long id = cursor.getLong(idCol);
+                long date = cursor.getLong(dateCol) * 1000L;
+
+                Uri contentUri = ContentUris.withAppendedId(uri, id);
+                out.add(new MediaItem(contentUri, isVideo, date));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
 

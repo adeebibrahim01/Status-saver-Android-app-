@@ -134,7 +134,8 @@ public class MainActivity extends AppCompatActivity {
                 setToolbarTitle(appName);
             }
             else if (id == R.id.nav_download) {
-                setToolbarTitle("Download");
+                String appName = getString(R.string.app_name); // dynamically fetch app name
+                setToolbarTitle(appName);
             } else if (id == R.id.nav_privacy_policy) {
                 setToolbarTitle("Privacy Policy");
             }
@@ -166,11 +167,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendFeedback() {
-        Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
-        emailIntent.setData(Uri.parse("mailto:mariaadeeb982@gmail.com"));
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback - WhatsDownload Plus");
-        startActivity(emailIntent);
+        String packageName = getPackageName();
+        try {
+            // Open Play Store feedback page
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=" + packageName));
+            intent.setPackage("com.android.vending");
+            startActivity(intent);
+        } catch (Exception e) {
+            // Fallback to Play Store web page
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=" + packageName));
+            startActivity(intent);
+        }
     }
+
 
     private void openUrl(String url, String fallbackUrl) {
         try {
