@@ -2,6 +2,7 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -24,9 +25,11 @@ import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.StatusWatcherWorker;
 import com.mariaxcodexpert.whatsdownloadplus.VersionHelper;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
+import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment;
 import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -73,6 +76,34 @@ public class HomeFragment extends Fragment {
                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
         );
 
+        Intent intent = requireActivity().getIntent();
+        if (intent != null && intent.hasExtra("openFragment")) {
+            String fragmentToOpen = intent.getStringExtra("openFragment");
+
+            if ("ImagesAndVideo".equals(fragmentToOpen)) {
+
+                boolean isVideo;
+
+                // Check if intent provides type
+                if (intent.hasExtra("isVideo")) {
+                    isVideo = intent.getBooleanExtra("isVideo", false);
+                } else {
+                    // Fallback: detect by file name if you have statusId
+                    int statusId = intent.getIntExtra("statusId", -1);
+                    isVideo = statusId != -1 && statusIdIsVideo(statusId);
+                }
+
+                // Pass as argument to navigation
+                Bundle args = new Bundle();
+                args.putBoolean("showVideos", isVideo);
+
+                // Navigate to gallery fragment
+                navController.navigate(R.id.nav_gallery, args);
+            }
+        }
+
+
+
 // Load recent media from Status Saver folder
         List<MediaItem> recentItems = getRecentMediaFromFolder();
         TextView tvEmptyMessage = binding.tvRecentDownloadsEmpty; // Add this TextView in your XML below RecyclerView
@@ -81,6 +112,24 @@ public class HomeFragment extends Fragment {
         rvRecentDownloads.setAdapter(adapter);
         return binding.getRoot();
     }
+
+    private boolean statusIdIsVideo(int statusId) {
+        File statusFolder = new File(requireContext().getExternalFilesDir(null), "../../WhatsApp/Media/.Statuses");
+        if (statusFolder.exists() && statusFolder.isDirectory()) {
+            File[] files = statusFolder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.getName().hashCode() == statusId) {
+                        String name = file.getName().toLowerCase();
+                        return name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".avi");
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
 
     private List<MediaItem> getRecentMediaFromFolder() {
 
@@ -325,4 +374,5 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
+
 }

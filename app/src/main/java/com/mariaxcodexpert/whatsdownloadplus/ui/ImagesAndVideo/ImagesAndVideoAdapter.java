@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -26,10 +25,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.RequestManager;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
-import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
-import com.mariaxcodexpert.whatsdownloadplus.PushNotificationHelper;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
+import com.mariaxcodexpert.whatsdownloadplus.model.NotificationScheduler;
+import com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -59,7 +57,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         startCountdownUpdater();
     }
 
-
     private static final DiffUtil.ItemCallback<DocumentFile> DIFF_CALLBACK = new DiffUtil.ItemCallback<DocumentFile>() {
         @Override
         public boolean areItemsTheSame(@NonNull DocumentFile oldItem, @NonNull DocumentFile newItem) {
@@ -87,11 +84,43 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         DocumentFile file = getItem(position);
         if (file == null) return;
 
-        // Only set expiryTime once
         if (holder.expiryTime == 0) {
-            long fileTime = getStatusCreationTime(file);  // <--- Use creation time here
+            long fileTime = getStatusCreationTime(file);
             holder.expiryTime = fileTime + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
-            holder.notificationSent = false;
+
+            // Detect file type
+            boolean isVideoFile = false;
+            String name = file.getName() != null ? file.getName().toLowerCase() : "";
+            if (name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".avi") || name.endsWith(".3gp")) {
+                isVideoFile = true;
+            }
+
+            // Assign unique ID
+            holder.statusId = file.getUri().hashCode();
+
+            // Save status for reboot persistence
+            StatusStorage.saveStatus(context, holder.statusId, holder.expiryTime, isVideoFile);
+
+            // 🔔 Schedule notifications ONLY if not already notified
+            if (!StatusStorage.isNotified(context, holder.statusId)) {
+                // Schedule 1-hour notification
+                NotificationScheduler.scheduleNotification(
+                        context,
+                        holder.statusId,
+                        holder.expiryTime,      // full expiry time
+                        isVideoFile,
+                        NotificationScheduler.TYPE_1_HOUR
+                );
+
+                // Schedule 30-minute notification
+                NotificationScheduler.scheduleNotification(
+                        context,
+                        holder.statusId,
+                        holder.expiryTime,
+                        isVideoFile,
+                        NotificationScheduler.TYPE_30_MIN
+                );
+            }
         }
 
         // Load thumbnail
@@ -101,30 +130,46 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 .placeholder(R.drawable.image_bg)
                 .into(holder.imageThumb);
 
+        // Click listeners
         holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile(file)));
         holder.downloadIcon.setOnClickListener(v -> saveFileWithAd(file, holder));
 
+        // Set download state
         setDownloadState(holder, isFileAlreadySaved(file));
     }
 
 
     private long getStatusCreationTime(DocumentFile file) {
+        if (file == null || !file.exists()) return System.currentTimeMillis();
+
+        long creationTime = 0;
+
+        // Try MediaStore first
         try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                java.nio.file.Path path = java.nio.file.Paths.get(file.getUri().getPath());
-                java.nio.file.attribute.BasicFileAttributes attr = java.nio.file.Files.readAttributes(path, java.nio.file.attribute.BasicFileAttributes.class);
-                return attr.creationTime().toMillis();
+            Uri uri = file.getUri();
+            String[] projection = {MediaStore.MediaColumns.DATE_ADDED, MediaStore.MediaColumns.DATE_MODIFIED};
+            try (Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int dateAddedCol = cursor.getColumnIndex(MediaStore.MediaColumns.DATE_ADDED);
+                    int dateModifiedCol = cursor.getColumnIndex(MediaStore.MediaColumns.DATE_MODIFIED);
+
+                    long dateAdded = dateAddedCol != -1 ? cursor.getLong(dateAddedCol) * 1000L : 0;
+                    long dateModified = dateModifiedCol != -1 ? cursor.getLong(dateModifiedCol) * 1000L : 0;
+
+                    creationTime = dateAdded > 0 ? dateAdded : dateModified;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // fallback
-        long t = file.lastModified();
-        return t > 0 ? t : System.currentTimeMillis();
+
+        if (creationTime <= 0) {
+            long t = file.lastModified();
+            creationTime = t > 0 ? t : System.currentTimeMillis();
+        }
+
+        return creationTime;
     }
-
-
-
 
     public void attachRecyclerView(RecyclerView rv) {
         this.recyclerView = rv;
@@ -132,7 +177,7 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
     private void openPreview(DocumentFile file, boolean isVideo) {
         if (file == null || !file.exists()) return;
-        android.content.Intent intent = new android.content.Intent(context, ImageVideoPreviewActivity.class);
+        Intent intent = new Intent(context, ImageVideoPreviewActivity.class);
         intent.putExtra(ImageVideoPreviewActivity.EXTRA_URI, file.getUri());
         intent.putExtra(ImageVideoPreviewActivity.EXTRA_IS_VIDEO, isVideo);
         context.startActivity(intent);
@@ -141,34 +186,27 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
     private void saveFileWithAd(DocumentFile file, GalleryViewHolder holder) {
         if (file == null || isFileAlreadySaved(file) || isFileAlreadyInMediaStore(file.getName())) return;
 
-        // Disable download icon immediately
         if (holder.downloadIcon != null) holder.downloadIcon.setEnabled(false);
-
-        // Start saving
         saveFile(file, holder);
 
-        // Show ad if possible
         if (context instanceof Activity && AdManager.canRequestAds()) {
             AdManager.showInterstitial((Activity) context, null);
         }
     }
 
-
     private boolean isFileAlreadyInMediaStore(String fileName) {
-        String[] projection = { MediaStore.MediaColumns._ID };
+        String[] projection = {MediaStore.MediaColumns._ID};
         String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=?";
-        String[] args = { fileName };
+        String[] args = {fileName};
 
         Uri uri = isVideo
                 ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
                 : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-        try (Cursor c = context.getContentResolver()
-                .query(uri, projection, selection, args, null)) {
+        try (Cursor c = context.getContentResolver().query(uri, projection, selection, args, null)) {
             return c != null && c.moveToFirst();
         }
     }
-
 
     private void saveFile(DocumentFile file, GalleryViewHolder holder) {
         executor.execute(() -> {
@@ -194,7 +232,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 long total = file.length();
                 long copied = 0;
 
-                // 🔄 SHOW PROGRESS BAR (null-safe)
                 handler.post(() -> {
                     if (holder.downloadProgress != null) {
                         if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.GONE);
@@ -212,10 +249,8 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                         out.write(buf, 0, r);
                         copied += r;
 
-                        int p = (int) ((copied * 100) / total);
-                        int progress = p;
+                        int progress = (int) ((copied * 100) / total);
 
-                        // 🔁 Update progress (null-safe)
                         handler.post(() -> {
                             if (holder.downloadProgress != null) {
                                 holder.downloadProgress.setProgress(progress);
@@ -223,23 +258,15 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                         });
                     }
                 }
-// ✅ SUCCESS (AFTER FULL COPY)
+
                 handler.post(() -> {
                     if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.GONE);
                     if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.GONE);
 
-
                     if (name != null) savedFilesDB.addFile(name);
 
-                    // Set UI state
                     setDownloadState(holder, true);
-
-                    // Add download stat with timestamp
-                    long timestamp = file.lastModified(); // file ka actual last modified time
-                    if (timestamp <= 0) timestamp = System.currentTimeMillis(); // fallback
-
                 });
-
 
             } catch (Exception e) {
                 rollbackFailedDownload(file, uri, holder);
@@ -256,42 +283,27 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
         if (file.getName() != null) savedFilesDB.removeFile(file.getName());
 
-
         handler.post(() -> {
-            if (holder.downloadProgress != null)
-                holder.downloadProgress.setVisibility(View.GONE);
-
-            if (holder.downloadIcon != null)
-                holder.downloadIcon.setEnabled(true); // re-enable
+            if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.GONE);
+            if (holder.downloadIcon != null) holder.downloadIcon.setEnabled(true);
             setDownloadState(holder, false);
         });
     }
-
-
 
     private boolean isFileAlreadySaved(DocumentFile f) {
         return f.getName() != null && savedFilesDB.isFileSaved(f.getName());
     }
 
-
     private void setDownloadState(GalleryViewHolder h, boolean saved) {
-        if (h.downloadIcon != null)
-            h.downloadIcon.setVisibility(saved ? View.GONE : View.VISIBLE);
-
-        if (h.downloadStatus != null)
-            h.downloadStatus.setVisibility(saved ? View.VISIBLE : View.GONE);
-
-        if (h.downloadProgress != null)
-            h.downloadProgress.setVisibility(View.GONE);
+        if (h.downloadIcon != null) h.downloadIcon.setVisibility(saved ? View.GONE : View.VISIBLE);
+        if (h.downloadStatus != null) h.downloadStatus.setVisibility(saved ? View.VISIBLE : View.GONE);
+        if (h.downloadProgress != null) h.downloadProgress.setVisibility(View.GONE);
     }
-
-
 
     private boolean isVideoFile(DocumentFile f) {
         String n = f.getName();
         return n != null && n.toLowerCase().matches(".*\\.(mp4|mkv|3gp)$");
     }
-
 
     private void startCountdownUpdater() {
         scheduler.scheduleWithFixedDelay(() -> handler.post(() -> {
@@ -305,8 +317,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 if (!(vh instanceof GalleryViewHolder)) continue;
 
                 GalleryViewHolder holder = (GalleryViewHolder) vh;
-
-                // ❌ Do NOT reset expiryTime here
                 long remaining = holder.expiryTime - currentTime;
                 if (remaining < 0) remaining = 0;
 
@@ -315,43 +325,17 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 long s = (remaining / 1000) % 60;
 
                 if (holder.countdownTimer != null) {
-                    // Update countdown text
                     holder.countdownTimer.setText(remaining == 0 ? "Expired"
                             : String.format("Expires in %02d:%02d:%02d", h, m, s));
 
-                    // Update text color
-                    if (h >= 10) {
-                        holder.countdownTimer.setTextColor(0xFF4CAF50); // Green
-                    } else if (h >= 3) {
-                        holder.countdownTimer.setTextColor(0xFFFFC107); // Yellow
-                    } else if (h >= 1) {
-                        holder.countdownTimer.setTextColor(0xFFF44336); // Red
-                    } else {
-                        holder.countdownTimer.setTextColor(0xFF9E9E9E); // Gray when expired
-                    }
-
-                    // Send notification exactly when 1 hour remains
-                    if (!holder.notificationSent && h == 1 && m == 0 && s == 0) {
-                        Intent intent = new Intent(context, MainActivity.class);
-                        intent.putExtra("openFragment", "ImagesAndVideo");
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-                        PushNotificationHelper helper = new PushNotificationHelper(context);
-                        helper.sendNotification(
-                                "Status About to Expire",
-                                "A status is about to expire—view it before it disappears in 1 hour.",
-                                intent,
-                                1001
-                        );
-
-                        holder.notificationSent = true;
-                    }
+                    if (h >= 10) holder.countdownTimer.setTextColor(0xFF4CAF50);
+                    else if (h >= 3) holder.countdownTimer.setTextColor(0xFFFFC107);
+                    else if (h >= 1) holder.countdownTimer.setTextColor(0xFFF44336);
+                    else holder.countdownTimer.setTextColor(0xFF9E9E9E);
                 }
             }
         }), 0, 1, TimeUnit.SECONDS);
     }
-
-
 
     public void shutdownScheduler() {
         scheduler.shutdownNow();
@@ -359,11 +343,11 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
     }
 
     static class GalleryViewHolder extends RecyclerView.ViewHolder {
+        public int statusId;
         ImageView imageThumb, downloadIcon, videoIcon, downloadStatus;
         TextView countdownTimer;
         ProgressBar downloadProgress;
         long expiryTime;
-        public boolean notificationSent = false;
 
         GalleryViewHolder(@NonNull View v) {
             super(v);
@@ -372,12 +356,7 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             downloadStatus = v.findViewById(R.id.downloadStatus);
             videoIcon = v.findViewById(R.id.videoIcon);
             countdownTimer = v.findViewById(R.id.countdownTimer);
-
-            // ✅ YAHAN PASTE KARO
             downloadProgress = v.findViewById(R.id.downloadProgress);
         }
     }
-
-
-
 }

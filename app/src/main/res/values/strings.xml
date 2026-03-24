@@ -14,7 +14,16 @@
     <string name="permission_icon">Permission icon</string>
     <string name="storage_access">extra\n</string>
     <string name="notification_access">extra2\n</string>
+    <!-- WhatsApp folder guide -->
+    <string name="whatsapp_folder_path_line1">Typical WhatsApp Media folder path:</string>
+    <string name="whatsapp_folder_path_line2">Android/media/com.whatsapp/WhatsApp/Media/.Statuses</string>
 
+    <!-- WhatsApp hidden folder guide -->
+    <string name="hidden_folder_guide_line1">If the .Statuses folder inside WhatsApp Media is not visible:</string>
+    <string name="hidden_folder_guide_line2">1. Tap the 3-dot menu</string>
+    <string name="hidden_folder_guide_line3">2. Enable Show hidden files</string>
+    <string name="hidden_folder_guide_line4">3. Navigate to the .Statuses folder</string>
+    <string name="hidden_folder_guide_line5">4. Select Use this folder to grant proper permission.</string>
 
     <string name="privacy_title">Privacy Policy – WhatsDownload Plus</string>
     <string name="privacy_last_updated">Last updated: November 2025</string>
@@ -69,4 +78,5 @@ For questions, contact: mariaadeeb982@gmail.com
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="accessibility_service_description"> Notification Accessibility Service </string>
+    <string name="download_drawer">Download</string>
 </resources>

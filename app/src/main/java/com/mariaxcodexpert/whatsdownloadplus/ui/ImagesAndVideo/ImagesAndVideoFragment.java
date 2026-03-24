@@ -1,7 +1,6 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,8 +23,6 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.google.android.material.tabs.TabLayout;
-import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
-import com.mariaxcodexpert.whatsdownloadplus.PushNotificationHelper;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 import java.util.ArrayList;
@@ -177,43 +174,31 @@ public class ImagesAndVideoFragment extends Fragment {
         }
     }
 
-    private void updateTabVisibility() {
-        boolean showVideo = tabLayout.getSelectedTabPosition() == 1;
-
-        recyclerImages.setVisibility(!showVideo && !imageList.isEmpty() ? View.VISIBLE : View.GONE);
-        recyclerVideos.setVisibility(showVideo && !videoList.isEmpty() ? View.VISIBLE : View.GONE);
-
-        boolean empty = (showVideo ? videoList.isEmpty() : imageList.isEmpty());
-        emptyStateLayout.setVisibility(empty ? View.VISIBLE : View.GONE);
-
-        if (empty) {
-            lottieEmptyState.setAnimation(R.raw.empty_status);
-            lottieEmptyState.playAnimation();
-            tvEmptyMessage.setText(showVideo
-                    ? "Videos not available 😔\nPlease check WhatsApp status first"
-                    : "Images not available 😔\nPlease check WhatsApp status first");
-        } else {
-            lottieEmptyState.pauseAnimation();
-            tvEmptyMessage.setText("");
-        }
-    }
 
     private void loadStatuses() {
         if (statusFolderUri == null || executor == null || executor.isShutdown()) {
             swipeRefreshLayout.setRefreshing(false);
+            progressBar.setVisibility(View.GONE);
+            updateEmptyState();
             return;
         }
 
+        // Start loading
         progressBar.setVisibility(View.VISIBLE);
+        emptyStateLayout.setVisibility(View.GONE);
+
         executor.execute(() -> {
             DocumentFile folder = DocumentFile.fromTreeUri(requireContext(), statusFolderUri);
-            if (folder == null || !folder.isDirectory()) return;
 
             List<DocumentFile> images = new ArrayList<>();
             List<DocumentFile> videos = new ArrayList<>();
 
-            for (DocumentFile file : folder.listFiles()) {
-                if (file.isFile()) addFile(file, images, videos);
+            if (folder != null && folder.isDirectory()) {
+                for (DocumentFile file : folder.listFiles()) {
+                    if (file != null && file.isFile()) {
+                        addFile(file, images, videos);
+                    }
+                }
             }
 
             handler.post(() -> {
@@ -223,24 +208,25 @@ public class ImagesAndVideoFragment extends Fragment {
                 viewModel.setImages(images);
                 viewModel.setVideos(videos);
 
-                // Update local lists & adapters
+                // Update local lists
                 imageList.clear();
                 imageList.addAll(images);
-                imageAdapter.submitList(new ArrayList<>(imageList));
-
                 videoList.clear();
                 videoList.addAll(videos);
+
+                // Submit adapters
+                imageAdapter.submitList(new ArrayList<>(imageList));
                 videoAdapter.submitList(new ArrayList<>(videoList));
 
-                // Update visibility after data is loaded
-                updateTabVisibility();
-
+                // Final UI state
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
-            });
 
+                updateEmptyState(); // 🔥 single source of truth
+            });
         });
     }
+
 
     private void addFile(DocumentFile file, List<DocumentFile> images, List<DocumentFile> videos) {
         String n = file.getName();
@@ -253,23 +239,34 @@ public class ImagesAndVideoFragment extends Fragment {
     private void updateEmptyState() {
         boolean showVideo = tabLayout.getSelectedTabPosition() == 1;
         List<DocumentFile> current = showVideo ? videoList : imageList;
-        boolean empty = current.isEmpty();
+        boolean empty = current == null || current.isEmpty();
 
+        // Recycler visibility
         recyclerImages.setVisibility(!showVideo && !empty ? View.VISIBLE : View.GONE);
         recyclerVideos.setVisibility(showVideo && !empty ? View.VISIBLE : View.GONE);
-        emptyStateLayout.setVisibility(empty ? View.VISIBLE : View.GONE);
 
+        // Empty state
         if (empty) {
+            emptyStateLayout.setVisibility(View.VISIBLE);
+
+            lottieEmptyState.setVisibility(View.VISIBLE);
+            tvEmptyMessage.setVisibility(View.VISIBLE);
+
             lottieEmptyState.setAnimation(R.raw.empty_status);
             lottieEmptyState.playAnimation();
+
             tvEmptyMessage.setText(showVideo
                     ? "Videos not available 😔\nPlease check WhatsApp status first"
                     : "Images not available 😔\nPlease check WhatsApp status first");
         } else {
+            emptyStateLayout.setVisibility(View.GONE);
+
             lottieEmptyState.pauseAnimation();
-            tvEmptyMessage.setText("");
+            lottieEmptyState.setVisibility(View.GONE);
+            tvEmptyMessage.setVisibility(View.GONE);
         }
     }
+
 
 
     @Override

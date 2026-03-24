@@ -10,8 +10,8 @@ android {
         applicationId "com.mariaxcodexpert.whatsdownloadplus"
         minSdk 29
         targetSdk 35
-        versionCode 11
-        versionName "1.0.11"
+        versionCode 15
+        versionName "1.0.15"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -52,6 +52,7 @@ dependencies {
     implementation libs.navigation.ui
     implementation libs.play.services.ads.api
     implementation libs.legacy.support.v4
+    implementation libs.lifecycle.process
 
     // Room
     def room_version = "2.6.0"
@@ -89,5 +90,5 @@ dependencies {
     // In-App Updates & Review
     implementation "com.google.android.play:app-update:2.1.0"
     implementation "com.google.android.play:review:2.0.1"
-
+    implementation "androidx.work:work-runtime-ktx:2.8.1" // ya latest stable version
 }

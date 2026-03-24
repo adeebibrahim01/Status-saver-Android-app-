@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/whatsapp_popup_bg"
+        android:padding="16dp">
+
+        <!-- WhatsApp folder path -->
+        <TextView
+            android:id="@+id/tvWhatsappFolderPath1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#25D366"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:text="@string/whatsapp_folder_path_line1"
+        android:lineSpacingExtra="4dp"
+        android:scrollbars="vertical"/>
+
+        <TextView
+            android:id="@+id/tvWhatsappFolderPath2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#075E54"
+        android:textSize="14sp"
+        android:text="@string/whatsapp_folder_path_line2"
+        android:lineSpacingExtra="4dp"
+        android:scrollbars="vertical"
+        android:paddingBottom="12dp"/>
+
+        <!-- Hidden folder guide -->
+        <TextView
+            android:id="@+id/tvHiddenFolderGuide1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#128C7E"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:text="@string/hidden_folder_guide_line1"
+        android:lineSpacingExtra="4dp"
+        android:textIsSelectable="true"
+        android:paddingTop="8dp"/>
+
+        <TextView
+            android:id="@+id/tvHiddenFolderGuide2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#075E54"
+            android:textSize="14sp"
+            android:text="@string/hidden_folder_guide_line2"
+            android:lineSpacingExtra="4dp"
+            android:textIsSelectable="true"/>
+
+        <TextView
+            android:id="@+id/tvHiddenFolderGuide3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#075E54"
+            android:textSize="14sp"
+            android:text="@string/hidden_folder_guide_line3"
+            android:lineSpacingExtra="4dp"
+            android:textIsSelectable="true"/>
+
+        <TextView
+            android:id="@+id/tvHiddenFolderGuide4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#075E54"
+            android:textSize="14sp"
+            android:text="@string/hidden_folder_guide_line4"
+            android:lineSpacingExtra="4dp"
+            android:textIsSelectable="true"/>
+
+        <TextView
+            android:id="@+id/tvHiddenFolderGuide5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#075E54"
+            android:textSize="14sp"
+            android:text="@string/hidden_folder_guide_line5"
+            android:lineSpacingExtra="4dp"
+            android:textIsSelectable="true"
+            android:paddingBottom="8dp"/>
+
+    </LinearLayout>
+</ScrollView>

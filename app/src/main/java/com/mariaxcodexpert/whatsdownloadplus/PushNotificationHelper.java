@@ -28,33 +28,24 @@ public class PushNotificationHelper {
     }
 
     private void createNotificationChannel() {
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        channel.setDescription(CHANNEL_DESC);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription(CHANNEL_DESC);
 
-        NotificationManager manager = context.getSystemService(NotificationManager.class);
-        if (manager != null) {
-            manager.createNotificationChannel(channel);
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            if (manager != null) manager.createNotificationChannel(channel);
         }
     }
 
-    /**
-     * Show a push notification
-     * @param title Notification title
-     * @param message Notification message
-     * @param intent Optional: Intent to open on tap (can be null)
-     * @param notificationId Unique ID for this notification
-     */
     public void sendNotification(String title, String message, Intent intent, int notificationId) {
-        // Check POST_NOTIFICATIONS permission (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS)
                         != PackageManager.PERMISSION_GRANTED) {
-            // Permission not granted, skip notification
-            return;
+            return; // Permission not granted
         }
 
         PendingIntent pendingIntent = null;
@@ -72,7 +63,8 @@ public class PushNotificationHelper {
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER);
 
         if (pendingIntent != null) builder.setContentIntent(pendingIntent);
 

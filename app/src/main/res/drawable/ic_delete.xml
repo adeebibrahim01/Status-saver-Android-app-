@@ -4,30 +4,23 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
-    <!-- Base Trash Bin Body with Gradient Feel -->
     <path
-        android:fillColor="#34E07B"
+        android:fillColor="#FF3B30"
         android:pathData="M6,8c0,-0.55 0.45,-1 1,-1h10c0.55,0 1,0.45 1,1l-2,12c0,0.55 -0.45,1 -1,1H9c-0.55,0 -1,-0.45 -1,-1L6,8z"/>
 
-    <!-- Glossy Highlight Top -->
-
-    <!-- Lid (Smooth & Slightly Curved) -->
     <path
-        android:fillColor="#22C759"
+        android:fillColor="#FF3B30"
         android:pathData="M5,5h14l-1.5,-1.8c-0.1,-0.1 -0.3,-0.2 -0.5,-0.2h-10c-0.2,0 -0.4,0.1 -0.5,0.2L5,5z"/>
 
-    <!-- Handle -->
     <path
-        android:fillColor="#25D366"
+        android:fillColor="#FF3B30"
         android:pathData="M9,4.2h6v0.8h-6z"/>
 
-    <!-- Inner Dark Accent for Depth & 3D Feel -->
     <path
-        android:fillColor="#128C4A"
+        android:fillColor="#FF1E1E"
         android:pathData="M7.5,9l1.5,10h6l1.5,-10H7.5z"/>
 
-    <!-- Tiny Highlights for Sparkle -->
     <path
-        android:fillColor="#B2FFCC"
+        android:fillColor="#FF6666"
         android:pathData="M8,10l0.2,1M12,10l0.2,1M16,10l0.2,1"/>
 </vector>

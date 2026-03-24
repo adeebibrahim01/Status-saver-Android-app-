@@ -1,20 +1,28 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import android.Manifest;  // POST_NOTIFICATIONS yahi se aayega
 
 import com.mariaxcodexpert.whatsdownloadplus.databinding.ActivityMainBinding;
+import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private ConsentFormManager consentFormManager;
     // AppUpdateChecker instance
+    private ActivityResultLauncher<String> requestNotificationPermissionLauncher;
     private AppUpdateChecker updateChecker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +75,28 @@ public class MainActivity extends AppCompatActivity {
         // Start feedback prompt manager
         FeedbackPromptManager feedbackManager = new FeedbackPromptManager(this);
         feedbackManager.start();
+        // Register launcher before using it
+        requestNotificationPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        Toast.makeText(this, "Notification permission granted ✅", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Notification permission denied ❌", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
 
+        // Request permission if needed
+        askNotificationPermission();
 
+    }
+    private void askNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+            requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        }
     }
 
 

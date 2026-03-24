@@ -2,40 +2,30 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ===========================
-         🌐 Internet & Network Permissions
-         =========================== -->
+    <!-- 🌐 Internet & Network Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- ===========================
-         💾 Storage & Media Permissions
-         Android 10–12: READ_EXTERNAL_STORAGE
-         Android 13+: READ_MEDIA_IMAGES, READ_MEDIA_VIDEO, READ_MEDIA_AUDIO
-         Foreground service & Vibrate
-         =========================== -->
+    <!-- Notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <!-- Other Permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+    <!-- Storage for Android 12 and below -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
-    <!-- ===========================
-         🔍 WhatsApp Packages Query (Android 11+)
-         =========================== -->
+    <!-- WhatsApp Packages Query -->
     <queries>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
     </queries>
 
-    <!-- ===========================
-         ⚡ Application
-         =========================== -->
     <application
         android:name=".MyApp"
         android:allowBackup="true"
@@ -48,7 +38,6 @@
         android:theme="@style/Theme.WhatsDownloadPlus"
         tools:targetApi="33">
 
-        <!-- Splash Screen Launcher -->
         <activity
             android:name=".Splash_screen"
             android:exported="true">
@@ -58,12 +47,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Other Activities -->
         <activity
             android:name=".ui.Privacy_policy.PrivacyPolicyHostActivity"
             android:exported="false" />
-
-
         <activity
             android:name=".ui.Download.FullScreenMediaActivity"
             android:exported="false" />
@@ -80,11 +66,11 @@
             android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
         <activity
             android:name=".MainActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
 
-        <!-- FileProvider for sharing files -->
+        <!-- FileProvider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -95,7 +81,20 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- AdMob App ID -->
+        <receiver
+            android:name=".model.NotificationReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".model.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <!-- AdMob -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-9822767396000072~6754372345" />

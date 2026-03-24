@@ -4,8 +4,7 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
-    <!-- Ultra slim but slightly thick WhatsApp-style double tick in black -->
     <path
-        android:fillColor="#000000"
-        android:pathData="M7.5,16 L10,18.5 L17,11 L16,10 L10,16 L8,14 Z" />
+        android:fillColor="#25D366"
+    android:pathData="M7.5,16 L10,18.5 L17,11 L16,10 L10,16 L8,14 Z" />
 </vector>
