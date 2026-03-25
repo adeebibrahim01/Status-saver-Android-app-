@@ -1,12 +1,12 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -19,10 +19,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import android.Manifest;  // POST_NOTIFICATIONS yahi se aayega
 
 import com.mariaxcodexpert.whatsdownloadplus.databinding.ActivityMainBinding;
-import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,139 +30,129 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
-    private ConsentFormManager consentFormManager;
-    // AppUpdateChecker instance
+
+    // Notification Launcher
     private ActivityResultLauncher<String> requestNotificationPermissionLauncher;
-    private AppUpdateChecker updateChecker;
+
+    // App Update Checker
+    private AppUpdateChecker appUpdateChecker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ==============================
-        // GDPR + ADS HANDLING (Simplified)
-        // ==============================
-        // Consent + Ads
+        // 1. GDPR + ADS HANDLING
         ConsentFormManager.init(this);
-
         ConsentFormManager.getInstance().requestConsentForm(() -> {
-            // After consent is ready
             if (AdManager.canRequestAds()) {
-                AdManager.init(this); // ensure ad is loaded
+                AdManager.init(this);
             }
-
         });
 
-        // ViewBinding
+        // 2. ViewBinding Setup
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        // Navigation setup
+        // 3. Navigation Setup
         navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         setupAppBarConfiguration();
         setupDrawerActions();
         setupToolbarTitleUpdater();
         setupFAB();
 
+        // 4. Initialize Update Checker (Fixing Variable Name)
+        appUpdateChecker = new AppUpdateChecker(this);
+        appUpdateChecker.checkForUpdate();
 
-        // Initialize update checker
-        updateChecker = new AppUpdateChecker(this);
-        updateChecker.checkForUpdate(); // ✅ This is now called properly
-
-
-        // Start feedback prompt manager
+        // 5. Feedback Prompt Manager
         FeedbackPromptManager feedbackManager = new FeedbackPromptManager(this);
         feedbackManager.start();
-        // Register launcher before using it
+
+        // 6. Notification Permission Launcher
         requestNotificationPermissionLauncher = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
                     if (isGranted) {
                         Toast.makeText(this, "Notification permission granted ✅", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(this, "Notification permission denied ❌", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Enable notifications in settings for status alerts.", Toast.LENGTH_LONG).show();
                     }
                 }
         );
 
-        // Request permission if needed
+        // Request permission for Android 13+
         askNotificationPermission();
-
     }
+
     private void askNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                        != PackageManager.PERMISSION_GRANTED) {
-            requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
         }
     }
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Zaroori: Update check ko resume karein agar progress mein ho
+        if (appUpdateChecker != null) {
+            appUpdateChecker.onResume();
+        }
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (updateChecker != null) {
-            updateChecker.onActivityResult(requestCode, resultCode, data);
+        // Update result handle karein
+        if (appUpdateChecker != null) {
+            appUpdateChecker.onActivityResult(requestCode, resultCode, data);
         }
     }
 
     // =========================
-    // AppBarConfiguration
+    // Navigation & UI Helpers
     // =========================
     private void setupAppBarConfiguration() {
         DrawerLayout drawer = binding.drawerLayout;
         appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_home,
-                R.id.nav_gallery,
-                R.id.nav_download,
-                R.id.nav_privacy_policy
+                R.id.nav_home, R.id.nav_gallery, R.id.nav_download, R.id.nav_privacy_policy
         ).setOpenableLayout(drawer).build();
 
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
 
-    // =========================
-    // Drawer Actions
-    // =========================
     private void setupDrawerActions() {
-        Map<Integer, Runnable> drawerActions = new HashMap<>();
-        drawerActions.put(R.id.nav_home, () -> navController.popBackStack(navController.getGraph().getStartDestinationId(), false));
-        drawerActions.put(R.id.nav_gallery, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_gallery), navController));
-        drawerActions.put(R.id.nav_download, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_download), navController));
-        drawerActions.put(R.id.nav_privacy_policy, () -> NavigationUI.onNavDestinationSelected(binding.navView.getMenu().findItem(R.id.nav_privacy_policy), navController));
-        drawerActions.put(R.id.nav_share_app, this::shareApp);
-        drawerActions.put(R.id.nav_rate_app, () -> openUrl(
-                "market://details?id=" + getPackageName(),
-                "https://play.google.com/store/apps/details?id=" + getPackageName()));
-        drawerActions.put(R.id.nav_feedback, this::sendFeedback);
-
         binding.navView.setNavigationItemSelectedListener(item -> {
-            Runnable action = drawerActions.get(item.getItemId());
-            if (action != null) action.run();
+            int id = item.getItemId();
+            if (id == R.id.nav_home) {
+                navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
+            } else if (id == R.id.nav_gallery || id == R.id.nav_download || id == R.id.nav_privacy_policy) {
+                NavigationUI.onNavDestinationSelected(item, navController);
+            } else if (id == R.id.nav_share_app) {
+                shareApp();
+            } else if (id == R.id.nav_rate_app) {
+                openUrl("market://details?id=" + getPackageName(),
+                        "https://play.google.com/store/apps/details?id=" + getPackageName());
+            } else if (id == R.id.nav_feedback) {
+                sendFeedback();
+            }
             binding.drawerLayout.closeDrawers();
             return true;
         });
-
         binding.navView.setCheckedItem(R.id.nav_home);
     }
 
-    // =========================
-    // Toolbar Titles
-    // =========================
     private void setupToolbarTitleUpdater() {
         navController.addOnDestinationChangedListener((controller, destination, args) -> {
             int id = destination.getId();
             if (id == R.id.nav_home) {
                 setToolbarTitle("Home");
-            }else if (id == R.id.nav_gallery) {
-                String appName = getString(R.string.app_name); // dynamically fetch app name
-                setToolbarTitle(appName);
-            }
-            else if (id == R.id.nav_download) {
-                String appName = getString(R.string.app_name); // dynamically fetch app name
-                setToolbarTitle(appName);
+            } else if (id == R.id.nav_gallery || id == R.id.nav_download) {
+                setToolbarTitle(getString(R.string.app_name));
             } else if (id == R.id.nav_privacy_policy) {
                 setToolbarTitle("Privacy Policy");
             }
@@ -172,21 +160,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setToolbarTitle(String title) {
-        binding.appBarMain.toolbar.setTitle(title);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
+        }
     }
 
-    // =========================
-    // FAB Shortcut
-    // =========================
     private void setupFAB() {
-        binding.appBarMain.fab.setOnClickListener(v ->
-                navController.navigate(R.id.nav_download)
-        );
+        binding.appBarMain.fab.setOnClickListener(v -> navController.navigate(R.id.nav_download));
     }
 
-    // =========================
-    // Utility Methods
-    // =========================
     private void shareApp() {
         String url = "https://play.google.com/store/apps/details?id=" + getPackageName();
         Intent sendIntent = new Intent(Intent.ACTION_SEND);
@@ -196,21 +178,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendFeedback() {
-        String packageName = getPackageName();
-        try {
-            // Open Play Store feedback page
-            Intent intent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=" + packageName));
-            intent.setPackage("com.android.vending");
-            startActivity(intent);
-        } catch (Exception e) {
-            // Fallback to Play Store web page
-            Intent intent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=" + packageName));
-            startActivity(intent);
-        }
+        openUrl("market://details?id=" + getPackageName(),
+                "https://play.google.com/store/apps/details?id=" + getPackageName());
     }
-
 
     private void openUrl(String url, String fallbackUrl) {
         try {
@@ -218,15 +188,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUrl)));
         }
-    }
-
-    // =========================
-    // Open Gallery Tab
-    // =========================
-    public void openGalleryTab(boolean showVideos) {
-        Bundle args = new Bundle();
-        args.putBoolean("showVideos", showVideos);
-        navController.navigate(R.id.nav_gallery, args);
     }
 
     @Override
@@ -239,6 +200,4 @@ public class MainActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp();
     }
-
-
 }

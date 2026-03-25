@@ -21,43 +21,55 @@ public class NotificationReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (context == null || intent == null) return;
 
-        int statusId = intent.getIntExtra(NotificationWorker.KEY_STATUS_ID, -1);
-        long expiryTime = intent.getLongExtra(NotificationWorker.KEY_EXPIRY_TIME, -1L);
-        boolean isVideo = intent.getBooleanExtra(NotificationWorker.KEY_IS_VIDEO, false);
-        int type = intent.getIntExtra(NotificationWorker.KEY_TYPE, TYPE_1_HOUR);
+        // Note: Make sure NotificationWorker keys match exactly what you send from NotificationScheduler
+        int statusId = intent.getIntExtra("statusId", -1);
+        long expiryTime = intent.getLongExtra("expiryTime", -1L);
+        boolean isVideo = intent.getBooleanExtra("isVideo", false);
+        int type = intent.getIntExtra("type", TYPE_1_HOUR);
 
         long now = System.currentTimeMillis();
-        if (statusId <= 0 || expiryTime <= now || StatusStorage.isNotified(context, statusId)) return;
+
+        // 1. Basic Validation
+        if (statusId <= 0 || expiryTime <= now) return;
+
+        // 2. Optimized Notified Check (Har type ke liye alag check hona chahiye)
+        // Agar status pehle hi notified hai (for this specific type), to return karein
+        if (StatusStorage.isNotified(context, statusId, type)) return;
 
         long minutesLeft = TimeUnit.MILLISECONDS.toMinutes(expiryTime - now);
 
-        // Safety check: only fire when close
-        if ((type == TYPE_1_HOUR && minutesLeft > 61) ||
-                (type == TYPE_30_MIN && minutesLeft > 31)) return;
+        // 3. Safety Window: AlarmManager kabhi kabhi thoda jaldi ya dair se chalta hai
+        if (type == TYPE_1_HOUR && (minutesLeft > 70 || minutesLeft < 45)) return;
+        if (type == TYPE_30_MIN && (minutesLeft > 40 || minutesLeft < 10)) return;
 
-        // Open app intent
+        // 4. Notification Intent Setup
         Intent openIntent = new Intent(context, MainActivity.class);
         openIntent.putExtra("openFragment", "ImagesAndVideo");
         openIntent.putExtra("isVideo", isVideo);
         openIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        // Notification content
+        // 5. Dynamic Content
         String title = (type == TYPE_1_HOUR) ? "Status Expiring Soon" : "Last Chance!";
         String message = (type == TYPE_1_HOUR) ?
                 "This status will expire in about 1 hour. View it now." :
                 "Only 30 minutes left before this status disappears.";
 
-        // Send notification
-        new PushNotificationHelper(context)
-                .sendNotification(title, message, openIntent, generateNotificationId(statusId, type));
+        // 6. Execution
+        try {
+            new PushNotificationHelper(context)
+                    .sendNotification(title, message, openIntent, generateNotificationId(statusId, type));
 
-        // Mark as notified
-        StatusStorage.markAsNotified(context, statusId);
+            // Mark this SPECIFIC type as notified
+            StatusStorage.markAsNotified(context, statusId, type);
 
-        Log.i(TAG, "Notification sent | statusId=" + statusId + " | type=" + type + " | minutesLeft=" + minutesLeft);
+            Log.i(TAG, "Notification sent | statusId=" + statusId + " | type=" + type + " | minutesLeft=" + minutesLeft);
+        } catch (Exception e) {
+            Log.e(TAG, "Error sending notification", e);
+        }
     }
 
     private int generateNotificationId(int statusId, int type) {
+        // Unique ID for each status + type combination
         return Math.abs(statusId * 10 + type);
     }
 }

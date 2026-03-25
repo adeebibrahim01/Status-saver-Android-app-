@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.RequestManager;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.model.NotificationReceiver;
 import com.mariaxcodexpert.whatsdownloadplus.model.NotificationScheduler;
 import com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage;
 
@@ -84,41 +85,40 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         DocumentFile file = getItem(position);
         if (file == null) return;
 
+        // Detect file type and ID early to use in click listeners and scheduling
+        String name = file.getName() != null ? file.getName().toLowerCase() : "";
+        boolean isVideoFile = name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".avi") || name.endsWith(".3gp");
+        int currentStatusId = file.getUri().hashCode();
+        holder.statusId = currentStatusId;
+
         if (holder.expiryTime == 0) {
             long fileTime = getStatusCreationTime(file);
-            holder.expiryTime = fileTime + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
-
-            // Detect file type
-            boolean isVideoFile = false;
-            String name = file.getName() != null ? file.getName().toLowerCase() : "";
-            if (name.endsWith(".mp4") || name.endsWith(".mkv") || name.endsWith(".avi") || name.endsWith(".3gp")) {
-                isVideoFile = true;
-            }
-
-            // Assign unique ID
-            holder.statusId = file.getUri().hashCode();
+            holder.expiryTime = fileTime + TimeUnit.HOURS.toMillis(24);
 
             // Save status for reboot persistence
             StatusStorage.saveStatus(context, holder.statusId, holder.expiryTime, isVideoFile);
 
-            // 🔔 Schedule notifications ONLY if not already notified
-            if (!StatusStorage.isNotified(context, holder.statusId)) {
-                // Schedule 1-hour notification
-                NotificationScheduler.scheduleNotification(
-                        context,
-                        holder.statusId,
-                        holder.expiryTime,      // full expiry time
-                        isVideoFile,
-                        NotificationScheduler.TYPE_1_HOUR
-                );
+            // 🔔 FIXED: Schedule notifications by checking each type individually
 
-                // Schedule 30-minute notification
+            // 1. Check & Schedule 1-Hour Notification
+            if (!StatusStorage.isNotified(context, holder.statusId, NotificationReceiver.TYPE_1_HOUR)) {
                 NotificationScheduler.scheduleNotification(
                         context,
                         holder.statusId,
                         holder.expiryTime,
                         isVideoFile,
-                        NotificationScheduler.TYPE_30_MIN
+                        NotificationReceiver.TYPE_1_HOUR
+                );
+            }
+
+            // 2. Check & Schedule 30-Minute Notification
+            if (!StatusStorage.isNotified(context, holder.statusId, NotificationReceiver.TYPE_30_MIN)) {
+                NotificationScheduler.scheduleNotification(
+                        context,
+                        holder.statusId,
+                        holder.expiryTime,
+                        isVideoFile,
+                        NotificationReceiver.TYPE_30_MIN
                 );
             }
         }
@@ -131,13 +131,12 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 .into(holder.imageThumb);
 
         // Click listeners
-        holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile(file)));
+        holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile)); // Fixed: using boolean variable
         holder.downloadIcon.setOnClickListener(v -> saveFileWithAd(file, holder));
 
         // Set download state
         setDownloadState(holder, isFileAlreadySaved(file));
     }
-
 
     private long getStatusCreationTime(DocumentFile file) {
         if (file == null || !file.exists()) return System.currentTimeMillis();
