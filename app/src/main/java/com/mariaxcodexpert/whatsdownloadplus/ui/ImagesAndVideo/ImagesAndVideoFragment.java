@@ -5,7 +5,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -53,8 +55,8 @@ public class ImagesAndVideoFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull android.view.LayoutInflater inflater,
-                             @Nullable android.view.ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_imagesandvideo, container, false);
     }
@@ -71,7 +73,7 @@ public class ImagesAndVideoFragment extends Fragment {
         loadStatusFolderUri();
         setupTabs();
         setupSwipeRefresh();
-        initAdapters();
+        initAdapters(); // Shared DB removed from here
         observeViewModel();
 
         boolean showVideoTab = getArguments() != null &&
@@ -79,11 +81,6 @@ public class ImagesAndVideoFragment extends Fragment {
         selectTab(showVideoTab ? 1 : 0);
 
         loadStatuses();
-
-
-
-
-
     }
 
     private void initViews(View view) {
@@ -105,12 +102,9 @@ public class ImagesAndVideoFragment extends Fragment {
     }
 
     private void initAdapters() {
-        // Get your shared SavedFilesDB instance
-        SavedFilesDB savedFilesDB = new SavedFilesDB(requireContext());
-
-        // Pass savedFilesDB to adapters
-        imageAdapter = new ImagesAndVideoAdapter(requireContext(), glide, false, savedFilesDB);
-        videoAdapter = new ImagesAndVideoAdapter(requireContext(), glide, true, savedFilesDB);
+        // SQL Database logic removed. Now using direct storage check inside adapter.
+        imageAdapter = new ImagesAndVideoAdapter(requireContext(), glide, false);
+        videoAdapter = new ImagesAndVideoAdapter(requireContext(), glide, true);
 
         recyclerImages.setAdapter(imageAdapter);
         recyclerVideos.setAdapter(videoAdapter);
@@ -124,12 +118,15 @@ public class ImagesAndVideoFragment extends Fragment {
             imageList.clear();
             imageList.addAll(images);
             imageAdapter.submitList(new ArrayList<>(imageList));
+            // notifyDataSetChanged ensures icons are re-checked against storage
+            imageAdapter.notifyDataSetChanged();
         });
 
         viewModel.getVideos().observe(getViewLifecycleOwner(), videos -> {
             videoList.clear();
             videoList.addAll(videos);
             videoAdapter.submitList(new ArrayList<>(videoList));
+            videoAdapter.notifyDataSetChanged();
         });
     }
 
@@ -166,14 +163,12 @@ public class ImagesAndVideoFragment extends Fragment {
             TabLayout.Tab tab = tabLayout.getTabAt(index);
             tab.select();
 
-            // Trigger visibility update manually
             boolean showVideo = index == 1;
             recyclerImages.setVisibility(showVideo ? View.GONE : View.VISIBLE);
             recyclerVideos.setVisibility(showVideo ? View.VISIBLE : View.GONE);
             updateEmptyState();
         }
     }
-
 
     private void loadStatuses() {
         if (statusFolderUri == null || executor == null || executor.isShutdown()) {
@@ -183,7 +178,6 @@ public class ImagesAndVideoFragment extends Fragment {
             return;
         }
 
-        // Start loading
         progressBar.setVisibility(View.VISIBLE);
         emptyStateLayout.setVisibility(View.GONE);
 
@@ -204,29 +198,27 @@ public class ImagesAndVideoFragment extends Fragment {
             handler.post(() -> {
                 if (!isAdded()) return;
 
-                // Update ViewModel
                 viewModel.setImages(images);
                 viewModel.setVideos(videos);
 
-                // Update local lists
                 imageList.clear();
                 imageList.addAll(images);
                 videoList.clear();
                 videoList.addAll(videos);
 
-                // Submit adapters
                 imageAdapter.submitList(new ArrayList<>(imageList));
                 videoAdapter.submitList(new ArrayList<>(videoList));
 
-                // Final UI state
+                imageAdapter.notifyDataSetChanged();
+                videoAdapter.notifyDataSetChanged();
+
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
 
-                updateEmptyState(); // 🔥 single source of truth
+                updateEmptyState();
             });
         });
     }
-
 
     private void addFile(DocumentFile file, List<DocumentFile> images, List<DocumentFile> videos) {
         String n = file.getName();
@@ -241,14 +233,11 @@ public class ImagesAndVideoFragment extends Fragment {
         List<DocumentFile> current = showVideo ? videoList : imageList;
         boolean empty = current == null || current.isEmpty();
 
-        // Recycler visibility
         recyclerImages.setVisibility(!showVideo && !empty ? View.VISIBLE : View.GONE);
         recyclerVideos.setVisibility(showVideo && !empty ? View.VISIBLE : View.GONE);
 
-        // Empty state
         if (empty) {
             emptyStateLayout.setVisibility(View.VISIBLE);
-
             lottieEmptyState.setVisibility(View.VISIBLE);
             tvEmptyMessage.setVisibility(View.VISIBLE);
 
@@ -260,14 +249,11 @@ public class ImagesAndVideoFragment extends Fragment {
                     : "Images not available 😔\nPlease check WhatsApp status first");
         } else {
             emptyStateLayout.setVisibility(View.GONE);
-
             lottieEmptyState.pauseAnimation();
             lottieEmptyState.setVisibility(View.GONE);
             tvEmptyMessage.setVisibility(View.GONE);
         }
     }
-
-
 
     @Override
     public void onDestroyView() {

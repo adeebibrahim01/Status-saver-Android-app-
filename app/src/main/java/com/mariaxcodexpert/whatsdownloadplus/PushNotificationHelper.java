@@ -5,88 +5,35 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
-
-import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 public class PushNotificationHelper {
-
-    private static final String CHANNEL_ID = "status_expiry_channel"; // Unique ID
-    private static final String CHANNEL_NAME = "Status Expiry Alerts";
-    private static final String CHANNEL_DESC = "Notifications for statuses about to expire";
-
     private final Context context;
+    private static final String CHANNEL_ID = "status_expiry_channel";
 
     public PushNotificationHelper(Context context) {
         this.context = context;
-        createNotificationChannel();
-    }
-
-    private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // High importance zaroori hai heads-up notification ke liye
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            channel.setDescription(CHANNEL_DESC);
-            channel.enableVibration(true);
-            channel.setShowBadge(true);
-
-            NotificationManager manager = context.getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Expiry Alerts", NotificationManager.IMPORTANCE_HIGH);
+            NotificationManager nm = context.getSystemService(NotificationManager.class);
+            if (nm != null) nm.createNotificationChannel(channel);
         }
     }
 
-    public void sendNotification(String title, String message, Intent intent, int notificationId) {
-        // 1. Android 13+ Permission Check
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                return; // Permission nahi hai to return kar jao
-            }
-        }
+    public void sendNotification(String title, String message, Intent intent, int id) {
+        int flags = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) ? (PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE) : PendingIntent.FLAG_UPDATE_CURRENT;
+        PendingIntent pi = PendingIntent.getActivity(context, id, intent, flags);
 
-        // 2. PendingIntent setup (Modern Flags)
-        PendingIntent pendingIntent = null;
-        if (intent != null) {
-            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                flags |= PendingIntent.FLAG_IMMUTABLE; // Safety for Android 12+
-            }
-
-            pendingIntent = PendingIntent.getActivity(
-                    context,
-                    notificationId, // Har notification ka unique request code
-                    intent,
-                    flags
-            );
-        }
-
-        // 3. Build Notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification) // Ensure this icon exists
+                .setSmallIcon(R.drawable.ic_notification) // Ensure this exists
                 .setContentTitle(title)
                 .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Expandable text
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_REMINDER)
-                .setDefaults(NotificationCompat.DEFAULT_ALL);
+                .setContentIntent(pi);
 
-        if (pendingIntent != null) {
-            builder.setContentIntent(pendingIntent);
-        }
-
-        // 4. Show Notification
-        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager != null) {
-            manager.notify(notificationId, builder.build());
-        }
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.notify(id, builder.build());
     }
 }
