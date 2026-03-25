@@ -167,7 +167,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Today Download"
+                        android:text="Today's Downloads"
                         android:textColor="#075E54"
                         android:textSize="10sp"
                         android:textStyle="bold"/>
@@ -209,7 +209,7 @@
                         android:id="@+id/tvLast7Days"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="7 Days Download"
+                        android:text="7 Days Downloads"
                         android:textColor="#075E54"
                         android:textSize="10sp"
                         android:textStyle="bold"/>
@@ -250,7 +250,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Streak"
+                        android:text="Current Streak"
                         android:textColor="#075E54"
                         android:textSize="10sp"
                         android:textStyle="bold"/>

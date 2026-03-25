@@ -18,7 +18,7 @@ import com.google.android.play.core.install.model.UpdateAvailability;
 public class AppUpdateChecker {
 
     private static final String TAG = "AppUpdateChecker";
-    private static final int UPDATE_REQUEST_CODE = 1001;
+    public static final int UPDATE_REQUEST_CODE = 1001;
 
     private final Activity activity;
     private final AppUpdateManager appUpdateManager;
@@ -30,11 +30,9 @@ public class AppUpdateChecker {
 
     // Check for updates (Safe & Silent)
     public void checkForUpdate() {
-
         Task<AppUpdateInfo> task = appUpdateManager.getAppUpdateInfo();
 
         task.addOnSuccessListener(appUpdateInfo -> {
-
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
                     appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
 
@@ -45,50 +43,56 @@ public class AppUpdateChecker {
                             activity,
                             UPDATE_REQUEST_CODE
                     );
-
                 } catch (Exception e) {
-                    // REAL failure → optional fallback
                     openPlayStore();
                 }
             }
-            // else → silently ignore (no update / not allowed)
-
         });
 
         task.addOnFailureListener(e -> {
-
-            // ✅ SILENTLY IGNORE: App not owned (sideload / APK install)
             if (e instanceof InstallException) {
                 InstallException ie = (InstallException) e;
-
                 if (ie.getErrorCode() == InstallErrorCode.ERROR_APP_NOT_OWNED) {
-                    return; // 🔇 absolutely nothing
+                    return; // Sideloaded app, do nothing
                 }
             }
-
-            // Other unexpected errors (optional log)
             Log.w(TAG, "Update check failed silently");
+        });
+    }
+
+    // ✅ Zaroori: Agar update process mein ho to usay resume karein
+    public void onResume() {
+        appUpdateManager.getAppUpdateInfo().addOnSuccessListener(appUpdateInfo -> {
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                try {
+                    appUpdateManager.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.IMMEDIATE,
+                            activity,
+                            UPDATE_REQUEST_CODE
+                    );
+                } catch (Exception ignored) {}
+            }
         });
     }
 
     private void openPlayStore() {
         try {
-            activity.startActivity(new Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=" + activity.getPackageName())
-            ));
+            activity.startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=" + activity.getPackageName())));
         } catch (ActivityNotFoundException e) {
-            activity.startActivity(new Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=" + activity.getPackageName())
-            ));
+            activity.startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=" + activity.getPackageName())));
         }
     }
 
-    // Handle update result
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == UPDATE_REQUEST_CODE) {
-            // 🔇 User cancel / fail → no action
+            if (resultCode != Activity.RESULT_OK) {
+                Log.e(TAG, "Update flow failed! Result code: " + resultCode);
+                // Agar aap chahte hain k user update ke baghair app use na kare:
+                // checkForUpdate();
+            }
         }
     }
 }

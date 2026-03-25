@@ -2,6 +2,7 @@ package com.mariaxcodexpert.whatsdownloadplus.model;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import java.util.Map;
 
 public class StatusStorage {
 
@@ -15,8 +16,12 @@ public class StatusStorage {
 
     public static void removeStatus(Context context, int statusId) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().remove(String.valueOf(statusId)).apply();
-        prefs.edit().remove(statusId + "_notified").apply(); // remove notified flag
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove(String.valueOf(statusId));
+        // Dono types ke flags remove karein
+        editor.remove(statusId + "_notified_" + NotificationReceiver.TYPE_1_HOUR);
+        editor.remove(statusId + "_notified_" + NotificationReceiver.TYPE_30_MIN);
+        editor.apply();
     }
 
     public static boolean isVideo(Context context, int statusId) {
@@ -31,23 +36,35 @@ public class StatusStorage {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String value = prefs.getString(String.valueOf(statusId), null);
         if (value == null) return -1;
-        String[] parts = value.split("\\|");
-        return Long.parseLong(parts[0]);
+        try {
+            String[] parts = value.split("\\|");
+            return Long.parseLong(parts[0]);
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
-    public static java.util.Map<String, ?> getAllStatuses(Context context) {
+    public static Map<String, ?> getAllStatuses(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         return prefs.getAll();
     }
 
-    // ------------------ New: Notified flag ------------------
-    public static void markAsNotified(Context context, int statusId) {
+    // ------------------ Updated: Notified flags with Type ------------------
+
+    /**
+     * Mark a specific status AND a specific notification type as notified.
+     */
+    public static void markAsNotified(Context context, int statusId, int type) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putBoolean(statusId + "_notified", true).apply();
+        // Key format: "123_notified_1" or "123_notified_2"
+        prefs.edit().putBoolean(statusId + "_notified_" + type, true).apply();
     }
 
-    public static boolean isNotified(Context context, int statusId) {
+    /**
+     * Check if a specific notification type has already been sent for this status.
+     */
+    public static boolean isNotified(Context context, int statusId, int type) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(statusId + "_notified", false);
+        return prefs.getBoolean(statusId + "_notified_" + type, false);
     }
 }

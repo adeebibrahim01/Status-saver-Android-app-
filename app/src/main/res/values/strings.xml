@@ -26,54 +26,71 @@
     <string name="hidden_folder_guide_line5">4. Select Use this folder to grant proper permission.</string>
 
     <string name="privacy_title">Privacy Policy – WhatsDownload Plus</string>
-    <string name="privacy_last_updated">Last updated: November 2025</string>
+    <string name="privacy_last_updated">Last Updated: March 25, 2026</string>
 
-    <!-- Section 1 -->
-    <string name="privacy_section_1_heading">Information We Collect</string>
+    <string name="privacy_section_1_heading">1. Data Privacy &amp; Collection</string>
     <string name="privacy_section_1">
-We do not collect or share any personal data outside your device.
+        Your privacy is our top priority. Our application does not collect, store, or transmit any personal data, media files, or metadata to external servers. All operations are performed locally on your device. We do not have access to your personal chats, contacts, or WhatsApp account details.
     </string>
 
-    <!-- Section 2 -->
-    <string name="privacy_section_2_heading">How the App Works</string>
+    <string name="privacy_section_2_heading">2. Folder-Specific Access (Scoped Storage)</string>
     <string name="privacy_section_2">
-App scans WhatsApp Status folder to show photos and videos locally.
+        Unlike traditional apps, we do not request broad access to your device\'s internal storage or media gallery. This app utilizes the Android Storage Access Framework (SAF), which allows you to grant permission only to the specific WhatsApp status directory. This ensures that the app cannot view or modify any other files or folders on your device.
     </string>
 
-    <!-- Section 3 -->
-    <string name="privacy_section_3_heading">Permissions</string>
+    <string name="privacy_section_3_heading">3. Permissions Explained</string>
     <string name="privacy_section_3">
-Storage permission is required to access statuses; notification is optional.
+        To function correctly, the app only requires: \n\n
+        • Folder Access: User-granted permission via the system file picker to read status media from the official WhatsApp directory. \n
+        • Notifications (Optional): Used solely to notify you about new statuses or expiring media. \n\n
+        We do not require "Read External Storage" or "Media Access" permissions for the entire device.
     </string>
 
-    <!-- Section 4 -->
-    <string name="privacy_section_4_heading">Third-Party Services</string>
+    <string name="privacy_section_4_heading">4. Security &amp; Local Processing</string>
     <string name="privacy_section_4">
-We do not integrate third-party analytics or SDKs that track users.
+        All media files retrieved from the permitted folder are processed in a secure, offline environment. Since no data is uploaded to the cloud, your media remains private and under your absolute control at all times.
     </string>
 
-    <!-- Section 5 -->
-    <string name="privacy_section_5_heading">Security</string>
+    <string name="privacy_section_5_heading">5. Third-Party Policy</string>
     <string name="privacy_section_5">
-All actions occur locally; we do not access your WhatsApp account.
+        We do not use third-party tracking or analytics tools. While standard Google Play Services may provide basic crash logs for app stability, no personal media or usage patterns are shared with any third party.
     </string>
 
-    <!-- Section 6 -->
-    <string name="privacy_section_6_heading">Childrens Privacy</string>
+    <string name="privacy_section_6_heading">6. Children\'s Privacy</string>
     <string name="privacy_section_6">
-App is not for children under 13; no minor information is collected.
+        The app is intended for a general audience and does not knowingly collect data from children under 13. We comply with all applicable privacy regulations regarding minor protection.
     </string>
 
-    <!-- Section 7 -->
-    <string name="privacy_section_7_heading">Updates</string>
+    <string name="privacy_section_7_heading">7. Policy Updates</string>
     <string name="privacy_section_7">
-Policy updates are shown in-app; latest version is always available.
+        This policy may be updated to reflect changes in Android OS requirements. The latest version is always accessible within the app settings.
     </string>
 
-    <!-- Section 8 -->
-    <string name="privacy_section_8_heading">Contact Us</string>
+    <string name="privacy_section_8_heading">8. Contact Information</string>
     <string name="privacy_section_8">
-For questions, contact: mariaadeeb982@gmail.com
+        For any privacy-related inquiries, please reach out to us: \n\n
+        Email: mariaadeeb982@gmail.com
+    </string>
+
+    <string name="disclaimer_heading">Legal Disclaimer</string>
+
+    <string name="disclaimer_text">
+        Please read this disclaimer carefully before using the application. \n\n
+
+        <b>1. Affiliation Disclaimer:</b> \n
+        This application is an independent utility and is <b>NOT</b> affiliated with, associated, authorized, endorsed by, or in any way officially connected with WhatsApp Inc., or any of its subsidiaries or its affiliates. The official WhatsApp website can be found at https://www.whatsapp.com. \n\n
+
+        <b>2. Trademark Notice:</b> \n
+        The name "WhatsApp" as well as related names, marks, emblems, and images are registered trademarks of their respective owners. Use of them does not imply any affiliation with or endorsement by them. \n\n
+
+        <b>3. User Responsibility:</b> \n
+        This app is designed to help users download and manage status media that is already locally stored on their device. We do not encourage or support the unauthorized re-uploading, sharing, or distribution of media without the explicit permission of the original content owner. Any such action is the sole responsibility of the user. \n\n
+
+        <b>4. Privacy &amp; Copyright:</b> \n
+        Users must respect the privacy and intellectual property rights of their contacts. We are not responsible for any kind of re-usage of the media downloaded by the user. \n\n
+
+        <b>5. Limitation of Liability:</b> \n
+        In no event shall the developer be liable for any special, direct, indirect, consequential, or incidental damages or any damages whatsoever, whether in an action of contract, negligence or other tort, arising out of or in connection with the use of the Service or the contents of the Service.
     </string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

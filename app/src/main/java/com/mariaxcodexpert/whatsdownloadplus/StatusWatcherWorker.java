@@ -1,17 +1,12 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
@@ -19,7 +14,6 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 import androidx.work.WorkManager;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -27,12 +21,9 @@ import java.util.concurrent.TimeUnit;
 public class StatusWatcherWorker extends Worker {
 
     private static final String TAG = "StatusWatcherWorker";
-    private static final String CHANNEL_ID = "status_channel";
-    private static final int NOTIFICATION_ID = 1001;
-    private static final String UNIQUE_WORK_NAME = "StatusWatcherWork";
-
-    private static final boolean DEBUG = true;
-    private static Set<String> knownStatuses = new HashSet<>();
+    private static final String PREFS_NAME = "WatcherPrefs";
+    private static final String KEY_KNOWN_STATUSES = "known_statuses";
+    private static final String KEY_STATUS_FOLDER_URI = "statusFolderUri";
 
     public StatusWatcherWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -42,143 +33,90 @@ public class StatusWatcherWorker extends Worker {
     @Override
     public Result doWork() {
         Context context = getApplicationContext();
-        debugLog("Worker started");
+        Log.d(TAG, "Worker execution started");
 
-        if (!hasRequiredPermissions(context)) {
-            debugLog("Permissions missing, retrying...");
-            return Result.retry();
+        // 1. Get Saved Folder URI (Ensure key matches your Splash/Permission activity)
+        SharedPreferences appPrefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        String folderUriStr = appPrefs.getString(KEY_STATUS_FOLDER_URI, null);
+
+        if (folderUriStr == null) {
+            Log.w(TAG, "No folder URI found. User hasn't granted folder access yet.");
+            return Result.success();
         }
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                checkStatusesAndroid13(context);
-            } else {
-                checkStatusesLegacy();
-            }
-            debugLog("Worker finished successfully");
+            Uri folderUri = Uri.parse(folderUriStr);
+            checkStatusesViaSAF(context, folderUri);
             return Result.success();
         } catch (Exception e) {
-            Log.e(TAG, "Error in Worker", e);
+            Log.e(TAG, "Error watching statuses", e);
             return Result.retry();
         }
     }
 
-    private boolean hasRequiredPermissions(Context context) {
-        boolean hasPermissions;
+    private void checkStatusesViaSAF(Context context, Uri folderUri) {
+        DocumentFile rootFolder = DocumentFile.fromTreeUri(context, folderUri);
+        if (rootFolder == null || !rootFolder.exists()) return;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            hasPermissions = ActivityCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED;
-        } else {
-            hasPermissions = ActivityCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
-        }
+        DocumentFile[] files = rootFolder.listFiles();
+        // Null check for safety
+        if (files == null || files.length == 0) return;
 
-        debugLog(hasPermissions ? "All required permissions granted ✅"
-                : "Missing required permissions ❌");
+        // 2. Load known statuses (Persistence)
+        SharedPreferences watcherPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        Set<String> knownStatuses = watcherPrefs.getStringSet(KEY_KNOWN_STATUSES, new HashSet<>());
 
-        return hasPermissions;
-    }
+        // Create a copy to avoid direct modification error
+        Set<String> updatedSet = new HashSet<>(knownStatuses);
+        boolean foundNew = false;
 
-    private void checkStatusesLegacy() {
-        String statusDir = "/WhatsApp/Media/.Statuses/";
-        File folder = new File(Environment.getExternalStorageDirectory() + statusDir);
+        PushNotificationHelper helper = new PushNotificationHelper(context);
 
-        if (!folder.exists() || !folder.isDirectory()) {
-            debugLog("Legacy folder not found: " + folder.getAbsolutePath());
-            return;
-        }
+        for (DocumentFile file : files) {
+            String fileName = file.getName();
 
-        File[] files = folder.listFiles();
-        if (files == null || files.length == 0) {
-            debugLog("No files found in legacy folder.");
-            return;
-        }
+            // Skip hidden or nomedia files
+            if (fileName == null || fileName.startsWith(".") || fileName.equals("nomedia")) continue;
 
-        for (File file : files) {
-            String name = file.getName();
-            if (!knownStatuses.contains(name)) {
-                knownStatuses.add(name);
-                debugLog("New legacy status: " + name);
-                sendNotification("New WhatsApp Status", "New status: " + name);
-            } else {
-                debugLog("Already known status: " + name);
+            if (!knownStatuses.contains(fileName)) {
+                foundNew = true;
+                updatedSet.add(fileName);
+
+                // 3. Notification Logic
+                android.content.Intent intent = new android.content.Intent(context, MainActivity.class);
+                intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                // Using absolute hash to ensure positive notification ID
+                int notificationId = Math.abs(fileName.hashCode());
+
+                helper.sendNotification(
+                        "New Status Detected",
+                        "Someone just posted a new status! Tap to view.",
+                        intent,
+                        notificationId
+                );
+
+                Log.d(TAG, "New status found: " + fileName);
             }
         }
-    }
 
-    private void checkStatusesAndroid13(Context context) {
-        String[] projection = new String[]{MediaStore.Images.Media.DISPLAY_NAME};
-        String selection = MediaStore.Images.Media.RELATIVE_PATH + " LIKE ?";
-        String[] selectionArgs = new String[]{"WhatsApp/Media/.Statuses/%"};
-
-        try (android.database.Cursor cursor = context.getContentResolver()
-                .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, selection, selectionArgs, null)) {
-
-            if (cursor == null || cursor.getCount() == 0) {
-                debugLog("No files found in MediaStore for Android 13+");
-                return;
-            }
-
-            while (cursor.moveToNext()) {
-                String name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME));
-                if (!knownStatuses.contains(name)) {
-                    knownStatuses.add(name);
-                    debugLog("New status (Android 13+): " + name);
-                    sendNotification("New WhatsApp Status", "New status: " + name);
-                } else {
-                    debugLog("Already known status (Android 13+): " + name);
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error reading MediaStore", e);
-        }
-    }
-
-    private void sendNotification(String title, String content) {
-        NotificationManager manager = (NotificationManager) getApplicationContext()
-                .getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && manager != null) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "WhatsApp Status Alerts",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            channel.setDescription("Notifications for new WhatsApp statuses");
-            manager.createNotificationChannel(channel);
-        }
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle(title)
-                .setContentText(content)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
-
-        if (manager != null) {
-            manager.notify(NOTIFICATION_ID + content.hashCode(), builder.build());
-        }
-        debugLog("Notification sent: " + content);
-    }
-
-    private void debugLog(String message) {
-        if (DEBUG) {
-            Log.d(TAG, message);
+        // 4. Save updated list
+        if (foundNew) {
+            watcherPrefs.edit().putStringSet(KEY_KNOWN_STATUSES, updatedSet).apply();
         }
     }
 
     public static void scheduleWork(Context context) {
         PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(
-                StatusWatcherWorker.class,
-                15, TimeUnit.MINUTES)
-                .setInitialDelay(5, TimeUnit.SECONDS) // debug quickly
+                StatusWatcherWorker.class, 15, TimeUnit.MINUTES)
                 .setConstraints(new Constraints.Builder()
+                        .setRequiresStorageNotLow(true)
                         .setRequiresBatteryNotLow(true)
                         .build())
                 .build();
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                UNIQUE_WORK_NAME,
+                "StatusWatcherWork",
                 ExistingPeriodicWorkPolicy.KEEP,
                 workRequest
         );

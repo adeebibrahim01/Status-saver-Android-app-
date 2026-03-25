@@ -68,6 +68,8 @@ public class HomeFragment extends Fragment {
         // Set app version
         VersionHelper versionHelper = new VersionHelper(requireContext());
         String version = versionHelper.getAppVersion();
+
+
         binding.projectVersion.setText(version);
         requireActivity().setTitle("Home");
 

@@ -168,6 +168,24 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:text="@string/disclaimer_heading"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#075E54"
+                android:paddingBottom="4dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/disclaimer_text"
+                android:textSize="16sp"
+                android:textColor="#444444"
+                android:paddingBottom="12dp"/>
+
+
+            <!-- Section 8 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/privacy_section_8_heading"
                 android:textSize="18sp"
                 android:textStyle="bold"

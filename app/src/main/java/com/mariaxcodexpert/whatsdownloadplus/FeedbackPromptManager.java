@@ -15,12 +15,16 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 
+import java.util.concurrent.TimeUnit;
+
 public class FeedbackPromptManager {
 
     private static final String PREFS_NAME = "feedback_prefs";
     private static final String KEY_FEEDBACK_GIVEN = "feedback_given";
     private static final String KEY_LATER_TIMESTAMP = "later_timestamp";
-    private static final long INITIAL_DELAY_MS = 1 * 60 * 1000; // 1 minute
+
+    private static final long INITIAL_DELAY_MS = 60 * 1000; // 1 Minute (Pehli baar ke liye)
+    private static final long LATER_GAP_MS = TimeUnit.DAYS.toMillis(1); // 1 Day gap after "Later"
 
     private final Activity activity;
     private final SharedPreferences prefs;
@@ -33,33 +37,30 @@ public class FeedbackPromptManager {
     }
 
     public void start() {
-        boolean alreadyGiven = prefs.getBoolean(KEY_FEEDBACK_GIVEN, false);
-        if (alreadyGiven) return; // user already gave feedback
+        if (prefs.getBoolean(KEY_FEEDBACK_GIVEN, false)) return;
 
         long lastLater = prefs.getLong(KEY_LATER_TIMESTAMP, 0);
-        long delay = (lastLater == 0) ? INITIAL_DELAY_MS : 0; // 1 min only first time, else show immediately
+        long now = System.currentTimeMillis();
 
-        new Thread(() -> {
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            mainHandler.post(this::showFeedbackPrompt);
-        }).start();
+        // 1. Agar user ne pehle kabhi "Later" nahi kiya, to 1 min baad dikhao
+        if (lastLater == 0) {
+            mainHandler.postDelayed(this::showFeedbackPrompt, INITIAL_DELAY_MS);
+        }
+        // 2. Agar "Later" kiya tha, to check karein ke kya 24 ghante guzar chuke hain?
+        else if (now - lastLater > LATER_GAP_MS) {
+            // App khulne ke 30 second baad dikhao (bilkul foran nahi taake user disturb na ho)
+            mainHandler.postDelayed(this::showFeedbackPrompt, 30000);
+        }
     }
 
     private void showFeedbackPrompt() {
         if (activity.isFinishing() || activity.isDestroyed()) return;
 
-        boolean alreadyGiven = prefs.getBoolean(KEY_FEEDBACK_GIVEN, false);
-        if (alreadyGiven) return;
+        // Re-check in case state changed
+        if (prefs.getBoolean(KEY_FEEDBACK_GIVEN, false)) return;
 
-        // Inflate custom layout
         View dialogView = LayoutInflater.from(activity).inflate(R.layout.layout_feedback_prompt, null);
 
-        TextView tvTitle = dialogView.findViewById(R.id.tvFeedbackTitle);
-        TextView tvMessage = dialogView.findViewById(R.id.tvFeedbackMessage);
         Button btnGiveFeedback = dialogView.findViewById(R.id.btnGiveFeedback);
         ImageView ivClose = dialogView.findViewById(R.id.ivClose);
 
@@ -67,6 +68,11 @@ public class FeedbackPromptManager {
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
+
+        // Dialog background ko transparent karne ke liye (agar custom rounded corners hain)
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
 
         btnGiveFeedback.setOnClickListener(v -> {
             openPlayStore();
@@ -83,9 +89,15 @@ public class FeedbackPromptManager {
     }
 
     private void openPlayStore() {
-        String url = "https://play.google.com/store/apps/details?id=" + activity.getPackageName();
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        activity.startActivity(intent);
+        try {
+            String packageName = activity.getPackageName();
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            activity.startActivity(intent);
+        } catch (Exception e) {
+            String url = "https://play.google.com/store/apps/details?id=" + activity.getPackageName();
+            activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        }
     }
 
     private void saveFeedbackGiven() {
