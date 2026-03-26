@@ -67,12 +67,33 @@ public class MainActivity extends AppCompatActivity {
         // 4. Critical Systems
         setupNotificationLauncher();
         setupBackPressedHandling();
+        handleNotificationIntent(getIntent());
+
 
         // 5. Performance Optimization: Delay heavy non-UI tasks
         // 1200ms is the sweet spot to let the Home Fragment settle first
         performanceHandler.postDelayed(this::initSecondaryTasks, 1200);
     }
 
+    // Ye naya method MainActivity mein niche kahi bhi paste kar dein
+    private void handleNotificationIntent(Intent intent) {
+        if (intent != null && intent.hasExtra("openFragment")) {
+            String fragmentName = intent.getStringExtra("openFragment");
+            boolean isVideo = intent.getBooleanExtra("isVideo", false);
+
+            if ("ImagesAndVideo".equals(fragmentName)) {
+                Bundle bundle = new Bundle();
+                bundle.putBoolean("showVideos", isVideo);
+
+                // 🔥 PROFESSIONAL FIX: Replace manually replace with NavController
+                // Is se drawer aur back navigation kharab nahi hogi
+                navController.navigate(R.id.nav_gallery, bundle);
+
+                // Intent ko clear kar dein taake dobara refresh par wahi na khule
+                intent.removeExtra("openFragment");
+            }
+        }
+    }
     private void initSecondaryTasks() {
         if (isFinishing() || isDestroyed()) return;
 
@@ -219,7 +240,12 @@ public class MainActivity extends AppCompatActivity {
     private void sendFeedback() {
         openUrl("market://details?id=" + getPackageName(), "https://play.google.com/store/apps/details?id=" + getPackageName());
     }
-
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleNotificationIntent(intent);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);

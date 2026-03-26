@@ -59,49 +59,57 @@ public class ImagesAndVideoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 1. Initial Setup
+        // 1. Initial Setup & Resource Management
         executor = Executors.newFixedThreadPool(2);
         viewModel = new ViewModelProvider(requireActivity()).get(ImagesAndVideoViewModel.class);
         glide = Glide.with(this);
 
         initViews(view);
 
-        // 2. 🔥 Sabse pehle Argument check karein
+        // 2. 🔥 Notification/Intent Argument Check
+        // "showVideos" true hoga toh direct Video Tab par focus jayega
         boolean isVideoDirect = getArguments() != null && getArguments().getBoolean("showVideos", false);
 
-        // 3. 🔥 Setup Tabs (Selection logic ko tab creation ke waqt hi handle karein)
+        // 3. 🔥 Setup Tabs & Initial Selection
         if (tabLayout.getTabCount() == 0) {
             tabLayout.addTab(tabLayout.newTab().setText("Images"), !isVideoDirect);
             tabLayout.addTab(tabLayout.newTab().setText("Videos"), isVideoDirect);
         }
 
-        // 4. 🔥 Visibility Force Apply (SetupTabs se pehle ya baad, ye fixed rahega)
+        // 4. 🔥 Force Visibility based on Arguments
         if (isVideoDirect) {
             recyclerImages.setVisibility(View.GONE);
             recyclerVideos.setVisibility(View.VISIBLE);
+
+            // Auto-select the Video Tab (Index 1) with a tiny delay for UI stability
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                if (isAdded() && tabLayout.getTabCount() > 1) {
+                    TabLayout.Tab videoTab = tabLayout.getTabAt(1);
+                    if (videoTab != null && !videoTab.isSelected()) {
+                        videoTab.select();
+                    }
+                }
+            }, 100);
         } else {
             recyclerImages.setVisibility(View.VISIBLE);
             recyclerVideos.setVisibility(View.GONE);
         }
 
-        // 5. Baaki heavy operations
+        // 5. Core Operations
         initAdapters();
         loadStatusFolderUri();
-
-        // SetupTabs ko check karein ke isme redundant visibility logic na ho
-        setupTabs();
-
+        setupTabs(); // Ensure this listener doesn't conflict with initial selection
         setupSwipeRefresh();
         observeViewModel();
 
+        // 6. Lottie & UI Optimization
         if (lottieEmptyState != null) {
             lottieEmptyState.setCacheComposition(true);
         }
 
-        // 6. Data Load
+        // 7. Data Load Execution
         loadStatuses();
     }
-
     private void initViews(View view) {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         tabLayout = view.findViewById(R.id.tabLayout);

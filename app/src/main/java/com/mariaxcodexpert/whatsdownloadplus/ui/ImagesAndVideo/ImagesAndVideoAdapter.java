@@ -76,35 +76,60 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         DocumentFile file = getItem(position);
         if (file == null) return;
 
+        // 24 Hours expiry logic
         holder.expiryTime = file.lastModified() + 86400000L;
 
-        // Reset UI State for Recycled Views
+        // --- SILENT NOTIFICATION SCHEDULING ---
+        String fileName = file.getName();
+        if (fileName != null) {
+            int statusId = fileName.hashCode();
+
+            // Sirf unhi statuses ko schedule karein jo pehle nahi hue
+            if (!com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.isNotified(context, statusId, 1)) {
+                com.mariaxcodexpert.whatsdownloadplus.model.NotificationScheduler.schedule(
+                        context,
+                        statusId,
+                        holder.expiryTime,
+                        isVideoFile(file)
+                );
+            }
+        }
+
+        // --- UI STATE & RESET (Optimization for smooth scrolling) ---
         if (holder.downloadProgress != null) {
             holder.downloadProgress.setVisibility(View.GONE);
-            holder.downloadProgress.setIndeterminate(true); // Horizontal progress fix
+            holder.downloadProgress.setIndeterminate(true);
         }
 
         if (holder.downloadIcon != null) {
+            // Position binding adapter se lena best practice hai
+            int currentPos = holder.getBindingAdapterPosition();
             holder.downloadIcon.setVisibility(View.VISIBLE);
             holder.downloadIcon.setEnabled(true);
-            holder.downloadIcon.setOnClickListener(v -> saveFileWithAd(file, holder, holder.getBindingAdapterPosition()));
+            holder.downloadIcon.setOnClickListener(v -> saveFileWithAd(file, holder, currentPos));
         }
 
-        if (holder.downloadStatus != null) holder.downloadStatus.setVisibility(View.GONE);
-        if (holder.videoIcon != null) holder.videoIcon.setVisibility(isVideoFile(file) ? View.VISIBLE : View.GONE);
+        if (holder.downloadStatus != null) {
+            holder.downloadStatus.setVisibility(View.GONE);
+        }
 
+        if (holder.videoIcon != null) {
+            holder.videoIcon.setVisibility(isVideoFile(file) ? View.VISIBLE : View.GONE);
+        }
+
+        // --- GLIDE IMAGE LOADING ---
         glide.load(file.getUri())
-                .override(400, 400)
+                .override(400, 400) // Quality aur speed ka balance
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(holder.imageThumb);
 
+        // Preview click listener
         holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile(file)));
 
-        // Check if file is already saved in "Status Saver" folder
+        // Saved state check (Background thread par fast check)
         checkSavedState(file, holder, position);
     }
-
     private void checkSavedState(DocumentFile file, GalleryViewHolder holder, int position) {
         executor.execute(() -> {
             boolean isSaved = isFileInFolder(file.getName());
@@ -222,8 +247,8 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                             long hrs = rem / 3600000;
                             long mins = (rem / 60000) % 60;
                             long secs = (rem / 1000) % 60;
-                            h.countdownTimer.setText(String.format("%02d:%02d:%02d", hrs, mins, secs));
-                        }
+                            h.countdownTimer.setText(String.format("Expires in %02d:%02d:%02d", hrs, mins, secs));
+                         }
                     }
                 }
             }
