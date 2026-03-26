@@ -5,82 +5,79 @@
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
+    app:cardElevation="3dp"
     app:strokeWidth="0dp"
+    app:cardPreventCornerOverlap="false"
     app:cardUseCompatPadding="false">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- Thumbnail -->
         <ImageView
             android:id="@+id/imageThumb"
             android:layout_width="match_parent"
             android:layout_height="180dp"
             android:scaleType="centerCrop"
-            android:background="@drawable/image_bg"
-            android:adjustViewBounds="true"
+            android:adjustViewBounds="false"
             android:contentDescription="@string/app_name"/>
 
-        <!-- Countdown -->
         <TextView
             android:id="@+id/countdownTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="9sp"
+            android:textSize="10sp"
             android:textColor="#00FF00"
-            android:padding="4dp"
-            android:layout_margin="6dp"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:layout_margin="8dp"
             android:background="@drawable/timer_bg"
             android:text="Refreshing…"
             android:layout_gravity="top|start"/>
 
-        <!-- Video icon -->
         <ImageView
             android:id="@+id/videoIcon"
-            android:layout_width="46dp"
-            android:layout_height="46dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:visibility="gone"
-            android:padding="6dp"
+            android:padding="4dp"
             android:src="@drawable/ic_play"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            app:tint="@android:color/white"/>
 
-        <!-- 🔄 DOWNLOAD PROGRESS BAR -->
         <ProgressBar
             android:id="@+id/downloadProgress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="4dp"
+            android:layout_height="3dp"
             android:layout_gravity="bottom"
             android:max="100"
-            android:progress="0"
             android:visibility="gone"
-            android:indeterminate="false"
             android:progressDrawable="@drawable/progress_download"/>
 
-        <!-- Download icon -->
-        <ImageView
-            android:id="@+id/downloadIcon"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:padding="6dp"
-            android:layout_margin="8dp"
-            android:background="@drawable/icon_bg"
-            android:src="@drawable/ic_download"
-            android:layout_gravity="bottom|end"/>
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp">
 
-        <!-- Saved tick -->
-        <ImageView
-            android:id="@+id/downloadStatus"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:visibility="gone"
-            android:padding="6dp"
-            android:layout_margin="8dp"
-            android:background="@drawable/imgbg_icon"
-            android:src="@drawable/ic_double_tick"
-            android:layout_gravity="bottom|end"/>
+            <ImageView
+                android:id="@+id/downloadIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:background="@drawable/icon_bg"
+                android:src="@drawable/ic_download"/>
+
+            <ImageView
+                android:id="@+id/downloadStatus"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:padding="8dp"
+                android:background="@drawable/imgbg_icon"
+                android:src="@drawable/ic_double_tick"/>
+        </FrameLayout>
 
     </FrameLayout>
 

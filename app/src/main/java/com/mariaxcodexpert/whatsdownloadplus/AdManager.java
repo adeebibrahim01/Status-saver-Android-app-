@@ -14,8 +14,6 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
-import java.lang.ref.WeakReference;
-
 public class AdManager {
 
     private static final String TAG = "AdManager";
@@ -30,14 +28,14 @@ public class AdManager {
     private static InterstitialAd mInterstitialAd;
     private static boolean isAdLoading = false;
     private static int retryCount = 0;
-    private static final int MAX_RETRY = 3; // Retry limit thodi kam rakhein battery ke liye
+    private static final int MAX_RETRY = 3;
     private static final Handler mHandler = new Handler(Looper.getMainLooper());
 
     // ===========================================================
     // INITIALIZATION & PRELOAD
     // ===========================================================
     public static void init(Context context) {
-        // App start hote hi preload shuru karein
+        // App start hote hi preload shuru karein (Application Context safe hai)
         preloadAd(context.getApplicationContext());
     }
 
@@ -62,11 +60,11 @@ public class AdManager {
             public void onAdLoaded(@NonNull InterstitialAd ad) {
                 mInterstitialAd = ad;
                 isAdLoading = false;
-                retryCount = 0; // Reset retries on success
+                retryCount = 0;
                 Log.d(TAG, "Ad Loaded Successfully ✔");
 
-                // Set callbacks for show/dismiss events
-                setupAdCallbacks(context);
+                // Default callbacks for unexpected events
+                setupDefaultCallbacks(context.getApplicationContext());
             }
 
             @Override
@@ -75,33 +73,30 @@ public class AdManager {
                 isAdLoading = false;
                 Log.e(TAG, "Ad Failed to Load: " + error.getMessage());
 
-                // Exponential Backoff logic for retries
+                // Exponential Backoff logic
                 if (retryCount < MAX_RETRY) {
                     retryCount++;
-                    long delay = (long) Math.pow(2, retryCount) * 2000; // 2s, 4s, 8s
+                    long delay = (long) Math.pow(2, retryCount) * 2000;
                     mHandler.postDelayed(() -> preloadAd(context), delay);
                 }
             }
         });
     }
 
-    private static void setupAdCallbacks(Context context) {
+    private static void setupDefaultCallbacks(Context appContext) {
         if (mInterstitialAd == null) return;
 
         mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
             @Override
             public void onAdDismissedFullScreenContent() {
-                Log.d(TAG, "Ad Dismissed");
                 mInterstitialAd = null;
-                // Agla ad pehle se hi load kar lein
-                preloadAd(context);
+                preloadAd(appContext);
             }
 
             @Override
             public void onAdFailedToShowFullScreenContent(@NonNull com.google.android.gms.ads.AdError adError) {
-                Log.e(TAG, "Ad Failed to Show: " + adError.getMessage());
                 mInterstitialAd = null;
-                preloadAd(context);
+                preloadAd(appContext);
             }
         });
     }
@@ -110,20 +105,28 @@ public class AdManager {
     // SHOW AD LOGIC
     // ===========================================================
     public static void showInterstitial(Activity activity, AdCallback callback) {
+        if (activity == null || activity.isFinishing()) {
+            if (callback != null) callback.onAdClosed();
+            return;
+        }
+
         if (mInterstitialAd != null) {
             mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                 @Override
                 public void onAdDismissedFullScreenContent() {
+                    Log.d(TAG, "Ad Dismissed");
                     mInterstitialAd = null;
+                    // Preload agla ad (Application context use karein)
                     preloadAd(activity.getApplicationContext());
                     if (callback != null) callback.onAdClosed();
                 }
 
                 @Override
                 public void onAdFailedToShowFullScreenContent(@NonNull com.google.android.gms.ads.AdError adError) {
+                    Log.e(TAG, "Ad Failed to Show: " + adError.getMessage());
                     mInterstitialAd = null;
                     preloadAd(activity.getApplicationContext());
-                    if (callback != null) callback.onAdClosed(); // Taake app ka flow na ruke
+                    if (callback != null) callback.onAdClosed();
                 }
 
                 @Override
@@ -140,22 +143,14 @@ public class AdManager {
         }
     }
 
-
-
     // ===========================================================
     // HELPERS
     // ===========================================================
 
-    /**
-     * Check karta hai ke kya Ad load ho chuka hai aur dikhane ke liye tayyar hai.
-     */
     public static boolean isAdLoaded() {
         return mInterstitialAd != null;
     }
 
-    /**
-     * Check karta hai ke kya GDPR consent ke mutabiq hum ads request kar sakte hain.
-     */
     public static boolean canRequestAds() {
         ConsentFormManager consent = ConsentFormManager.getInstance();
         return consent == null || consent.canRequestAds();

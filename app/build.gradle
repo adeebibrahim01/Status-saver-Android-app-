@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.mariaxcodexpert.whatsdownloadplus"
-        minSdk 29
+        minSdk 29 // 24 is better for wider device support (Android 7.0+)
         targetSdk 35
         versionCode 15
         versionName "1.0.15"
@@ -18,9 +18,15 @@ android {
 
     buildTypes {
         release {
+            // Performance & Security Optimization
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // Debugging symbols remove karne ke liye (APK size kam hogi)
+            ndk {
+                debugSymbolLevel 'none'
+            }
         }
     }
 
@@ -32,63 +38,65 @@ android {
     buildFeatures {
         viewBinding true
     }
+
+    // Performance: Avoid compressing specific files to speed up app loading
+    aaptOptions {
+        noCompress "tflite", "lite"
+    }
 }
 
 dependencies {
-    // AndroidX & UI
+    // --- AndroidX & UI Core ---
     implementation libs.appcompat
     implementation libs.material
     implementation libs.constraintlayout
     implementation libs.swiperefreshlayout
     implementation libs.activity
     implementation libs.documentfile
+    implementation libs.legacy.support.v4
 
-    // Lifecycle
+    // --- Lifecycle & Navigation ---
     implementation libs.lifecycle.livedata.ktx
     implementation libs.lifecycle.viewmodel.ktx
-
-    // Navigation
+    implementation libs.lifecycle.process
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
-    implementation libs.play.services.ads.api
-    implementation libs.legacy.support.v4
-    implementation libs.lifecycle.process
 
-    // Room
-    def room_version = "2.6.0"
+    // --- Ads & Consent (UMP) ---
+    // Latest Stable Google Ads SDK
+    implementation 'com.google.android.gms:play-services-ads:23.0.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+    implementation "com.google.android.ump:user-messaging-platform:2.2.0"
+
+    // --- Room Database (Fast Storage) ---
+    def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"
-    implementation "androidx.room:room-ktx:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    // Testing
+    // --- Image & Video Processing ---
+    // Glide (Upgraded to 4.16.0 for better performance)
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+
+    // ExoPlayer (Stable 2.19.1)
+    implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
+
+    // UCrop (Image Cropping)
+    implementation 'com.github.yalantis:ucrop:2.2.8'
+
+    // UI Helpers
+    implementation 'com.airbnb.android:lottie:6.3.0'
+    implementation 'io.github.chrisbanes:PhotoView:2.3.0'
+
+    // --- Play Store Services ---
+    implementation "com.google.android.play:app-update:2.1.0"
+    implementation "com.google.android.play:review:2.0.1"
+
+    // Background Tasks (Optimized for battery)
+    implementation "androidx.work:work-runtime:2.9.0"
+
+    // --- Testing ---
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
-
-    // Glide & UI
-    implementation 'com.github.bumptech.glide:glide:4.15.1'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
-    implementation 'com.airbnb.android:lottie:6.1.0'
-    implementation 'io.github.chrisbanes:PhotoView:2.3.0'
-
-    // ExoPlayer
-    implementation 'com.google.android.exoplayer:exoplayer:2.19.0'
-
-    // Image cropping
-    implementation 'com.github.yalantis:ucrop:2.2.8'
-
-    // Google Ads SDK (Stable, supports AdMob + AdManager)
-//    implementation 'com.google.android.gms:play-services-ads:23.5.0'
-
-    // Optional: AdMobAdapter for Non-Personalized Ads (NPA)
-    // Only needed for consent-based non-personalized ads
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.1.0'
-
-    // Consent form (UMP)
-    implementation "com.google.android.ump:user-messaging-platform:4.0.0"
-
-    // In-App Updates & Review
-    implementation "com.google.android.play:app-update:2.1.0"
-    implementation "com.google.android.play:review:2.0.1"
-    implementation "androidx.work:work-runtime-ktx:2.8.1" // ya latest stable version
 }

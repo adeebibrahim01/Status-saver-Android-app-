@@ -43,21 +43,15 @@ public class ImagesAndVideoFragment extends Fragment {
     private ProgressBar progressBar;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final List<DocumentFile> imageList = new ArrayList<>();
-    private final List<DocumentFile> videoList = new ArrayList<>();
-
     private Uri statusFolderUri;
     private ImagesAndVideoViewModel viewModel;
     private ExecutorService executor;
     private RequestManager glide;
-    private RecyclerView recyclerImages;
-    private RecyclerView recyclerVideos;
+    private RecyclerView recyclerImages, recyclerVideos;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_imagesandvideo, container, false);
     }
 
@@ -65,21 +59,46 @@ public class ImagesAndVideoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        executor = Executors.newFixedThreadPool(4);
+        // 1. Initial Setup
+        executor = Executors.newFixedThreadPool(2);
         viewModel = new ViewModelProvider(requireActivity()).get(ImagesAndVideoViewModel.class);
         glide = Glide.with(this);
 
         initViews(view);
+
+        // 2. 🔥 Sabse pehle Argument check karein
+        boolean isVideoDirect = getArguments() != null && getArguments().getBoolean("showVideos", false);
+
+        // 3. 🔥 Setup Tabs (Selection logic ko tab creation ke waqt hi handle karein)
+        if (tabLayout.getTabCount() == 0) {
+            tabLayout.addTab(tabLayout.newTab().setText("Images"), !isVideoDirect);
+            tabLayout.addTab(tabLayout.newTab().setText("Videos"), isVideoDirect);
+        }
+
+        // 4. 🔥 Visibility Force Apply (SetupTabs se pehle ya baad, ye fixed rahega)
+        if (isVideoDirect) {
+            recyclerImages.setVisibility(View.GONE);
+            recyclerVideos.setVisibility(View.VISIBLE);
+        } else {
+            recyclerImages.setVisibility(View.VISIBLE);
+            recyclerVideos.setVisibility(View.GONE);
+        }
+
+        // 5. Baaki heavy operations
+        initAdapters();
         loadStatusFolderUri();
+
+        // SetupTabs ko check karein ke isme redundant visibility logic na ho
         setupTabs();
+
         setupSwipeRefresh();
-        initAdapters(); // Shared DB removed from here
         observeViewModel();
 
-        boolean showVideoTab = getArguments() != null &&
-                getArguments().getBoolean("showVideos", false);
-        selectTab(showVideoTab ? 1 : 0);
+        if (lottieEmptyState != null) {
+            lottieEmptyState.setCacheComposition(true);
+        }
 
+        // 6. Data Load
         loadStatuses();
     }
 
@@ -89,63 +108,75 @@ public class ImagesAndVideoFragment extends Fragment {
         recyclerImages = view.findViewById(R.id.recyclerImages);
         recyclerVideos = view.findViewById(R.id.recyclerVideos);
 
-        recyclerImages.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        recyclerVideos.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        // Optimization: Shared View Pool for memory efficiency
+        RecyclerView.RecycledViewPool sharedPool = new RecyclerView.RecycledViewPool();
 
-        recyclerImages.setHasFixedSize(true);
-        recyclerVideos.setHasFixedSize(true);
+        setupRecyclerView(recyclerImages, sharedPool);
+        setupRecyclerView(recyclerVideos, sharedPool);
 
         emptyStateLayout = view.findViewById(R.id.emptyStateLayout);
         lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
         progressBar = view.findViewById(R.id.progressBarLoading);
+
+        recyclerImages.setHasFixedSize(true);
+        recyclerVideos.setHasFixedSize(true);
+// Views ko pehle se inflate kar ke rakhne ke liye:
+        recyclerImages.setItemViewCacheSize(20);
+        recyclerVideos.setItemViewCacheSize(20);
+    }
+
+    private void setupRecyclerView(RecyclerView rv, RecyclerView.RecycledViewPool pool) {
+        rv.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        rv.setHasFixedSize(true);
+        rv.setItemViewCacheSize(20); // Smooth scrolling optimization
+        rv.setRecycledViewPool(pool);
     }
 
     private void initAdapters() {
-        // SQL Database logic removed. Now using direct storage check inside adapter.
         imageAdapter = new ImagesAndVideoAdapter(requireContext(), glide, false);
         videoAdapter = new ImagesAndVideoAdapter(requireContext(), glide, true);
 
         recyclerImages.setAdapter(imageAdapter);
         recyclerVideos.setAdapter(videoAdapter);
 
-        imageAdapter.attachRecyclerView(recyclerImages);
-        videoAdapter.attachRecyclerView(recyclerVideos);
+        // Custom countdown attach
+        imageAdapter.startCountdownUpdater(recyclerImages);
+        videoAdapter.startCountdownUpdater(recyclerVideos);
     }
 
     private void observeViewModel() {
         viewModel.getImages().observe(getViewLifecycleOwner(), images -> {
-            imageList.clear();
-            imageList.addAll(images);
-            imageAdapter.submitList(new ArrayList<>(imageList));
-            // notifyDataSetChanged ensures icons are re-checked against storage
-            imageAdapter.notifyDataSetChanged();
+            imageAdapter.submitList(images);
+            updateEmptyState();
         });
 
         viewModel.getVideos().observe(getViewLifecycleOwner(), videos -> {
-            videoList.clear();
-            videoList.addAll(videos);
-            videoAdapter.submitList(new ArrayList<>(videoList));
-            videoAdapter.notifyDataSetChanged();
+            videoAdapter.submitList(videos);
+            updateEmptyState();
         });
     }
 
     private void setupTabs() {
-        tabLayout.addTab(tabLayout.newTab().setText("Images"));
-        tabLayout.addTab(tabLayout.newTab().setText("Videos"));
-
+        // Listener sirf user ke manual click ko handle karne ke liye hona chahiye
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                boolean showVideo = tab.getPosition() == 1;
-                recyclerImages.setVisibility(showVideo ? View.GONE : View.VISIBLE);
-                recyclerVideos.setVisibility(showVideo ? View.VISIBLE : View.GONE);
+                // Sirf tab change hone par visibility badlein
+                boolean isVideo = (tab.getPosition() == 1);
+                recyclerImages.setVisibility(isVideo ? View.GONE : View.VISIBLE);
+                recyclerVideos.setVisibility(isVideo ? View.VISIBLE : View.GONE);
                 updateEmptyState();
             }
-
             @Override public void onTabUnselected(TabLayout.Tab tab) {}
             @Override public void onTabReselected(TabLayout.Tab tab) {}
         });
+    }
+
+    private void switchTabContent(boolean isVideo) {
+        recyclerImages.setVisibility(isVideo ? View.GONE : View.VISIBLE);
+        recyclerVideos.setVisibility(isVideo ? View.VISIBLE : View.GONE);
+        updateEmptyState();
     }
 
     private void setupSwipeRefresh() {
@@ -158,18 +189,6 @@ public class ImagesAndVideoFragment extends Fragment {
         statusFolderUri = uri != null ? Uri.parse(uri) : null;
     }
 
-    private void selectTab(int index) {
-        if (tabLayout.getTabAt(index) != null) {
-            TabLayout.Tab tab = tabLayout.getTabAt(index);
-            tab.select();
-
-            boolean showVideo = index == 1;
-            recyclerImages.setVisibility(showVideo ? View.GONE : View.VISIBLE);
-            recyclerVideos.setVisibility(showVideo ? View.VISIBLE : View.GONE);
-            updateEmptyState();
-        }
-    }
-
     private void loadStatuses() {
         if (statusFolderUri == null || executor == null || executor.isShutdown()) {
             swipeRefreshLayout.setRefreshing(false);
@@ -179,88 +198,108 @@ public class ImagesAndVideoFragment extends Fragment {
         }
 
         progressBar.setVisibility(View.VISIBLE);
-        emptyStateLayout.setVisibility(View.GONE);
 
         executor.execute(() -> {
             DocumentFile folder = DocumentFile.fromTreeUri(requireContext(), statusFolderUri);
-
             List<DocumentFile> images = new ArrayList<>();
             List<DocumentFile> videos = new ArrayList<>();
 
             if (folder != null && folder.isDirectory()) {
-                for (DocumentFile file : folder.listFiles()) {
+                DocumentFile[] files = folder.listFiles();
+                for (DocumentFile file : files) {
                     if (file != null && file.isFile()) {
-                        addFile(file, images, videos);
+                        String n = file.getName();
+                        if (n == null) continue;
+
+                        // Sab ko lowercase kar dein taake .MP4 aur .mp4 dono mil saken
+                        String nameLower = n.toLowerCase();
+
+                        if (nameLower.endsWith(".jpg") || nameLower.endsWith(".jpeg") ||
+                                nameLower.endsWith(".png") || nameLower.endsWith(".webp")) {
+                            images.add(file);
+                        }
+                        // Yahan videos ki extensions check ho rahi hain
+//                        else if (nameLower.endsWith(".mp4") || nameLower.endsWith(".mkv") ||
+//                                nameLower.endsWith(".3gp") || nameLower.endsWith(".avi") ||
+//                                nameLower.endsWith(".mov")) {
+//                            videos.add(file);
+
+                        //}
+                        else if (nameLower.endsWith(".mp4")) {
+                            videos.add(file);
+                            android.util.Log.d("STATUS_DEBUG", "Video Found: " + n);
+                        }
                     }
                 }
             }
 
             handler.post(() -> {
                 if (!isAdded()) return;
-
                 viewModel.setImages(images);
                 viewModel.setVideos(videos);
-
-                imageList.clear();
-                imageList.addAll(images);
-                videoList.clear();
-                videoList.addAll(videos);
-
-                imageAdapter.submitList(new ArrayList<>(imageList));
-                videoAdapter.submitList(new ArrayList<>(videoList));
-
-                imageAdapter.notifyDataSetChanged();
-                videoAdapter.notifyDataSetChanged();
-
                 progressBar.setVisibility(View.GONE);
                 swipeRefreshLayout.setRefreshing(false);
 
+                // 🔥 Refresh ke baad empty state update karein
                 updateEmptyState();
             });
         });
     }
-
-    private void addFile(DocumentFile file, List<DocumentFile> images, List<DocumentFile> videos) {
-        String n = file.getName();
-        if (n == null) return;
-        n = n.toLowerCase();
-        if (n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".png") || n.endsWith(".webp")) images.add(file);
-        else if (n.endsWith(".mp4") || n.endsWith(".mkv") || n.endsWith(".3gp")) videos.add(file);
-    }
-
     private void updateEmptyState() {
-        boolean showVideo = tabLayout.getSelectedTabPosition() == 1;
-        List<DocumentFile> current = showVideo ? videoList : imageList;
-        boolean empty = current == null || current.isEmpty();
+        int selectedTab = tabLayout.getSelectedTabPosition();
+        boolean isVideoTab = (selectedTab == 1);
 
-        recyclerImages.setVisibility(!showVideo && !empty ? View.VISIBLE : View.GONE);
-        recyclerVideos.setVisibility(showVideo && !empty ? View.VISIBLE : View.GONE);
+        // ViewModel se latest data uthayein
+        List<DocumentFile> currentList = isVideoTab ? viewModel.getVideos().getValue() : viewModel.getImages().getValue();
+        boolean isEmpty = (currentList == null || currentList.isEmpty());
 
-        if (empty) {
+        if (isEmpty) {
+            // FAST UI: Pehle recyclers ko hide karein
+            recyclerImages.setVisibility(View.GONE);
+            recyclerVideos.setVisibility(View.GONE);
+
+            // Text foran set karein taake delay na lage
+            String msg = isVideoTab ?
+                    "No Videos Found!\nWatch status on WhatsApp first." :
+                    "No Images Found!\nWatch status on WhatsApp first.";
+            tvEmptyMessage.setText(msg);
+
+            // Main container aur internal views ko ek sath dikhayen
             emptyStateLayout.setVisibility(View.VISIBLE);
-            lottieEmptyState.setVisibility(View.VISIBLE);
             tvEmptyMessage.setVisibility(View.VISIBLE);
+            lottieEmptyState.setVisibility(View.VISIBLE);
 
-            lottieEmptyState.setAnimation(R.raw.empty_status);
-            lottieEmptyState.playAnimation();
-
-            tvEmptyMessage.setText(showVideo
-                    ? "Videos not available 😔\nPlease check WhatsApp status first"
-                    : "Images not available 😔\nPlease check WhatsApp status first");
+            // Performance Fix: Animation tabhi play karein agar list empty ho
+            if (!lottieEmptyState.isAnimating()) {
+                lottieEmptyState.setAnimation(R.raw.empty_status);
+                lottieEmptyState.playAnimation();
+            }
         } else {
+            // Data milte hi layout hide karein
             emptyStateLayout.setVisibility(View.GONE);
-            lottieEmptyState.pauseAnimation();
-            lottieEmptyState.setVisibility(View.GONE);
-            tvEmptyMessage.setVisibility(View.GONE);
+            lottieEmptyState.cancelAnimation();
+
+            // Smooth Switch: Sirf wo recycler dikhayen jo active hai
+            if (isVideoTab) {
+                if (recyclerVideos.getVisibility() != View.VISIBLE) {
+                    recyclerVideos.setVisibility(View.VISIBLE);
+                    recyclerImages.setVisibility(View.GONE);
+                }
+            } else {
+                if (recyclerImages.getVisibility() != View.VISIBLE) {
+                    recyclerImages.setVisibility(View.VISIBLE);
+                    recyclerVideos.setVisibility(View.GONE);
+                }
+            }
         }
     }
 
     @Override
     public void onDestroyView() {
+        // Shutdown logic optimized to prevent memory leaks
+        if (imageAdapter != null) imageAdapter.shutdown();
+        if (videoAdapter != null) videoAdapter.shutdown();
+        if (executor != null) executor.shutdownNow();
         super.onDestroyView();
-        if (imageAdapter != null) imageAdapter.shutdownScheduler();
-        if (videoAdapter != null) videoAdapter.shutdownScheduler();
-        if (executor != null && !executor.isShutdown()) executor.shutdownNow();
-        executor = null;
     }
 }

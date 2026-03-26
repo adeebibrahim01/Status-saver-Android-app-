@@ -1,7 +1,6 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -26,10 +25,9 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.model.NotificationScheduler;
-import com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,8 +42,8 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
     private final RequestManager glide;
     private final boolean isVideo;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private final ExecutorService executor = Executors.newFixedThreadPool(3);
+    private ScheduledExecutorService scheduler;
+    private final ExecutorService executor = Executors.newFixedThreadPool(4);
     private RecyclerView recyclerView;
 
     public ImagesAndVideoAdapter(Context context, RequestManager glide, boolean isVideo) {
@@ -53,7 +51,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         this.context = context;
         this.glide = glide;
         this.isVideo = isVideo;
-        startCountdownUpdater();
     }
 
     private static final DiffUtil.ItemCallback<DocumentFile> DIFF_CALLBACK = new DiffUtil.ItemCallback<DocumentFile>() {
@@ -61,7 +58,6 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         public boolean areItemsTheSame(@NonNull DocumentFile oldItem, @NonNull DocumentFile newItem) {
             return oldItem.getUri().equals(newItem.getUri());
         }
-
         @Override
         public boolean areContentsTheSame(@NonNull DocumentFile oldItem, @NonNull DocumentFile newItem) {
             return oldItem.lastModified() == newItem.lastModified();
@@ -80,173 +76,166 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         DocumentFile file = getItem(position);
         if (file == null) return;
 
-        boolean isVideoFile = isVideoFile(file);
-        holder.statusId = Math.abs(file.getUri().toString().hashCode());
+        holder.expiryTime = file.lastModified() + 86400000L;
 
-        // Glide Loading
+        // Reset UI State for Recycled Views
+        if (holder.downloadProgress != null) {
+            holder.downloadProgress.setVisibility(View.GONE);
+            holder.downloadProgress.setIndeterminate(true); // Horizontal progress fix
+        }
+
+        if (holder.downloadIcon != null) {
+            holder.downloadIcon.setVisibility(View.VISIBLE);
+            holder.downloadIcon.setEnabled(true);
+            holder.downloadIcon.setOnClickListener(v -> saveFileWithAd(file, holder, holder.getBindingAdapterPosition()));
+        }
+
+        if (holder.downloadStatus != null) holder.downloadStatus.setVisibility(View.GONE);
+        if (holder.videoIcon != null) holder.videoIcon.setVisibility(isVideoFile(file) ? View.VISIBLE : View.GONE);
+
         glide.load(file.getUri())
-                .override(250, 250)
+                .override(400, 400)
                 .centerCrop()
-                .placeholder(R.drawable.image_bg)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(holder.imageThumb);
 
-        holder.videoIcon.setVisibility(isVideoFile ? View.VISIBLE : View.GONE);
-        holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile));
+        holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile(file)));
 
-        // 🔥 REAL-TIME CHECK (Using MediaStore Query)
-        boolean saved = isFileAlreadySaved(file);
-        updateUIState(holder, false, saved);
+        // Check if file is already saved in "Status Saver" folder
+        checkSavedState(file, holder, position);
+    }
 
-        holder.downloadIcon.setOnClickListener(v -> {
-            if (!isFileAlreadySaved(file)) {
-                saveFileWithAd(file, holder);
-            } else {
-                Toast.makeText(context, "Already Saved in Gallery", Toast.LENGTH_SHORT).show();
-            }
+    private void checkSavedState(DocumentFile file, GalleryViewHolder holder, int position) {
+        executor.execute(() -> {
+            boolean isSaved = isFileInFolder(file.getName());
+            handler.post(() -> {
+                if (holder.getBindingAdapterPosition() == position) {
+                    updateUIState(holder, false, isSaved);
+                }
+            });
         });
     }
 
-    private void saveFileWithAd(DocumentFile file, GalleryViewHolder holder) {
+    private void saveFileWithAd(DocumentFile file, GalleryViewHolder holder, int position) {
+        if (position == RecyclerView.NO_POSITION) return;
+
         if (context instanceof Activity && AdManager.canRequestAds() && AdManager.isAdLoaded()) {
-            AdManager.showInterstitial((Activity) context, () -> saveFile(file, holder));
+            AdManager.showInterstitial((Activity) context, () -> saveFile(file, holder, position));
         } else {
-            saveFile(file, holder);
+            saveFile(file, holder, position);
             if (context instanceof Activity) AdManager.preloadAd(context.getApplicationContext());
         }
     }
 
-    private void saveFile(DocumentFile file, GalleryViewHolder holder) {
+    private void saveFile(DocumentFile file, GalleryViewHolder holder, int position) {
         updateUIState(holder, true, false);
 
         executor.execute(() -> {
+            boolean success = false;
             try {
                 String name = file.getName();
                 String mime = isVideoFile(file) ? "video/mp4" : "image/jpeg";
-                String subFolder = Environment.DIRECTORY_PICTURES + "/Status Saver";
+                String relativePath = Environment.DIRECTORY_PICTURES + "/Status Saver";
 
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
                 values.put(MediaStore.MediaColumns.MIME_TYPE, mime);
-                values.put(MediaStore.MediaColumns.RELATIVE_PATH, subFolder);
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
 
-                Uri collection = isVideoFile(file)
-                        ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                        : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
+                Uri collection = isVideoFile(file) ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 Uri destUri = context.getContentResolver().insert(collection, values);
 
                 if (destUri != null) {
                     try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
                          OutputStream out = context.getContentResolver().openOutputStream(destUri)) {
                         byte[] buf = new byte[8192];
-                        int r;
-                        while ((r = in.read(buf)) != -1) out.write(buf, 0, r);
+                        int len;
+                        while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
                     }
-
-                    handler.post(() -> {
-                        int position = holder.getBindingAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
-                            // 🔥 Refresh specific item to trigger re-check
-                            notifyItemChanged(position);
-                        }
-                        Toast.makeText(context, "Saved Successfully!", Toast.LENGTH_SHORT).show();
-                    });
+                    success = true;
                 }
             } catch (Exception e) {
-                handler.post(() -> updateUIState(holder, false, false));
+                success = false;
             }
+
+            final boolean finalSuccess = success;
+            handler.post(() -> {
+                if (holder.getBindingAdapterPosition() == position) {
+                    updateUIState(holder, false, finalSuccess);
+                    if (finalSuccess) {
+                        Toast.makeText(context, "Saved Successfully! ✅", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         });
     }
 
-// ... (Sirf wo method change kiya hai jo crash kar raha tha)
-
     private void updateUIState(GalleryViewHolder holder, boolean isProcessing, boolean isSaved) {
-        if (holder == null || holder.downloadIcon == null) return;
+        if (holder.downloadProgress != null)
+            holder.downloadProgress.setVisibility(isProcessing ? View.VISIBLE : View.GONE);
 
-        // Yahan holder.downloadProgress (Jo ProgressBar item layout mein hai) ko use karenge
-        // Lekin main screen wala progressBar yahan se access nahi karenge.
+        if (holder.downloadIcon != null) {
+            holder.downloadIcon.setVisibility((isProcessing || isSaved) ? View.GONE : View.VISIBLE);
+        }
 
-        if (isProcessing) {
-            if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.VISIBLE);
-            holder.downloadIcon.setVisibility(View.GONE);
-        } else {
-            if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.GONE);
-            holder.downloadIcon.setVisibility(View.VISIBLE);
-
-            if (isSaved) {
-                holder.downloadIcon.setImageResource(R.drawable.ic_check);
-                holder.downloadIcon.setEnabled(false);
-                holder.downloadIcon.setAlpha(0.5f);
-                if (holder.downloadStatus != null) holder.downloadStatus.setVisibility(View.VISIBLE);
-            } else {
-                holder.downloadIcon.setImageResource(R.drawable.ic_download);
-                holder.downloadIcon.setEnabled(true);
-                holder.downloadIcon.setAlpha(1.0f);
-                if (holder.downloadStatus != null) holder.downloadStatus.setVisibility(View.GONE);
-            }
+        if (holder.downloadStatus != null) {
+            holder.downloadStatus.setVisibility((!isProcessing && isSaved) ? View.VISIBLE : View.GONE);
         }
     }
-    // 🔥 IMPROVED CHECK LOGIC (Checks MediaStore for the filename in our folder)
-    private boolean isFileAlreadySaved(DocumentFile f) {
-        if (f.getName() == null) return false;
 
-        String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " +
-                MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+    private boolean isFileInFolder(String fileName) {
+        if (fileName == null) return false;
+        String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+        String[] selectionArgs = new String[]{fileName, "%Status Saver%"};
 
-        String[] selectionArgs = new String[]{
-                f.getName(),
-                "%" + Environment.DIRECTORY_PICTURES + "/Status Saver%"
-        };
+        // Check both collections (Images & Videos)
+        Uri[] collections = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.EXTERNAL_CONTENT_URI};
 
-        Uri collection = isVideoFile(f)
-                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        ContentResolver resolver = context.getContentResolver();
-        try (Cursor cursor = resolver.query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
-            return cursor != null && cursor.getCount() > 0;
-        } catch (Exception e) {
-            return false;
+        for (Uri collection : collections) {
+            try (Cursor cursor = context.getContentResolver().query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+                if (cursor != null && cursor.getCount() > 0) return true;
+            } catch (Exception ignored) {}
         }
+        return false;
     }
 
     private boolean isVideoFile(DocumentFile f) {
         String n = f.getName();
-        return n != null && n.toLowerCase().matches(".*\\.(mp4|mkv|3gp|avi)$");
+        return n != null && (n.toLowerCase().endsWith(".mp4") || n.toLowerCase().endsWith(".mkv") || n.toLowerCase().endsWith(".3gp"));
     }
 
-    // countdown logic logic...
-    private void startCountdownUpdater() {
+    public void startCountdownUpdater(RecyclerView rv) {
+        this.recyclerView = rv;
+        if (scheduler != null) scheduler.shutdownNow();
+        scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleWithFixedDelay(() -> handler.post(() -> {
             if (recyclerView == null) return;
             long now = System.currentTimeMillis();
             for (int i = 0; i < recyclerView.getChildCount(); i++) {
-                View child = recyclerView.getChildAt(i);
-                RecyclerView.ViewHolder vh = recyclerView.getChildViewHolder(child);
+                RecyclerView.ViewHolder vh = recyclerView.getChildViewHolder(recyclerView.getChildAt(i));
                 if (vh instanceof GalleryViewHolder) {
                     GalleryViewHolder h = (GalleryViewHolder) vh;
                     long rem = h.expiryTime - now;
-                    if (rem < 0) rem = 0;
-                    long hrs = rem / 3600000;
-                    long mins = (rem / 60000) % 60;
-                    long secs = (rem / 1000) % 60;
-                    h.countdownTimer.setText(rem == 0 ? "Expired" : String.format("%02d:%02d:%02d", hrs, mins, secs));
+                    if (h.countdownTimer != null) {
+                        if (rem <= 0) h.countdownTimer.setText("Expired");
+                        else {
+                            long hrs = rem / 3600000;
+                            long mins = (rem / 60000) % 60;
+                            long secs = (rem / 1000) % 60;
+                            h.countdownTimer.setText(String.format("%02d:%02d:%02d", hrs, mins, secs));
+                        }
+                    }
                 }
             }
         }), 0, 1, TimeUnit.SECONDS);
     }
 
-    public void attachRecyclerView(RecyclerView rv) { this.recyclerView = rv; }
-    public void shutdownScheduler() { scheduler.shutdownNow(); executor.shutdownNow(); }
-
-    @Override
-    public void onViewRecycled(@NonNull GalleryViewHolder holder) {
-        super.onViewRecycled(holder);
-        if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.GONE);
+    public void shutdown() {
+        if (scheduler != null) scheduler.shutdownNow();
+        executor.shutdownNow();
     }
 
     static class GalleryViewHolder extends RecyclerView.ViewHolder {
-        public int statusId;
         ImageView imageThumb, downloadIcon, videoIcon, downloadStatus;
         TextView countdownTimer;
         ProgressBar downloadProgress;

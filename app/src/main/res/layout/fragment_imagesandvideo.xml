@@ -6,6 +6,7 @@
     android:id="@+id/swipeRefreshLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#ECE5DD"
     tools:context=".ui.ImagesAndVideo.ImagesAndVideoFragment">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout

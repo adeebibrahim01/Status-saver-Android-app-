@@ -7,10 +7,12 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -20,14 +22,10 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.card.MaterialCardView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-
-import com.mariaxcodexpert.whatsdownloadplus.StatusWatcherWorker;
 import com.mariaxcodexpert.whatsdownloadplus.VersionHelper;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
-import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment;
-import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
-
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,9 +33,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
-import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class HomeFragment extends Fragment {
 
@@ -45,6 +40,8 @@ public class HomeFragment extends Fragment {
     private NavController navController;
     private HomeViewModel viewModel;
     private static final int MAX_ITEMS = 10;
+    // Folder path constant for consistency
+    private static final String DOWNLOAD_FOLDER_PATH = Environment.DIRECTORY_PICTURES + "/Status Saver";
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -61,58 +58,47 @@ public class HomeFragment extends Fragment {
         setupClickListeners();
         observeViewModel();
 
-        // Update streak & downloads
+        // Update streak & downloads stats from storage
         updateStreak();
         updateDownloadsStats();
 
         // Set app version
         VersionHelper versionHelper = new VersionHelper(requireContext());
-        String version = versionHelper.getAppVersion();
-
-
-        binding.projectVersion.setText(version);
+        binding.projectVersion.setText(versionHelper.getAppVersion());
         requireActivity().setTitle("Home");
 
-        RecyclerView rvRecentDownloads = binding.rvRecentDownloads;
-        rvRecentDownloads.setLayoutManager(
+        // Setup Recent Downloads RecyclerView
+        binding.rvRecentDownloads.setLayoutManager(
                 new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
         );
 
+        handleIntentExtras();
+
+        // Load recent media from Status Saver folder
+        List<MediaItem> recentItems = getRecentMediaFromFolder();
+        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(getContext(), recentItems, binding.tvRecentDownloadsEmpty);
+        binding.rvRecentDownloads.setAdapter(adapter);
+
+        return binding.getRoot();
+    }
+
+    private void handleIntentExtras() {
         Intent intent = requireActivity().getIntent();
         if (intent != null && intent.hasExtra("openFragment")) {
             String fragmentToOpen = intent.getStringExtra("openFragment");
-
             if ("ImagesAndVideo".equals(fragmentToOpen)) {
-
                 boolean isVideo;
-
-                // Check if intent provides type
                 if (intent.hasExtra("isVideo")) {
                     isVideo = intent.getBooleanExtra("isVideo", false);
                 } else {
-                    // Fallback: detect by file name if you have statusId
                     int statusId = intent.getIntExtra("statusId", -1);
                     isVideo = statusId != -1 && statusIdIsVideo(statusId);
                 }
-
-                // Pass as argument to navigation
                 Bundle args = new Bundle();
                 args.putBoolean("showVideos", isVideo);
-
-                // Navigate to gallery fragment
                 navController.navigate(R.id.nav_gallery, args);
             }
         }
-
-
-
-// Load recent media from Status Saver folder
-        List<MediaItem> recentItems = getRecentMediaFromFolder();
-        TextView tvEmptyMessage = binding.tvRecentDownloadsEmpty; // Add this TextView in your XML below RecyclerView
-        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(getContext(), recentItems, tvEmptyMessage);
-
-        rvRecentDownloads.setAdapter(adapter);
-        return binding.getRoot();
     }
 
     private boolean statusIdIsVideo(int statusId) {
@@ -131,140 +117,103 @@ public class HomeFragment extends Fragment {
         return false;
     }
 
-
-
     private List<MediaItem> getRecentMediaFromFolder() {
-
         Context context = getContext();
         if (context == null) return Collections.emptyList();
+        List<MediaItem> result = new ArrayList<>();
 
-        List<MediaItem> result = new ArrayList<>(MAX_ITEMS);
+        fetchMedia(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, false, result);
+        fetchMedia(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, result);
 
-        // Images
-        fetchMedia(
-                context,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                false,
-                result
-        );
-
-        // Videos
-        if (result.size() < MAX_ITEMS) {
-            fetchMedia(
-                    context,
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    true,
-                    result
-            );
-        }
-
-        // Final safety sort
-        Collections.sort(result, (a, b) ->
-                Long.compare(b.dateAdded, a.dateAdded));
-
-        return result;
+        Collections.sort(result, (a, b) -> Long.compare(b.dateAdded, a.dateAdded));
+        return result.size() > MAX_ITEMS ? result.subList(0, MAX_ITEMS) : result;
     }
 
-
-    private void fetchMedia(
-            Context context,
-            Uri uri,
-            boolean isVideo,
-            List<MediaItem> out
-    ) {
-        if (out.size() >= MAX_ITEMS) return;
-
-        String[] projection = {
-                MediaStore.MediaColumns._ID,
-                MediaStore.MediaColumns.DATE_ADDED,
-                MediaStore.MediaColumns.RELATIVE_PATH
-        };
-
+    private void fetchMedia(Context context, Uri uri, boolean isVideo, List<MediaItem> out) {
         String selection = MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
-        String[] args = { "%Status%" }; // 🔥 more flexible
-
+        String[] args = { "%" + DOWNLOAD_FOLDER_PATH + "%" };
         String sortOrder = MediaStore.MediaColumns.DATE_ADDED + " DESC";
 
-        try (Cursor cursor = context.getContentResolver().query(
-                uri,
-                projection,
-                selection,
-                args,
-                sortOrder
-        )) {
+        try (Cursor cursor = context.getContentResolver().query(uri,
+                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_ADDED},
+                selection, args, sortOrder)) {
             if (cursor == null) return;
-
             int idCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID);
             int dateCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED);
 
-            while (cursor.moveToNext() && out.size() < MAX_ITEMS) {
+            while (cursor.moveToNext() && out.size() < MAX_ITEMS * 2) {
                 long id = cursor.getLong(idCol);
                 long date = cursor.getLong(dateCol) * 1000L;
-
-                Uri contentUri = ContentUris.withAppendedId(uri, id);
-                out.add(new MediaItem(contentUri, isVideo, date));
+                out.add(new MediaItem(ContentUris.withAppendedId(uri, id), isVideo, date));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
-
-
 
     private void updateStreak() {
         Executors.newSingleThreadExecutor().execute(() -> {
-
-            Context context = requireContext();
-            final String PREFS_NAME = "status_prefs";
-            final String KEY_LAST_OPEN = "last_open_date";
-            final String KEY_STREAK = "active_streak";
-
-            SharedPreferences prefs =
-                    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-
-            long lastOpenMillis = prefs.getLong(KEY_LAST_OPEN, 0);
-            int streak = prefs.getInt(KEY_STREAK, 0);
-
+            SharedPreferences prefs = requireContext().getSharedPreferences("status_prefs", Context.MODE_PRIVATE);
+            long lastOpenMillis = prefs.getLong("last_open_date", 0);
+            int streak = prefs.getInt("active_streak", 0);
             long now = System.currentTimeMillis();
+
+            Calendar today = Calendar.getInstance(); zeroTime(today);
+            Calendar last = Calendar.getInstance(); last.setTimeInMillis(lastOpenMillis); zeroTime(last);
+
             int newStreak;
-
-            Calendar todayCal = Calendar.getInstance();
-            todayCal.setTimeInMillis(now);
-            zeroTime(todayCal);
-
-            Calendar lastCal = Calendar.getInstance();
-            lastCal.setTimeInMillis(lastOpenMillis);
-            zeroTime(lastCal);
-
-            if (lastOpenMillis == 0) {
-                // First launch ever
-                newStreak = 1;
-            } else if (todayCal.equals(lastCal)) {
-                // Same day → no change
-                newStreak = streak;
-            } else {
-                lastCal.add(Calendar.DAY_OF_YEAR, 1);
-
-                if (todayCal.equals(lastCal)) {
-                    // Consecutive day
-                    newStreak = streak + 1;
-                } else {
-                    // Missed day
-                    newStreak = 1;
-                }
+            if (lastOpenMillis == 0) newStreak = 1;
+            else if (today.equals(last)) newStreak = streak;
+            else {
+                last.add(Calendar.DAY_OF_YEAR, 1);
+                newStreak = today.equals(last) ? streak + 1 : 1;
             }
 
-            prefs.edit()
-                    .putInt(KEY_STREAK, newStreak)
-                    .putLong(KEY_LAST_OPEN, now)
-                    .apply();
+            prefs.edit().putInt("active_streak", newStreak).putLong("last_open_date", now).apply();
+            requireActivity().runOnUiThread(() -> {
+                if (binding != null) binding.tvActiveStreak.setText(String.valueOf(newStreak));
+            });
+        });
+    }
+
+    private void updateDownloadsStats() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            Context context = getContext();
+            if (context == null) return;
+
+            // Today Midnight
+            Calendar calToday = Calendar.getInstance();
+            zeroTime(calToday);
+            long todayTimestamp = calToday.getTimeInMillis() / 1000;
+
+            // 7 Days Ago Midnight
+            Calendar cal7Days = Calendar.getInstance();
+            zeroTime(cal7Days);
+            cal7Days.add(Calendar.DAY_OF_YEAR, -7);
+            long sevenDaysTimestamp = cal7Days.getTimeInMillis() / 1000;
+
+            int todayCount = getDownloadCountSince(context, todayTimestamp);
+            int last7DaysCount = getDownloadCountSince(context, sevenDaysTimestamp);
 
             requireActivity().runOnUiThread(() -> {
-                if (binding != null && binding.tvActiveStreak != null) {
-                    binding.tvActiveStreak.setText(String.valueOf(newStreak));
+                if (binding != null) {
+                    binding.tvTodayCount.setText(String.valueOf(todayCount));
+                    binding.tvLast7DaysCount.setText(String.valueOf(last7DaysCount));
                 }
             });
         });
+    }
+
+    private int getDownloadCountSince(Context context, long sinceTimestamp) {
+        int count = 0;
+        Uri[] uris = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.EXTERNAL_CONTENT_URI};
+        String selection = MediaStore.MediaColumns.DATE_ADDED + " >= ? AND " + MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+        String[] args = { String.valueOf(sinceTimestamp), "%" + DOWNLOAD_FOLDER_PATH + "%" };
+
+        for (Uri uri : uris) {
+            try (Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.MediaColumns._ID}, selection, args, null)) {
+                if (cursor != null) count += cursor.getCount();
+            } catch (Exception e) { e.printStackTrace(); }
+        }
+        return count;
     }
 
     private void zeroTime(Calendar cal) {
@@ -274,101 +223,40 @@ public class HomeFragment extends Fragment {
         cal.set(Calendar.MILLISECOND, 0);
     }
 
-
-    private void updateDownloadsStats() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            Context context = requireContext();
-
-            // ✅ Use existing SavedFilesDB instance
-            SavedFilesDB savedFilesDB = new SavedFilesDB(context);
-
-            // Pass savedFilesDB to DownloadStatsManager
-            DownloadStatsManager statsManager = new DownloadStatsManager(context, savedFilesDB);
-
-            // Update UI on main thread
-            requireActivity().runOnUiThread(() -> {
-                if (binding != null) {
-                    binding.tvTodayCount.setText(String.valueOf(savedFilesDB.getTodayCount()));;
-                    binding.tvLast7DaysCount.setText(String.valueOf(savedFilesDB.getLast7DaysCount()));
-                }
-            });
-        });
-    }
-
-
-    private void observeViewModel() {
-        viewModel.getJoinedDate().observe(getViewLifecycleOwner(), joinedText -> {
-            binding.joinedText.setText(joinedText);
-        });
-
-        viewModel.getToolbarTitle().observe(getViewLifecycleOwner(), title -> {
-            requireActivity().setTitle(title);
-        });
-    }
-
     private void setupClickListeners() {
-        binding.cardImages.setOnClickListener(v -> openGallery(false));  // false = Images
-        binding.cardVideos.setOnClickListener(v -> openGallery(true));  // true = Videos
+        binding.cardImages.setOnClickListener(v -> openGallery(false));
+        binding.cardVideos.setOnClickListener(v -> openGallery(true));
         binding.cardSaved.setOnClickListener(v -> navigateToDownload());
-        // --- Today Card Animation ---
 
-// Today Downloads Card → Green
-        // Today Downloads Card → WhatsApp Green Gradient
         binding.cardTodayDownloads.setOnClickListener(v ->
-                CardLiquidAnimator.animate(
-                        binding.cardTodayDownloads,
-                        binding.tvTodayCount,
-                        0xFFFFFF,
-                        0x075E54,
-                        600,       // duration 2 seconds
-                        0.02f       // pulse scale
-                )
+                animateCard((MaterialCardView) v, binding.tvTodayCount)
         );
 
-// Last 7 Days Card → WhatsApp Light Green / Teal Gradient
-        binding.cardLast7Days.setOnClickListener(v ->
-                CardLiquidAnimator.animate(
-                        binding.cardLast7Days,
-                        binding.tvLast7DaysCount,
-                        0xFFFFFF,
-                        0x075E54,
-                        600,
-                        0.02f
-                )
-        );
+        binding.cardLast7Days.setOnClickListener(v -> animateCard((MaterialCardView) v, binding.tvLast7DaysCount));
+        binding.cardActiveStreak.setOnClickListener(v -> animateCard((MaterialCardView) v, binding.tvActiveStreak));
+    }
 
-// Active Streak Card → WhatsApp Teal / Cyan Gradient
-        binding.cardActiveStreak.setOnClickListener(v ->
-                CardLiquidAnimator.animate(
-                        binding.cardActiveStreak,
-                        binding.tvActiveStreak,
-                        0xFFFFFF,
-                        0x075E54,
-                        600,
-                        0.02f
-                )
-        );
-
+    private void animateCard(MaterialCardView card, TextView text) {
+        CardLiquidAnimator.animate(card, text, 0xFFFFFF, 0x075E54, 600, 0.02f);
     }
 
     private void openGallery(boolean showVideos) {
         Bundle args = new Bundle();
-        args.putBoolean("showVideos", showVideos);
-
+        args.putBoolean("showVideos", showVideos); // Ye signal hai Fragment ke liye
         try {
+            // NavOptions add kar sakte hain smooth transition ke liye (Optional)
             navController.navigate(R.id.nav_gallery, args);
-            viewModel.setToolbarTitle(showVideos ? "Videos" : "Images");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     private void navigateToDownload() {
-        try {
-            navController.navigate(R.id.nav_download);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        try { navController.navigate(R.id.nav_download); } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void observeViewModel() {
+        viewModel.getJoinedDate().observe(getViewLifecycleOwner(), joinedText -> binding.joinedText.setText(joinedText));
+        viewModel.getToolbarTitle().observe(getViewLifecycleOwner(), title -> requireActivity().setTitle(title));
     }
 
     @Override
@@ -376,5 +264,4 @@ public class HomeFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }
