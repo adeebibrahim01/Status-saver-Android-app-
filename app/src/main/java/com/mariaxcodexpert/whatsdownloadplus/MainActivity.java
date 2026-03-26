@@ -39,12 +39,17 @@ public class MainActivity extends AppCompatActivity {
 
     // Performance Handler to manage delayed tasks safely
     private final Handler performanceHandler = new Handler(Looper.getMainLooper());
+    // 1. Static variable top par hi rahega
+    public static boolean isUIReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // 1. THEME & WINDOW OPTIMIZATION
+        setTheme(R.style.Theme_WhatsDownloadPlus);
         super.onCreate(savedInstanceState);
+        getWindow().setBackgroundDrawableResource(android.R.color.white);
 
-        // 1. GDPR + ADS HANDLING (Priority Execution)
+        // 2. GDPR + ADS HANDLING
         ConsentFormManager.init(this);
         ConsentFormManager.getInstance().requestConsentForm(() -> {
             if (AdManager.canRequestAds()) {
@@ -52,29 +57,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 2. ViewBinding & UI Setup
+        // 3. ViewBinding & UI Setup
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        // 3. Navigation Engine Setup
+        // 4. Navigation Engine Setup
         navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         setupAppBarConfiguration();
         setupDrawerActions();
         setupToolbarTitleUpdater();
         setupFAB();
 
-        // 4. Critical Systems
+        // 5. Critical Systems & Notification Handling
         setupNotificationLauncher();
         setupBackPressedHandling();
-        handleNotificationIntent(getIntent());
 
+        if (getIntent() != null) {
+            handleNotificationIntent(getIntent());
+        }
 
-        // 5. Performance Optimization: Delay heavy non-UI tasks
-        // 1200ms is the sweet spot to let the Home Fragment settle first
+        // 6. 🔥 THE MASTER STROKE:
+        // Isay aakhir mein rakhein taake jab sab kuch setup ho jaye tab Splash khatam ho.
+        // 300ms ka chota sa delay UI ko "settle" hone ka waqt deta hai.
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            isUIReady = true;
+        }, 300);
+
+        // 7. Secondary Tasks
         performanceHandler.postDelayed(this::initSecondaryTasks, 1200);
     }
-
     // Ye naya method MainActivity mein niche kahi bhi paste kar dein
     private void handleNotificationIntent(Intent intent) {
         if (intent != null && intent.hasExtra("openFragment")) {
@@ -266,5 +278,6 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onDestroy();
         binding = null;
+        isUIReady = false; // Reset on exit
     }
 }
