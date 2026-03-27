@@ -1,46 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fullScreenContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF000000">
+    android:background="#121212"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.Download.FullScreenMediaActivity">
 
-    <!-- Gradient overlay to improve visual look -->
-    <View
+    <FrameLayout
+        android:id="@+id/mediaContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/gradient_overlay" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <ImageView
-        android:id="@+id/fullImage"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitCenter"
-        android:contentDescription="Full screen image" />
+        <com.github.chrisbanes.photoview.PhotoView
+            android:id="@+id/fullImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:visibility="visible"
+            tools:src="@drawable/image_bg" />
 
+        <VideoView
+            android:id="@+id/fullVideo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone" />
 
-    <!-- Fullscreen Video -->
-    <VideoView
-        android:id="@+id/fullVideo"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        android:alpha="0" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_gravity="top"
+            android:background="@drawable/item_scrim_gradient_top" />
 
-    <!-- Top-right X button to close -->
-    <ImageView
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/item_scrim_gradient" />
+
+    </FrameLayout>
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/closeButton"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="24dp"
-        android:padding="12dp"
-        android:background="@drawable/round_button_bg"
-        android:src="@drawable/ic_close_white"
-        android:contentDescription="Close"
-        android:elevation="8dp"
-        android:clickable="true"
-        android:focusable="true" />
+        style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        app:backgroundTint="#80000000"
+        app:icon="@drawable/ic_close"
+        app:iconSize="24dp"
+        app:iconTint="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
-</FrameLayout>
+    <LinearLayout
+        android:id="@+id/bottomActions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bottom_action_bg"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/shareActionButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            app:icon="@drawable/ic_share"
+            app:iconSize="26dp"
+            app:iconTint="@color/white"
+            app:rippleColor="#4DFFFFFF" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="32dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="#4DFFFFFF" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/saveActionButtons"
+            style="@style/Widget.Material3.Button.IconButton.Filled"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            app:backgroundTint="@color/whatsapp_green"
+            app:icon="@drawable/ic_double_tick"
+            app:iconSize="28dp"
+            app:iconTint="@color/white" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -76,8 +76,16 @@ public class HomeFragment extends Fragment {
 
         // Load recent media from Status Saver folder
         List<MediaItem> recentItems = getRecentMediaFromFolder();
-        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(getContext(), recentItems, binding.tvRecentDownloadsEmpty);
+        // 1. Naya constructor ab sirf items aur emptyMessage mangta hai (Context nahi)
+        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(recentItems, binding.tvRecentDownloadsEmpty);
+
+// 2. Adapter set karein
         binding.rvRecentDownloads.setAdapter(adapter);
+
+// 3. RecyclerView Optimization (Smooth scrolling ke liye)
+        binding.rvRecentDownloads.setHasFixedSize(true);
+// ItemAnimator ko null karne se DiffUtil ki wajah se hone wali halki "blink" khatam ho jati hai
+        binding.rvRecentDownloads.setItemAnimator(null);
 
         return binding.getRoot();
     }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="PrivacyHeading">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">#075E54</item>
+        <item name="android:paddingBottom">6dp</item>
+    </style>
+
+    <style name="PrivacyBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#444444</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+        <item name="android:paddingBottom">16dp</item>
+    </style>
+
+    <style name="PrivacyDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">#EEEEEE</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+</resources>

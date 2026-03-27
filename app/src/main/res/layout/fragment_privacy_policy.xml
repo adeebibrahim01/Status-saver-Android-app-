@@ -2,205 +2,123 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="#ECE5DD"> <ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:padding="16dp"
+    android:scrollbarStyle="outsideOverlay">
 
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <LinearLayout
-            android:orientation="vertical"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="0dp">
 
-            <TextView
-                android:id="@+id/privacyTitle"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/privacy_title"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="8dp"
                 android:gravity="center"
-                android:textAlignment="center"/>
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <!-- Last Updated -->
-            <TextView
-                android:id="@+id/privacyLastUpdated"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_last_updated"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:paddingBottom="16dp"/>
+                <ImageView
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:src="@mipmap/ic_launcher"
+                    android:layout_marginBottom="12dp"/>
 
-            <!-- Section 1 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_1_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_1"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/privacy_title"
+                    android:textColor="#075E54"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
 
-            <!-- Section 2 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_2_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_2"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+                <TextView
+                    android:id="@+id/privacyLastUpdated"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/privacy_last_updated"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <!-- Section 3 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_3_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_3"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@android:color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="0dp">
 
-            <!-- Section 4 -->
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/privacy_section_4_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_4"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+                android:orientation="vertical"
+                android:padding="20dp">
 
-            <!-- Section 5 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_5_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_5"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+                <TextView
+                    style="@style/PrivacyHeading"
+                    android:text="@string/privacy_section_1_heading" />
+                <TextView
+                    style="@style/PrivacyBody"
+                    android:text="@string/privacy_section_1" />
 
-            <!-- Section 6 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_6_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_6"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+                <View style="@style/PrivacyDivider" />
 
-            <!-- Section 7 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_7_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_7"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+                <TextView
+                    style="@style/PrivacyHeading"
+                    android:text="@string/privacy_section_2_heading" />
+                <TextView
+                    style="@style/PrivacyBody"
+                    android:text="@string/privacy_section_2" />
 
-            <!-- Section 8 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/disclaimer_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/disclaimer_text"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="12dp"/>
+                <View style="@style/PrivacyDivider" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#FFF9C4"
+                    android:padding="12dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="16dp"
+                    android:orientation="vertical">
 
-            <!-- Section 8 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_8_heading"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#075E54"
-                android:paddingBottom="4dp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/privacy_section_8"
-                android:textSize="16sp"
-                android:textColor="#444444"
-                android:paddingBottom="16dp"/>
+                    <TextView
+                        style="@style/PrivacyHeading"
+                        android:textColor="#A57900"
+                        android:text="@string/disclaimer_heading" />
+                    <TextView
+                        style="@style/PrivacyBody"
+                        android:text="@string/disclaimer_text" />
+                </LinearLayout>
 
-        </LinearLayout>
-    </ScrollView>
+                <TextView
+                    style="@style/PrivacyHeading"
+                    android:text="@string/privacy_section_8_heading" />
+                <TextView
+                    style="@style/PrivacyBody"
+                    android:layout_marginBottom="0dp"
+                    android:text="@string/privacy_section_8" />
 
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
