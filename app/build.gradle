@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.mariaxcodexpert.whatsdownloadplus"
-        minSdk 29 // 24 is better for wider device support (Android 7.0+)
+        minSdk 28 // 24 is better for wider device support (Android 7.0+)
         targetSdk 35
         versionCode 16
         versionName "1.0.16"

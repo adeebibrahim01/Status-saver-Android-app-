@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,7 @@ import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,17 +120,43 @@ public class DownloadFragment extends Fragment {
     private void loadStatusSaverMedia() {
         mediaUris.clear();
         isVideoList.clear();
-
         Context context = getContext();
         if (context == null) return;
 
+        // 🔥 FIX: Android 9 aur Android 10+ dono ke liye Hybrid Logic
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10, 11, 12, 13, 14+ (MediaStore logic)
             loadImages(context);
             loadVideos(context);
+        } else {
+            // Android 9 aur usse neeche (Direct File Scanning)
+            loadLegacyMedia();
         }
 
-        adapter.notifyDataSetChanged();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
         updateEmptyMessage();
+    }
+
+    // Android 9 ke liye naya method
+    private void loadLegacyMedia() {
+        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Status Saver");
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                // Sort by Date (Newest first)
+                java.util.Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+
+                for (File file : files) {
+                    String name = file.getName().toLowerCase();
+                    if (name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".mp4") || name.endsWith(".mkv")) {
+                        mediaUris.add(Uri.fromFile(file));
+                        isVideoList.add(name.endsWith(".mp4") || name.endsWith(".mkv"));
+                    }
+                }
+            }
+        }
     }
 
     private void loadImages(Context context) {

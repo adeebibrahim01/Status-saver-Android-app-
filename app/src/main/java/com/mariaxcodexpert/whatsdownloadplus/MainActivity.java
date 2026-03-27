@@ -33,8 +33,9 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private AppBarConfiguration appBarConfiguration;
     private NavController.OnDestinationChangedListener destinationListener;
-
     private ActivityResultLauncher<String> requestNotificationPermissionLauncher;
+    private ActivityResultLauncher<String> requestStoragePermissionLauncher; // Naya Launcher
+
     private AppUpdateChecker appUpdateChecker;
 
     // Performance Handler to manage delayed tasks safely
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 5. Critical Systems & Notification Handling
         setupNotificationLauncher();
+        setupStorageLauncher();
         setupBackPressedHandling();
 
         if (getIntent() != null) {
@@ -87,6 +89,18 @@ public class MainActivity extends AppCompatActivity {
         // 7. Secondary Tasks
         performanceHandler.postDelayed(this::initSecondaryTasks, 1200);
     }
+
+    private void setupStorageLauncher() {
+        requestStoragePermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (!isGranted) {
+                        Toast.makeText(this, "Storage permission is required to save statuses.", Toast.LENGTH_LONG).show();
+                    }
+                }
+        );
+    }
+
     // Ye naya method MainActivity mein niche kahi bhi paste kar dein
     private void handleNotificationIntent(Intent intent) {
         if (intent != null && intent.hasExtra("openFragment")) {
@@ -115,8 +129,19 @@ public class MainActivity extends AppCompatActivity {
 
         new FeedbackPromptManager(this).start();
 
-        // Android 13+ Permission request
-        askNotificationPermission();
+        // 🔥 Dono permissions yahan mangein
+        askNotificationPermission(); // Android 13+ ke liye
+        askStoragePermission();      // Android 9 aur usse neeche ke liye
+    }
+
+    private void askStoragePermission() {
+        // Android 9 (API 28) aur usse neeche ke liye WRITE_EXTERNAL_STORAGE lazmi hai
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestStoragePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+        }
     }
 
     private void setupBackPressedHandling() {

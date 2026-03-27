@@ -3,14 +3,17 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,28 +22,24 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Download.FullScreenMediaActivity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecentDownloadsAdapter
-        extends RecyclerView.Adapter<RecentDownloadsAdapter.ViewHolder> {
+public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloadsAdapter.ViewHolder> {
 
-    // 1. Context ko private final nahi rakha taake memory leak na ho
-    private final List<MediaItem> items;
+    private final List<MediaItem> items = new ArrayList<>(); // Initialize directly
     private final TextView emptyMessage;
 
-    public RecentDownloadsAdapter(List<MediaItem> items, @Nullable TextView emptyMessage) {
-        // Hamesha new list banayein taake original list clear hone par adapter crash na ho
-        this.items = new ArrayList<>(items);
+    public RecentDownloadsAdapter(List<MediaItem> initialItems, @Nullable TextView emptyMessage) {
+        if (initialItems != null) {
+            this.items.addAll(initialItems);
+        }
         this.emptyMessage = emptyMessage;
-
-        setHasStableIds(true); // 🚀 PERFORMANCE BOOST
+        setHasStableIds(true);
         updateEmptyState();
     }
 
-    // =========================
-    // ViewHolder (Click Listener optimized)
-    // =========================
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgThumb, videoIcon;
 
@@ -51,16 +50,9 @@ public class RecentDownloadsAdapter
         }
     }
 
-    // =========================
-    // Safe Unique ID (Prevents Blinking)
-    // =========================
     @Override
     public long getItemId(int position) {
-        if (position < items.size()) {
-            Uri uri = items.get(position).uri;
-            return uri != null ? uri.hashCode() : position;
-        }
-        return position;
+        return items.get(position).uri.hashCode();
     }
 
     @NonNull
@@ -76,7 +68,7 @@ public class RecentDownloadsAdapter
         MediaItem item = items.get(position);
         if (item == null || item.uri == null) return;
 
-        // Glide Loading (Same as before)
+        // Thumbnail Loading
         Glide.with(holder.imgThumb.getContext())
                 .load(item.uri)
                 .thumbnail(0.15f)
@@ -88,45 +80,61 @@ public class RecentDownloadsAdapter
 
         holder.videoIcon.setVisibility(item.isVideo ? View.VISIBLE : View.GONE);
 
-        // 🔥 CLICK FIXED HERE
         holder.itemView.setOnClickListener(v -> {
             try {
                 Context ctx = v.getContext();
-                Intent intent = new Intent(ctx, FullScreenMediaActivity.class);
+                Uri finalUri = item.uri;
 
-                // 1. Keys ko check karein (Static variables use karna behtar hai)
-                intent.putExtra(FullScreenMediaActivity.EXTRA_URI, item.uri.toString());
-                intent.putExtra(FullScreenMediaActivity.EXTRA_IS_VIDEO, item.isVideo);
-
-                // 2. Data aur Type set karna professional tareeka hai
-                intent.setData(item.uri);
-                if (item.isVideo) {
-                    intent.setType("video/*");
-                } else {
-                    intent.setType("image/*");
+                // 🔥 FIX: Android 9 (File Scheme) handle karne ke liye
+                if ("file".equals(item.uri.getScheme())) {
+                    String path = item.uri.getPath();
+                    if (path != null) {
+                        File file = new File(path);
+                        if (file.exists()) {
+                            // Authority must match Manifest: com.mariaxcodexpert.whatsdownloadplus.fileprovider
+                            finalUri = FileProvider.getUriForFile(ctx,
+                                    ctx.getPackageName() + ".fileprovider", file);
+                        } else {
+                            Toast.makeText(ctx, "File path not found!", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    }
                 }
 
-                // 3. Permission grant (Agar file scoped storage mein hai)
+                // 🔥 Intent Setup
+                Intent intent = new Intent(ctx, FullScreenMediaActivity.class);
+
+                // 1. Send as String (Safety for Large Bundles)
+                intent.putExtra(FullScreenMediaActivity.EXTRA_URI, finalUri.toString());
+                intent.putExtra(FullScreenMediaActivity.EXTRA_IS_VIDEO, item.isVideo);
+
+                // 2. Data and Type (Critical for some Players/Galleries)
+                intent.setDataAndType(finalUri, item.isVideo ? "video/*" : "image/*");
+
+                // 3. Security Flags
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
+                // 4. Activity Context Check
+                if (!(ctx instanceof android.app.Activity)) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+
                 ctx.startActivity(intent);
+
             } catch (Exception e) {
                 e.printStackTrace();
+                android.util.Log.e("MediaOpenError", "Error: " + e.getMessage());
+                Toast.makeText(v.getContext(), "Error: Make sure file exists", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
     @Override
     public int getItemCount() {
         return items.size();
     }
 
-    // =========================
-    // 4. SMART DATA UPDATE (No more notifyDataSetChanged)
-    // =========================
+    // 🔥 FIX: Data Update logic ko synchronize kiya hai
     public void updateData(List<MediaItem> newItems) {
-        // DiffUtil use karne se sirf wo items change honge jo naye hain
-        // Isse scrolling ke waqt jhatka (jank) nahi lagta
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
             public int getOldListSize() { return items.size(); }
@@ -138,19 +146,28 @@ public class RecentDownloadsAdapter
             }
             @Override
             public boolean areContentsTheSame(int oldPos, int newPos) {
-                return items.get(oldPos).equals(newItems.get(newPos));
+                return items.get(oldPos).uri.toString().equals(newItems.get(newPos).uri.toString());
             }
         });
 
         items.clear();
-        items.addAll(newItems);
+        if (newItems != null) {
+            items.addAll(newItems);
+        }
         diffResult.dispatchUpdatesTo(this);
-        updateEmptyState();
+        updateEmptyState(); // Check again after update
     }
 
     private void updateEmptyState() {
         if (emptyMessage != null) {
-            emptyMessage.post(() -> emptyMessage.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE));
+            // Android 9 compatibility: post on UI thread to ensure view is ready
+            emptyMessage.post(() -> {
+                if (items.isEmpty()) {
+                    emptyMessage.setVisibility(View.VISIBLE);
+                } else {
+                    emptyMessage.setVisibility(View.GONE);
+                }
+            });
         }
     }
 }

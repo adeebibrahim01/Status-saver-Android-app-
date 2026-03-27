@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -29,6 +30,8 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.ExecutorService;
@@ -159,27 +162,50 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             boolean success = false;
             try {
                 String name = file.getName();
-                String mime = isVideoFile(file) ? "video/mp4" : "image/jpeg";
-                String relativePath = Environment.DIRECTORY_PICTURES + "/Status Saver";
 
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-                values.put(MediaStore.MediaColumns.MIME_TYPE, mime);
-                values.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // Android 10+ logic (Already working fine)
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, isVideoFile(file) ? "video/mp4" : "image/jpeg");
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Status Saver");
 
-                Uri collection = isVideoFile(file) ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                Uri destUri = context.getContentResolver().insert(collection, values);
+                    Uri collection = isVideoFile(file) ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                    Uri destUri = context.getContentResolver().insert(collection, values);
 
-                if (destUri != null) {
-                    try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
-                         OutputStream out = context.getContentResolver().openOutputStream(destUri)) {
-                        byte[] buf = new byte[8192];
-                        int len;
-                        while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
+                    if (destUri != null) {
+                        try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
+                             OutputStream out = context.getContentResolver().openOutputStream(destUri)) {
+                            copyStream(in, out);
+                        }
+                        success = true;
                     }
+                } else {
+                    // 🔥 FIX FOR ANDROID 9 (Permission Denied Fix)
+                    File dir = new File(Environment.getExternalStorageDirectory(), "Pictures/Status Saver");
+                    if (!dir.exists()) {
+                        boolean created = dir.mkdirs();
+                        if (!created && !dir.exists()) throw new Exception("Folder create nahi ho saka!");
+                    }
+
+                    File destFile = new File(dir, name);
+
+                    // Purani file agar exists karti hai toh delete karein taake overwrite ho sake
+                    if (destFile.exists()) destFile.delete();
+
+                    try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
+                         FileOutputStream out = new FileOutputStream(destFile)) {
+                        copyStream(in, out);
+                    }
+
+                    // Media scanner ko lazmi batana hai
+                    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                    mediaScanIntent.setData(Uri.fromFile(destFile));
+                    context.sendBroadcast(mediaScanIntent);
                     success = true;
                 }
             } catch (Exception e) {
+                android.util.Log.e("SAVE_ERROR", "Error: " + e.getMessage());
                 success = false;
             }
 
@@ -189,12 +215,19 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                     updateUIState(holder, false, finalSuccess);
                     if (finalSuccess) {
                         Toast.makeText(context, "Saved Successfully! ✅", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(context, "Save Failed! Check Storage Permission.", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
         });
     }
-
+    // Stream helper (Add this for clean code)
+    private void copyStream(InputStream in, OutputStream out) throws Exception {
+        byte[] buf = new byte[8192];
+        int len;
+        while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
+    }
     private void updateUIState(GalleryViewHolder holder, boolean isProcessing, boolean isSaved) {
         if (holder.downloadProgress != null)
             holder.downloadProgress.setVisibility(isProcessing ? View.VISIBLE : View.GONE);
@@ -210,20 +243,29 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
     private boolean isFileInFolder(String fileName) {
         if (fileName == null) return false;
-        String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
-        String[] selectionArgs = new String[]{fileName, "%Status Saver%"};
 
-        // Check both collections (Images & Videos)
-        Uri[] collections = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Video.Media.EXTERNAL_CONTENT_URI};
+        try {
+            // Android 9/10/11+ sab ke liye behtar tareeka
+            File dir = new File(Environment.getExternalStorageDirectory(), "Pictures/Status Saver");
+            File file = new File(dir, fileName);
+            if (file.exists() && file.length() > 0) return true;
 
-        for (Uri collection : collections) {
-            try (Cursor cursor = context.getContentResolver().query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
-                if (cursor != null && cursor.getCount() > 0) return true;
-            } catch (Exception ignored) {}
-        }
+            // Backup for Android 11+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=?";
+                String[] selectionArgs = new String[]{fileName};
+                Uri collection = isVideoFile(DocumentFile.fromFile(file)) ?
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI :
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+                try (Cursor cursor = context.getContentResolver().query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+                    return cursor != null && cursor.getCount() > 0;
+                }
+            }
+        } catch (Exception ignored) {}
+
         return false;
     }
-
     private boolean isVideoFile(DocumentFile f) {
         String n = f.getName();
         return n != null && (n.toLowerCase().endsWith(".mp4") || n.toLowerCase().endsWith(".mkv") || n.toLowerCase().endsWith(".3gp"));

@@ -70,7 +70,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         Uri uri = mediaUris.get(pos);
         boolean isVideo = isVideoList.get(pos);
 
-        // Load thumbnail using Glide
+        // Glide Loading
         Glide.with(context)
                 .load(uri)
                 .placeholder(R.drawable.image_bg)
@@ -80,7 +80,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
 
         holder.videoIcon.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
-        // Open full screen media
+        // 🔥 OPEN FULL SCREEN (Universal Fix for Android 9 to 14+)
         holder.imageThumb.setOnClickListener(v -> {
             int clickPos = holder.getBindingAdapterPosition();
             if (clickPos == RecyclerView.NO_POSITION || clickPos >= mediaUris.size()) return;
@@ -89,23 +89,47 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
             boolean videoFlag = isVideoList.get(clickPos);
 
             Intent intent = new Intent(context, FullScreenMediaActivity.class);
-            intent.putExtra(FullScreenMediaActivity.EXTRA_URI, mediaUri);
+
+            // Check if it's a direct file (Android 9/Legacy)
+            if ("file".equals(mediaUri.getScheme())) {
+                java.io.File file = new java.io.File(mediaUri.getPath());
+                if (file.exists()) {
+                    // Use FileProvider to safely share file with FullScreenMediaActivity
+                    Uri contentUri = androidx.core.content.FileProvider.getUriForFile(context,
+                            context.getPackageName() + ".fileprovider", file);
+
+                    intent.putExtra(FullScreenMediaActivity.EXTRA_URI, contentUri.toString());
+                    intent.setDataAndType(contentUri, videoFlag ? "video/*" : "image/*");
+                } else {
+                    android.widget.Toast.makeText(context, "File not found!", android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } else {
+                // MediaStore Uri (Android 10+)
+                intent.putExtra(FullScreenMediaActivity.EXTRA_URI, mediaUri.toString());
+                intent.setDataAndType(mediaUri, videoFlag ? "video/*" : "image/*");
+            }
+
             intent.putExtra(FullScreenMediaActivity.EXTRA_IS_VIDEO, videoFlag);
+
+            // IMPORTANT: Grant read permission to the target activity
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
             context.startActivity(intent);
         });
 
-        // Delete media
+        // 🔥 DELETE MEDIA
         holder.deleteIcon.setOnClickListener(v -> {
             int clickPos = holder.getBindingAdapterPosition();
             if (clickPos == RecyclerView.NO_POSITION || clickPos >= mediaUris.size()) return;
 
-            Uri uriToDelete = mediaUris.get(clickPos);
-            boolean isVideos = isVideoList.get(clickPos);
+            // Hum position pass kar rahe hain, deleteFile method baqi handle kar lega
+            deleteFile(clickPos, isVideoList.get(clickPos));
 
-            deleteFile(clickPos, isVideos);
-
-            if (deleteCallback != null) {
-                deleteCallback.onDelete(uriToDelete);
+            // Optional callback trigger
+            if (deleteCallback != null && clickPos < mediaUris.size()) {
+                deleteCallback.onDelete(mediaUris.get(clickPos));
             }
         });
     }
@@ -114,61 +138,63 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         if (pos < 0 || pos >= mediaUris.size()) return;
 
         Uri fileUri = mediaUris.get(pos);
+        boolean deleted = false;
 
         try {
-            ContentResolver resolver = context.getContentResolver();
-            Uri contentUri = isVideo
-                    ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                    : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-            long id = ContentUris.parseId(fileUri);
-            Uri deleteUri = ContentUris.withAppendedId(contentUri, id);
-
-            // Remove from DB first
-            if (savedFilesDB != null) {
-                String name = getFileNameFromUri(fileUri, isVideo);
-                if (name != null) savedFilesDB.removeFile(name);
+            // 🔥 CASE 1: Android 9 aur Legacy Files (file:// scheme)
+            if ("file".equals(fileUri.getScheme())) {
+                java.io.File file = new java.io.File(fileUri.getPath());
+                if (file.exists()) {
+                    deleted = file.delete();
+                }
+            }
+            // 🔥 CASE 2: Android 10+ MediaStore (content:// scheme)
+            else {
+                deleted = context.getContentResolver().delete(fileUri, null, null) > 0;
             }
 
-            // Then remove from device
-            boolean deleted = resolver.delete(deleteUri, null, null) > 0;
-
             if (deleted) {
-                // Remove from adapter
+                // Database se remove karne ke liye file name nikalna
+                String fileName = "";
+                if ("file".equals(fileUri.getScheme())) {
+                    fileName = new java.io.File(fileUri.getPath()).getName();
+                } else {
+                    fileName = getFileNameFromUri(fileUri, isVideo);
+                }
+
+                if (savedFilesDB != null && fileName != null) {
+                    savedFilesDB.removeFile(fileName);
+                }
+
+                // Adapter se remove karein
                 removeItem(pos);
                 Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(context, "Can't delete file! Check permissions.", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "Could not delete file", Toast.LENGTH_SHORT).show();
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(context, "Error deleting file: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-
-
     private String getFileNameFromUri(Uri uri, boolean isVideo) {
+        // Agar direct file hai toh direct name return karein
+        if ("file".equals(uri.getScheme())) {
+            return new java.io.File(uri.getPath()).getName();
+        }
+
         String[] projection = { MediaStore.MediaColumns.DISPLAY_NAME };
-        Uri contentUri = isVideo
-                ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-        try (Cursor cursor = context.getContentResolver().query(
-                contentUri, projection,
-                MediaStore.MediaColumns._ID + "=?",
-                new String[]{String.valueOf(ContentUris.parseId(uri))}, null)) {
-
+        try (Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null)) {
             if (cursor != null && cursor.moveToFirst()) {
-                String name = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME));
-                if (name != null) return name.trim();
+                int index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
+                return cursor.getString(index);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
-
-
-
     private void removeItem(int pos) {
         if (pos < 0 || pos >= mediaUris.size()) return;
 
