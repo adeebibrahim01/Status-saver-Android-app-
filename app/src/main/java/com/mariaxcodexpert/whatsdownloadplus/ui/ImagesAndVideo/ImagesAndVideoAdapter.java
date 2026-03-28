@@ -79,15 +79,13 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         DocumentFile file = getItem(position);
         if (file == null) return;
 
-        // 24 Hours expiry logic
+        // 1. Expiry Logic
         holder.expiryTime = file.lastModified() + 86400000L;
 
-        // --- SILENT NOTIFICATION SCHEDULING ---
+        // 2. Notification Scheduling (Silent)
         String fileName = file.getName();
         if (fileName != null) {
             int statusId = fileName.hashCode();
-
-            // Sirf unhi statuses ko schedule karein jo pehle nahi hue
             if (!com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.isNotified(context, statusId, 1)) {
                 com.mariaxcodexpert.whatsdownloadplus.model.NotificationScheduler.schedule(
                         context,
@@ -98,18 +96,24 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             }
         }
 
-        // --- UI STATE & RESET (Optimization for smooth scrolling) ---
+        // 3. --- UI STATE RESET (Crucial for Recycler View) ---
+        // Resetting progress bar to prevent NPE and UI glitches
         if (holder.downloadProgress != null) {
             holder.downloadProgress.setVisibility(View.GONE);
-            holder.downloadProgress.setIndeterminate(true);
+            holder.downloadProgress.setIndeterminate(true); // Horizontal bar pe ye crash nahi karega agar properly handled ho
         }
 
         if (holder.downloadIcon != null) {
-            // Position binding adapter se lena best practice hai
-            int currentPos = holder.getBindingAdapterPosition();
             holder.downloadIcon.setVisibility(View.VISIBLE);
             holder.downloadIcon.setEnabled(true);
-            holder.downloadIcon.setOnClickListener(v -> saveFileWithAd(file, holder, currentPos));
+
+            // Lambda ke andar current position dynamic leni chahiye
+            holder.downloadIcon.setOnClickListener(v -> {
+                int currentPos = holder.getBindingAdapterPosition();
+                if (currentPos != RecyclerView.NO_POSITION) {
+                    saveFileWithAd(getItem(currentPos), holder, currentPos);
+                }
+            });
         }
 
         if (holder.downloadStatus != null) {
@@ -120,17 +124,32 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             holder.videoIcon.setVisibility(isVideoFile(file) ? View.VISIBLE : View.GONE);
         }
 
-        // --- GLIDE IMAGE LOADING ---
-        glide.load(file.getUri())
-                .override(400, 400) // Quality aur speed ka balance
-                .centerCrop()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(holder.imageThumb);
+        // 4. --- GLIDE IMAGE LOADING (Blink-Free Update) ---
+        if (holder.imageThumb != null) {
+            glide.load(file.getUri())
+                    // Purani image ko placeholder rakhein taake naya load hote waqt white blink na ho
+                    .placeholder(holder.imageThumb.getDrawable())
+                    .override(400, 400)
+                    .centerCrop()
+                    // Animations band karne se refreshing ke waqt flickering khatam ho jati hai
+                    .dontAnimate()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder.imageThumb);
 
-        // Preview click listener
-        holder.imageThumb.setOnClickListener(v -> openPreview(file, isVideoFile(file)));
+            // Preview listener with safety check
+            holder.imageThumb.setOnClickListener(v -> {
+                int currentPos = holder.getBindingAdapterPosition();
+                if (currentPos != RecyclerView.NO_POSITION) {
+                    DocumentFile currentFile = getItem(currentPos);
+                    if (currentFile != null) {
+                        openPreview(currentFile, isVideoFile(currentFile));
+                    }
+                }
+            });
+        }
 
-        // Saved state check (Background thread par fast check)
+        // 5. --- SAVED STATE CHECK ---
+        // Isme hum current position pass kar rahe hain taake recycled holder pe wrong data na dikhe
         checkSavedState(file, holder, position);
     }
     private void checkSavedState(DocumentFile file, GalleryViewHolder holder, int position) {
@@ -229,15 +248,32 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
     }
     private void updateUIState(GalleryViewHolder holder, boolean isProcessing, boolean isSaved) {
-        if (holder.downloadProgress != null)
-            holder.downloadProgress.setVisibility(isProcessing ? View.VISIBLE : View.GONE);
+        if (holder == null) return;
 
-        if (holder.downloadIcon != null) {
-            holder.downloadIcon.setVisibility((isProcessing || isSaved) ? View.GONE : View.VISIBLE);
+        // Progress Bar: Sirf downloading ke waqt dikhayein
+        if (holder.downloadProgress != null) {
+            holder.downloadProgress.setVisibility(isProcessing ? View.VISIBLE : View.GONE);
         }
 
-        if (holder.downloadStatus != null) {
-            holder.downloadStatus.setVisibility((!isProcessing && isSaved) ? View.VISIBLE : View.GONE);
+        // Blink Fix: Processing ke waqt icons ko GONE karne ki bajaye
+        // hum unhe invisible rakh sakte hain ya download icon ko hi rehne de sakte hain
+        if (holder.downloadIcon != null && holder.downloadStatus != null) {
+            if (isProcessing) {
+                // Downloading ke waqt blink se bachne ke liye download icon ko dhundla (Alpha) kar dein
+                holder.downloadIcon.setVisibility(View.VISIBLE);
+                holder.downloadIcon.setAlpha(0.3f);
+                holder.downloadStatus.setVisibility(View.GONE);
+            } else if (isSaved) {
+                // Save ho gaya: Double tick dikhayein
+                holder.downloadIcon.setVisibility(View.GONE);
+                holder.downloadStatus.setVisibility(View.VISIBLE);
+                holder.downloadStatus.setAlpha(1.0f);
+            } else {
+                // Default: Download icon
+                holder.downloadIcon.setVisibility(View.VISIBLE);
+                holder.downloadIcon.setAlpha(1.0f);
+                holder.downloadStatus.setVisibility(View.GONE);
+            }
         }
     }
 

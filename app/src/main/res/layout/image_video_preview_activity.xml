@@ -59,134 +59,149 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"/>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/actionLayout"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:orientation="horizontal"
-        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="@drawable/card_bg_preview_square"
+        android:paddingVertical="16dp"
+        android:paddingHorizontal="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Share Card -->
         <LinearLayout
             android:id="@+id/cardShare"
-            android:layout_width="72dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginEnd="12dp"
-            android:background="@drawable/card_bg_preview"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/cardCrop">
 
             <ImageView
                 android:id="@+id/btnShare"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:background="@drawable/bg_action_circle"
                 android:src="@drawable/ic_share_white"
-                app:tint="#FFF"/>
+                app:tint="#FFFFFF" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:text="Share"
-                android:textColor="#FFF"
+                android:textColor="#E0FFFFFF"
                 android:textSize="12sp"
-                android:gravity="center"/>
+                android:fontFamily="sans-serif-medium"/>
         </LinearLayout>
 
-        <!-- Crop/Edit Card (Middle) -->
         <LinearLayout
             android:id="@+id/cardCrop"
-            android:layout_width="72dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginEnd="12dp"
-            android:background="@drawable/card_bg_preview"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            app:layout_constraintStart_toEndOf="@id/cardShare"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/cardForward">
 
             <ImageView
                 android:id="@+id/btnCrop"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:background="@drawable/bg_action_circle"
                 android:src="@drawable/ic_crop_white"
-                app:tint="#FFF"/>
+                app:tint="#FFFFFF" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:text="Edit"
-                android:textColor="#FFF"
+                android:textColor="#E0FFFFFF"
                 android:textSize="12sp"
-                android:gravity="center"/>
+                android:fontFamily="sans-serif-medium"/>
         </LinearLayout>
 
-        <!-- Forward Card -->
         <LinearLayout
             android:id="@+id/cardForward"
-            android:layout_width="72dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginEnd="12dp"
-            android:background="@drawable/card_bg_preview"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            app:layout_constraintStart_toEndOf="@id/cardCrop"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/cardInfo">
 
             <ImageView
                 android:id="@+id/btnForward"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:background="@drawable/bg_action_circle"
                 android:src="@drawable/ic_forward_white"
-                app:tint="#FFF"/>
+                app:tint="#FFFFFF" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:text="Forward"
-                android:textColor="#FFF"
+                android:textColor="#E0FFFFFF"
                 android:textSize="12sp"
-                android:gravity="center"/>
+                android:fontFamily="sans-serif-medium"/>
         </LinearLayout>
 
-        <!-- Info Card -->
         <LinearLayout
             android:id="@+id/cardInfo"
-            android:layout_width="72dp"
-            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:background="@drawable/card_bg_preview"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground">
+            app:layout_constraintStart_toEndOf="@id/cardForward"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
             <ImageView
                 android:id="@+id/btnInfo"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:background="@drawable/bg_action_circle"
                 android:src="@drawable/ic_info_white"
-                app:tint="#FFF"/>
+                app:tint="#FFFFFF" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:text="Info"
-                android:textColor="#FFF"
+                android:textColor="#E0FFFFFF"
                 android:textSize="12sp"
-                android:gravity="center"/>
+                android:fontFamily="sans-serif-medium"/>
         </LinearLayout>
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

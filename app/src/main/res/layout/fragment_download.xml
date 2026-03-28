@@ -24,30 +24,35 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Title -->
             <TextView
                 android:id="@+id/toolbarTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="All Download Status"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
+                android:layout_gravity="center"
                 android:layout_marginTop="12dp"
-                android:textStyle="bold"
-                android:letterSpacing="0.02"
-                android:layout_gravity="center"/>
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="-0.02"
+                android:text="All Downloaded Status"
+                android:textColor="@android:color/white"
+                android:textSize="22sp"
+                android:includeFontPadding="false" />
 
-            <!-- Subtitle -->
             <TextView
                 android:id="@+id/toolbarSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Images • Videos • Auto Save"
-                android:textColor="@android:color/white"
-                android:textSize="13sp"
                 android:layout_gravity="center"
-                android:layout_marginTop="4dp"
-                android:letterSpacing="0.01"/>
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_subtitle_capsule"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.05"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="4dp"
+                android:text="Saved Media • Images • Videos"
+                android:textAllCaps="true"
+                android:textColor="#CCFFFFFF"
+                android:textSize="10sp"
+                android:elevation="2dp" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- RecyclerView -->

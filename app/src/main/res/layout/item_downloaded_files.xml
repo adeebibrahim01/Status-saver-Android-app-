@@ -33,7 +33,7 @@
             android:layout_margin="8dp"
             android:padding="6dp"
             android:src="@drawable/ic_delete"
-            android:background="@drawable/delete_icon_bg"
+            android:background="@drawable/icon_bg"
             android:contentDescription="Delete"
             app:layout_constraintBottom_toBottomOf="@id/imageThumb"
             app:layout_constraintEnd_toEndOf="@id/imageThumb" />

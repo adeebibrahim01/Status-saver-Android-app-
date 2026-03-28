@@ -139,6 +139,12 @@ public class ImagesAndVideoFragment extends Fragment {
         rv.setHasFixedSize(true);
         rv.setItemViewCacheSize(20); // Smooth scrolling optimization
         rv.setRecycledViewPool(pool);
+
+        // 🔥 BLINK FIX: Ye lines yahan add karein
+        if (rv.getItemAnimator() != null) {
+            ((androidx.recyclerview.widget.SimpleItemAnimator) rv.getItemAnimator())
+                    .setSupportsChangeAnimations(false);
+        }
     }
 
     private void initAdapters() {
@@ -218,24 +224,11 @@ public class ImagesAndVideoFragment extends Fragment {
                     if (file != null && file.isFile()) {
                         String n = file.getName();
                         if (n == null) continue;
-
-                        // Sab ko lowercase kar dein taake .MP4 aur .mp4 dono mil saken
                         String nameLower = n.toLowerCase();
-
-                        if (nameLower.endsWith(".jpg") || nameLower.endsWith(".jpeg") ||
-                                nameLower.endsWith(".png") || nameLower.endsWith(".webp")) {
+                        if (nameLower.endsWith(".jpg") || nameLower.endsWith(".jpeg") || nameLower.endsWith(".png") || nameLower.endsWith(".webp")) {
                             images.add(file);
-                        }
-                        // Yahan videos ki extensions check ho rahi hain
-//                        else if (nameLower.endsWith(".mp4") || nameLower.endsWith(".mkv") ||
-//                                nameLower.endsWith(".3gp") || nameLower.endsWith(".avi") ||
-//                                nameLower.endsWith(".mov")) {
-//                            videos.add(file);
-
-                        //}
-                        else if (nameLower.endsWith(".mp4")) {
+                        } else if (nameLower.endsWith(".mp4") || nameLower.endsWith(".mkv") || nameLower.endsWith(".3gp")) {
                             videos.add(file);
-                            android.util.Log.d("STATUS_DEBUG", "Video Found: " + n);
                         }
                     }
                 }
@@ -243,65 +236,65 @@ public class ImagesAndVideoFragment extends Fragment {
 
             handler.post(() -> {
                 if (!isAdded()) return;
+
+                // ViewModel update karein
                 viewModel.setImages(images);
                 viewModel.setVideos(videos);
-                progressBar.setVisibility(View.GONE);
-                swipeRefreshLayout.setRefreshing(false);
 
-                // 🔥 Refresh ke baad empty state update karein
-                updateEmptyState();
+                // Blink Fix: Delay thoda barha dein taake Glide cache se images utha le
+                handler.postDelayed(() -> {
+                    if (isAdded()) {
+                        progressBar.setVisibility(View.GONE);
+                        swipeRefreshLayout.setRefreshing(false);
+                        updateEmptyState();
+                    }
+                }, 300); // 300ms is safer for smooth transition
             });
         });
     }
+
     private void updateEmptyState() {
+        if (!isAdded()) return;
+
         int selectedTab = tabLayout.getSelectedTabPosition();
         boolean isVideoTab = (selectedTab == 1);
 
-        // ViewModel se latest data uthayein
-        List<DocumentFile> currentList = isVideoTab ? viewModel.getVideos().getValue() : viewModel.getImages().getValue();
-        boolean isEmpty = (currentList == null || currentList.isEmpty());
+        List<DocumentFile> images = viewModel.getImages().getValue();
+        List<DocumentFile> videos = viewModel.getVideos().getValue();
+        List<DocumentFile> currentList = isVideoTab ? videos : images;
 
-        if (isEmpty) {
-            // FAST UI: Pehle recyclers ko hide karein
+        boolean isCurrentListEmpty = (currentList == null || currentList.isEmpty());
+
+        if (isCurrentListEmpty) {
             recyclerImages.setVisibility(View.GONE);
             recyclerVideos.setVisibility(View.GONE);
 
-            // Text foran set karein taake delay na lage
+            // Text Fix: Force visibility on sub-views
+            emptyStateLayout.setVisibility(View.VISIBLE);
+            tvEmptyMessage.setVisibility(View.VISIBLE);
+            lottieEmptyState.setVisibility(View.VISIBLE);
+
             String msg = isVideoTab ?
                     "No Videos Found!\nWatch status on WhatsApp first." :
                     "No Images Found!\nWatch status on WhatsApp first.";
             tvEmptyMessage.setText(msg);
 
-            // Main container aur internal views ko ek sath dikhayen
-            emptyStateLayout.setVisibility(View.VISIBLE);
-            tvEmptyMessage.setVisibility(View.VISIBLE);
-            lottieEmptyState.setVisibility(View.VISIBLE);
-
-            // Performance Fix: Animation tabhi play karein agar list empty ho
             if (!lottieEmptyState.isAnimating()) {
                 lottieEmptyState.setAnimation(R.raw.empty_status);
                 lottieEmptyState.playAnimation();
             }
         } else {
-            // Data milte hi layout hide karein
             emptyStateLayout.setVisibility(View.GONE);
-            lottieEmptyState.cancelAnimation();
-
-            // Smooth Switch: Sirf wo recycler dikhayen jo active hai
+            // Recycler visibility switch
             if (isVideoTab) {
-                if (recyclerVideos.getVisibility() != View.VISIBLE) {
-                    recyclerVideos.setVisibility(View.VISIBLE);
-                    recyclerImages.setVisibility(View.GONE);
-                }
+                recyclerVideos.setVisibility(View.VISIBLE);
+                recyclerImages.setVisibility(View.GONE);
             } else {
-                if (recyclerImages.getVisibility() != View.VISIBLE) {
-                    recyclerImages.setVisibility(View.VISIBLE);
-                    recyclerVideos.setVisibility(View.GONE);
-                }
+                recyclerImages.setVisibility(View.VISIBLE);
+                recyclerVideos.setVisibility(View.GONE);
             }
         }
     }
-
     @Override
     public void onDestroyView() {
         // Shutdown logic optimized to prevent memory leaks

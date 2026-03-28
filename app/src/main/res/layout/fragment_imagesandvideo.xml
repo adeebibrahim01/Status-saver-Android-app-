@@ -23,32 +23,38 @@
             android:background="@color/whatsapp_green"
             android:elevation="4dp">
 
-            <!-- Subtitle -->
+
             <TextView
                 android:id="@+id/toolbarSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Images • Videos • Quick Save"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
+                android:textColor="#A0F0D8"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium"
+                android:background="@drawable/bg_subtitle_capsule"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp"
                 android:layout_gravity="center"
-                android:layout_marginTop="10dp"/>
-
+                android:layout_marginTop="10dp"
+                android:elevation="2dp"/>
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:background="@color/whatsapp_green"
-
                 app:tabIndicatorColor="@android:color/white"
-                app:tabIndicatorHeight="4dp"
+                app:tabIndicatorHeight="3dp"
+                app:tabIndicatorFullWidth="false"
+                app:tabIndicatorGravity="bottom"
+                app:tabIndicator="@drawable/bg_tab_indicator"
+                app:tabIndicatorAnimationMode="elastic"
                 app:tabRippleColor="@android:color/transparent"
-                app:tabTextColor="#A9D9A9"
+                app:tabTextColor="#BFFFFFFF"
                 app:tabSelectedTextColor="@android:color/white"
+                app:tabTextAppearance="@style/CustomTabTextAppearance"
                 app:tabMode="fixed"
-                app:tabGravity="fill"
-                app:tabIndicatorAnimationMode="elastic" />
-
+                app:tabGravity="fill" />
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- RecyclerViews -->

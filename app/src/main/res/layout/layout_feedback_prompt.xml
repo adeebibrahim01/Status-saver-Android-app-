@@ -1,60 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="24dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_feedback_dialog"
-    android:gravity="center"
+    android:padding="24dp"
     android:clipToPadding="false">
 
-
-
-    <!-- Body / Feedback Prompt -->
-    <TextView
-        android:id="@+id/tvFeedbackTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Enjoying the app?"
-        android:textSize="20sp"
-        android:textColor="#000"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="8dp"/>
-
-    <TextView
-        android:id="@+id/tvFeedbackMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Please leave a review on the Play Store. It helps us improve the app."
-        android:textSize="16sp"
-        android:textColor="#555"
-        android:gravity="center"
-        android:layout_marginBottom="20dp"/>
-
-    <!-- Give Feedback Button -->
-    <Button
-        android:id="@+id/btnGiveFeedback"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Give Feedback"
-        android:textAllCaps="false"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFF"
-        android:elevation="4dp"
-        android:padding="12dp"
-        android:layout_marginBottom="12dp"/>
-
-    <!-- Close (X) Button below Feedback -->
     <ImageView
         android:id="@+id/ivClose"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:src="@drawable/ic_close_white"
         android:contentDescription="Close"
         android:background="@drawable/circle_red_bg"
         android:padding="8dp"
-        android:elevation="4dp"/>
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</LinearLayout>
+    <ImageView
+        android:id="@+id/ivStarVisual"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/ic_star_rating_premium"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvFeedbackTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Enjoying the app?"
+        android:textSize="22sp"
+        android:textColor="#222222"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/ivStarVisual"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvFeedbackMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Your review helps us improve. It only takes a minute to support us on the Play Store."
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:gravity="center"
+        android:lineSpacingExtra="3dp"
+        app:layout_constraintTop_toBottomOf="@id/tvFeedbackTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGiveFeedback"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:text="Rate on Play Store"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#FFF"
+        android:backgroundTint="#4CAF50"
+        app:cornerRadius="12dp"
+        app:layout_constraintTop_toBottomOf="@id/tvFeedbackMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

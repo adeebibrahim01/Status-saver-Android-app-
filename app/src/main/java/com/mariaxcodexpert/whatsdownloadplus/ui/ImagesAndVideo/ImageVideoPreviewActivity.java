@@ -21,8 +21,8 @@ import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
-import java.io.InputStream;
-
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.Color;
 public class ImageVideoPreviewActivity extends AppCompatActivity {
 
     // Aapke Adapter mein jo keys hain wahi yahan honi chahye
@@ -153,19 +153,43 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     private void showMediaInfo() {
         if (mediaUri == null) return;
         try {
+            // 1. Layout inflate karein
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_media_info, null);
-            // ... (Aapka purana dialog code) ...
 
+            // 2. Dialog create karein
             AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
-            dialogView.findViewById(R.id.btnOk).setOnClickListener(v -> dialog.dismiss());
 
-            // Info update
-            ((TextView)dialogView.findViewById(R.id.tvMediaType)).setText(isVideo ? "Type: Video" : "Type: Image");
-            ((TextView)dialogView.findViewById(R.id.tvFileName)).setText("Name: " + getFileName(mediaUri));
+
+
+            // 3. IDs ke mutabiq data set karein (Wahi IDs jo humne XML mein rakhi hain)
+            TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+            TextView tvType = dialogView.findViewById(R.id.tvMediaType);
+            TextView tvName = dialogView.findViewById(R.id.tvFileName);
+            TextView tvSize = dialogView.findViewById(R.id.tvFileSize);
+            TextView tvRes = dialogView.findViewById(R.id.tvResolution);
+            TextView tvDur = dialogView.findViewById(R.id.tvDuration);
+            Button btnOk = dialogView.findViewById(R.id.btnOk);
+
+            // Data Fill karein
+            tvType.setText("Type: " + (isVideo ? "Video" : "Image"));
+            tvName.setText("Name: " + getFileName(mediaUri));
+
+            // Optional: Aap yahan File Size aur Resolution ka logic bhi daal sakte hain
+            // tvSize.setText("Size: Calculating...");
+
+            if (isVideo) {
+                tvDur.setVisibility(View.VISIBLE);
+                // tvDur.setText("Duration: ...");
+            } else {
+                tvDur.setVisibility(View.GONE);
+            }
+
+            // Close button logic
+            btnOk.setOnClickListener(v -> dialog.dismiss());
 
             dialog.show();
         } catch (Exception e) {
-            Toast.makeText(this, "Info not available", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Info not available: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
