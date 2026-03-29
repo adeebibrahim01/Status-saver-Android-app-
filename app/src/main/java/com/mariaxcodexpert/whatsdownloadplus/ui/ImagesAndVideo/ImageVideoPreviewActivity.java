@@ -388,7 +388,7 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                 .setAutoCancel(true);
         if (notificationManager != null) notificationManager.notify(fileName.hashCode(), builder.build());
     }
-
+//ok
     private void toggleMute() {
         if (exoPlayer != null) {
             isMuted = !isMuted;
