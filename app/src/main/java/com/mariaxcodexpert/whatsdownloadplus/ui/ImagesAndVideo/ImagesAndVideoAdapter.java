@@ -154,7 +154,14 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             boolean isSaved = isFileInFolder(file.getName());
             handler.post(() -> {
                 if (holder.getBindingAdapterPosition() == position) {
-                    updateUIState(holder, false, isSaved);
+                    // Agar save hai toh downloadStatus (Downloaded Tick) dikhao, warna downloadIcon
+                    if (isSaved) {
+                        holder.downloadIcon.setVisibility(View.GONE);
+                        holder.downloadStatus.setVisibility(View.VISIBLE);
+                    } else {
+                        holder.downloadIcon.setVisibility(View.VISIBLE);
+                        holder.downloadStatus.setVisibility(View.GONE);
+                    }
                 }
             });
         });

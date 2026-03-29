@@ -170,14 +170,17 @@ public class ImagesAndVideoFragment extends Fragment {
         videoAdapter.startCountdownUpdater(recyclerVideos);
     }
 
-    // Helper function to launch Preview Activity via Launcher
+    // Is function ko fragment mein update karein
     private void openPreviewWithLauncher(DocumentFile file, boolean isVideo) {
         Intent intent = new Intent(requireContext(), ImageVideoPreviewActivity.class);
         intent.putExtra("uri", file.getUri().toString());
         intent.putExtra("is_video", isVideo);
+
+        // 🔥 Ye line bohat zaroori hai original name check karne ke liye
+        intent.putExtra("FILE_NAME", file.getName());
+
         previewLauncher.launch(intent);
     }
-
     private void observeViewModel() {
         viewModel.getImages().observe(getViewLifecycleOwner(), images -> {
             imageAdapter.submitList(images);

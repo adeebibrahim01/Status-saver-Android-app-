@@ -65,9 +65,10 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     private boolean isVideo;
     private Uri mediaUri;
     private boolean isMuted = false;
-
+    private String originalFileName; // Isme original WhatsApp name save hoga
     private final String SAVE_FOLDER_NAME = "Status Saver";
-
+    // Top par jahan "private Uri mediaUri;" wagaira hain, wahan ye add karein:
+    private final java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor();
     private final ActivityResultLauncher<CropImageContractOptions> cropImageLauncher =
             registerForActivityResult(new CropImageContract(), result -> {
                 if (result.isSuccessful() && result.getUriContent() != null) {
@@ -109,6 +110,13 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     private void initMedia() {
         String uriString = getIntent().getStringExtra(EXTRA_URI);
         isVideo = getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false);
+
+        // 🔥 Original name intent se uthayen, agar na mile toh fallback name den
+        originalFileName = getIntent().getStringExtra("FILE_NAME");
+        if (originalFileName == null) {
+            originalFileName = "status_" + System.currentTimeMillis() + (isVideo ? ".mp4" : ".jpg");
+        }
+
         if (uriString != null) mediaUri = Uri.parse(uriString);
 
         cardCrop.setVisibility(isVideo ? View.GONE : View.VISIBLE);
@@ -213,11 +221,16 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                     public void onCompleted(Composition composition, ExportResult exportResult) {
                         runOnUiThread(() -> {
                             mediaUri = Uri.fromFile(outputFile);
+                            // 🔥 Important: originalFileName ko naye trimmed file ke naam se update karein
+                            originalFileName = outputFile.getName();
+
                             showVideo(mediaUri);
-                            showDownloadNotification("Trimmed_" + getFileName(mediaUri));
                             notifyDataChanged();
+
+                            // Isko call karne se button "Save" par wapas aa jayega
                             checkIfAlreadySaved();
-                            Toast.makeText(ImageVideoPreviewActivity.this, "Custom Trim Successful! ✂️", Toast.LENGTH_SHORT).show();
+
+                            Toast.makeText(ImageVideoPreviewActivity.this, "Trimmed! ✂️", Toast.LENGTH_SHORT).show();
                         });
                     }
 
@@ -269,37 +282,56 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
 
     private void saveMediaToGallery() {
         if (mediaUri == null) return;
-        String fileName = getFileName(mediaUri);
+        String fileName = getFileName(mediaUri); // Original name use hoga
         String mimeType = isVideo ? "video/mp4" : "image/jpeg";
 
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-        values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
-        values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + SAVE_FOLDER_NAME);
-
-        Uri externalUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
         try {
-            Uri destUri = getContentResolver().insert(externalUri, values);
-            if (destUri != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + SAVE_FOLDER_NAME);
+
+                Uri externalUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                Uri destUri = getContentResolver().insert(externalUri, values);
+
+                if (destUri != null) {
+                    try (InputStream is = getContentResolver().openInputStream(mediaUri);
+                         OutputStream os = getContentResolver().openOutputStream(destUri)) {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = is.read(buffer)) != -1) {
+                            os.write(buffer, 0, bytesRead);
+                        }
+                        showDownloadNotification(fileName);
+                        Toast.makeText(this, "Saved to Status Saver! ✅", Toast.LENGTH_SHORT).show();
+                        notifyDataChanged();
+                        checkIfAlreadySaved(); // 🔥 Save hote hi button disable ho jayega
+                    }
+                }
+            } else {
+                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SAVE_FOLDER_NAME);
+                if (!dir.exists()) dir.mkdirs();
+                File destFile = new File(dir, fileName);
+
                 try (InputStream is = getContentResolver().openInputStream(mediaUri);
-                     OutputStream os = getContentResolver().openOutputStream(destUri)) {
+                     OutputStream os = new java.io.FileOutputStream(destFile)) {
                     byte[] buffer = new byte[8192];
                     int bytesRead;
                     while ((bytesRead = is.read(buffer)) != -1) {
                         os.write(buffer, 0, bytesRead);
                     }
+                    sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(destFile)));
                     showDownloadNotification(fileName);
-                    Toast.makeText(this, "Saved to Gallery! ✅", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Saved Successfully! ✅", Toast.LENGTH_SHORT).show();
                     notifyDataChanged();
-                    checkIfAlreadySaved();
+                    checkIfAlreadySaved(); // 🔥
                 }
             }
         } catch (Exception e) {
             Toast.makeText(this, "Save Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-
     private void shareMedia() {
         if (mediaUri == null) return;
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -325,9 +357,8 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     }
 
     private String getFileName(Uri uri) {
-        return "status_" + System.currentTimeMillis() + (isVideo ? ".mp4" : ".jpg");
+        return originalFileName; // 🔥 Ab ye naya random name generate nahi karega
     }
-
     private void setupBackPressed() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -351,8 +382,8 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         }
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setContentTitle("Process Complete")
-                .setContentText(fileName + " ready.")
+                .setContentTitle("Download Complete")
+                .setContentText(fileName + " has been saved.")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setAutoCancel(true);
         if (notificationManager != null) notificationManager.notify(fileName.hashCode(), builder.build());
@@ -367,9 +398,45 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     }
 
     private void checkIfAlreadySaved() {
-        String fileName = getFileName(mediaUri);
-        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SAVE_FOLDER_NAME + "/" + fileName);
-        if (file.exists()) {
+        if (mediaUri == null || originalFileName == null) return;
+
+        // Edited files ko hamesha enable rakhein
+        if (originalFileName.startsWith("trimmed_") || originalFileName.startsWith("cropped_")) {
+            updateSaveButtonUI(false);
+            return;
+        }
+
+        executor.execute(() -> {
+            boolean isSaved = false;
+            try {
+                // Logic 1: Direct File Check (Same as Adapter)
+                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SAVE_FOLDER_NAME);
+                File file = new File(dir, originalFileName);
+                if (file.exists() && file.length() > 0) {
+                    isSaved = true;
+                }
+
+                // Logic 2: MediaStore Check (Same as Adapter)
+                if (!isSaved && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    Uri collection = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                    String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+                    String[] selectionArgs = new String[]{originalFileName, "%" + SAVE_FOLDER_NAME + "%"};
+
+                    try (android.database.Cursor cursor = getContentResolver().query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+                        if (cursor != null && cursor.getCount() > 0) {
+                            isSaved = true;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            boolean finalIsSaved = isSaved;
+            runOnUiThread(() -> updateSaveButtonUI(finalIsSaved));
+        });
+    }
+
+    private void updateSaveButtonUI(boolean isSaved) {
+        if (isSaved) {
             cardSave.setEnabled(false);
             cardSave.setAlpha(0.5f);
             btnSave.setColorFilter(Color.GRAY);
