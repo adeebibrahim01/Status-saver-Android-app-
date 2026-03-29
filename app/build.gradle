@@ -21,10 +21,6 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
-            ndk {
-                debugSymbolLevel 'none'
-            }
         }
     }
 
@@ -36,17 +32,10 @@ android {
     buildFeatures {
         viewBinding true
     }
-
-    aaptOptions {
-        noCompress "tflite", "lite"
-    }
 }
-
 dependencies {
-    // --- Splash Screen API (FIX: Isse theme error khatam ho jayega) ---
+    // --- Core & UI (Modern Android Setup) ---
     implementation "androidx.core:core-splashscreen:1.0.1"
-
-    // --- AndroidX & UI Core ---
     implementation libs.appcompat
     implementation libs.material
     implementation libs.constraintlayout
@@ -55,39 +44,50 @@ dependencies {
     implementation libs.documentfile
     implementation libs.legacy.support.v4
 
-    // --- Lifecycle & Navigation ---
-    implementation libs.lifecycle.livedata.ktx
-    implementation libs.lifecycle.viewmodel.ktx
-    implementation libs.lifecycle.process
-    implementation libs.navigation.fragment
-    implementation libs.navigation.ui
+    // --- Navigation Components (Version 2.7.7 for Stability) ---
+    def nav_version = "2.7.7"
+    implementation "androidx.navigation:navigation-fragment:$nav_version"
+    implementation "androidx.navigation:navigation-ui:$nav_version"
+
+    // --- Lifecycle Fix (Resolves version 2.3.1 vs 2.6.2 conflicts) ---
+    def lifecycle_version = "2.6.2"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-common:$lifecycle_version"
+    implementation "androidx.lifecycle:lifecycle-process:$lifecycle_version"
 
     // --- Ads & Consent (UMP) ---
     implementation 'com.google.android.gms:play-services-ads:23.0.0'
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.1.0'
     implementation "com.google.android.ump:user-messaging-platform:2.2.0"
 
-    // --- Room Database ---
+    // --- Room Database (Latest Stable) ---
     def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    // --- Image & Video Processing ---
+    // --- Media3 (Replacing old ExoPlayer for Video Trimming/Playback) ---
+    def media3_version = "1.2.1"
+    implementation "androidx.media3:media3-exoplayer:$media3_version"
+    implementation "androidx.media3:media3-ui:$media3_version"
+    implementation "androidx.media3:media3-common:$media3_version"
+    implementation "androidx.media3:media3-transformer:$media3_version"
+    implementation "androidx.media3:media3-effect:$media3_version"
+
+    // --- Image Processing (Latest Versions) ---
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
-    implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-    implementation 'com.github.yalantis:ucrop:2.2.8'
+    // Professional Cropper (Better than uCrop for modern apps)
+    implementation("com.github.CanHub:Android-Image-Cropper:4.5.0")
 
-    // --- UI Helpers ---
+    // --- Helpers & Utilities ---
     implementation 'com.airbnb.android:lottie:6.3.0'
     implementation 'io.github.chrisbanes:PhotoView:2.3.0'
-
-    // --- Play Store Services ---
     implementation "com.google.android.play:app-update:2.1.0"
     implementation "com.google.android.play:review:2.0.1"
-
-    // --- Background Tasks ---
-    implementation "androidx.work:work-runtime:2.9.0"
+    implementation "androidx.work:work-runtime-ktx:2.9.0"
 
     // --- Testing ---
     testImplementation libs.junit

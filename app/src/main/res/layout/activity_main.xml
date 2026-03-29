@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="#ECE5DD"
+    android:background="@drawable/whatsapp_top_bg"
     tools:openDrawer="start">
 
     <include

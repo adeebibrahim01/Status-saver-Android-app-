@@ -44,34 +44,35 @@ public class DownloadFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_download, container, false);
+
         recyclerView = view.findViewById(R.id.recyclerView);
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         lottieEmptyState = view.findViewById(R.id.lottieEmptyState);
         tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
 
+        // 🔥 LOTTIE OPTIMIZATION: Animation ko pehle hi load aur cache kar lo
+        if (lottieEmptyState != null) {
+            lottieEmptyState.setAnimation(R.raw.empty_status); // Check karein file name sahi hai
+            lottieEmptyState.setCacheComposition(true);
+        }
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setHasFixedSize(true);
 
-        savedFilesDB = new SavedFilesDB(requireContext()); // initialize DB
-// ✅ Reuse savedFilesDB for DownloadStatsManager
+        savedFilesDB = new SavedFilesDB(requireContext());
         DownloadStatsManager statsManager = new DownloadStatsManager(requireContext(), savedFilesDB);
 
         adapter = new DownloadAdapter(
                 getContext(),
                 mediaUris,
                 isVideoList,
-                uri -> { /* Nothing extra needed */ }, // deletion callback handled in adapter
+                uri -> { /* Handle deletion if needed */ },
                 this::updateEmptyMessage,
                 statsManager,
-                savedFilesDB // ✅ Adapter already uses the same DB
+                savedFilesDB
         );
-
 
         recyclerView.setAdapter(adapter);
 
@@ -87,7 +88,6 @@ public class DownloadFragment extends Fragment {
 
 
 
-
     @Override
     public void onResume() {
         super.onResume();
@@ -96,24 +96,27 @@ public class DownloadFragment extends Fragment {
     }
 
     private void updateEmptyMessage() {
-        if (mediaUris.isEmpty()) {
+        if (!isAdded()) return;
+
+        if (mediaUris == null || mediaUris.isEmpty()) {
+            // Data nahi hai toh recycler hide karein
             recyclerView.setVisibility(View.GONE);
-            recyclerView.post(() -> {
-                lottieEmptyState.setVisibility(View.VISIBLE);
+
+            // Lottie aur Message show karein
+            lottieEmptyState.setVisibility(View.VISIBLE);
+            tvEmptyMessage.setVisibility(View.VISIBLE);
+
+            // Agar animation ruki hui hai toh start karein
+            if (!lottieEmptyState.isAnimating()) {
                 lottieEmptyState.playAnimation();
-                tvEmptyMessage.setVisibility(View.VISIBLE);
-            });
+            }
         } else {
+            // Data hai toh sab hide kar ke recycler dikhayein
             recyclerView.setVisibility(View.VISIBLE);
             tvEmptyMessage.setVisibility(View.GONE);
             lottieEmptyState.setVisibility(View.GONE);
             lottieEmptyState.pauseAnimation();
         }
-
-        // Update counts somewhere in your UI
-        int todayCount = savedFilesDB.getTodayCount();
-        int last7DaysCount = savedFilesDB.getLast7DaysCount();
-        // Update your TextViews / counters with these values
     }
 
 

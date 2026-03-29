@@ -1,6 +1,7 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.Manifest;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
@@ -50,6 +51,12 @@ public class MainActivity extends AppCompatActivity {
         // 1. THEME & WINDOW OPTIMIZATION
         setTheme(R.style.Theme_WhatsDownloadPlus);
         super.onCreate(savedInstanceState);
+
+        // 🔥 STATUS BAR & BUTTONS COLOR FIX (Edge-to-Edge)
+        // Isse aapka gradient/color bars ke peeche nazar aayega
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
+        // Window background ko white set karna (Safe side)
         getWindow().setBackgroundDrawableResource(android.R.color.white);
 
         // 2. GDPR + ADS HANDLING
@@ -65,14 +72,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        // 4. Navigation Engine Setup
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        setupAppBarConfiguration();
-        setupDrawerActions();
-        setupToolbarTitleUpdater();
+        // 4. 🔥 NAVIGATION ENGINE SETUP (CRASH FIX)
+        // NavHostFragment ke zariye NavController dhoondhein taake IllegalStateException na aaye
+        androidx.navigation.fragment.NavHostFragment navHostFragment = (androidx.navigation.fragment.NavHostFragment)
+                getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
 
-        // --- FAB ANIMATION SETUP ---
-        setupFAB();
+        if (navHostFragment != null) {
+            navController = navHostFragment.getNavController();
+
+            // Navigation dependent setups
+            setupAppBarConfiguration();
+            setupDrawerActions();
+            setupToolbarTitleUpdater();
+
+            // --- FAB ANIMATION SETUP ---
+            setupFAB();
+        } else {
+            // Log ya Toast agar fragment na miley (Debugging ke liye)
+            android.util.Log.e("MainActivity", "NavHostFragment not found!");
+        }
 
         // 5. Critical Systems & Notification Handling
         setupNotificationLauncher();
@@ -113,14 +131,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startFabPulseAnimation() {
+        // AnimatorSet use karne se dono animation ek sath start/stop hongi
+        AnimatorSet pulseAnimation = new AnimatorSet();
+
         ObjectAnimator scaleX = ObjectAnimator.ofFloat(binding.appBarMain.fab, "scaleX", 1.0f, 1.1f, 1.0f);
         ObjectAnimator scaleY = ObjectAnimator.ofFloat(binding.appBarMain.fab, "scaleY", 1.0f, 1.1f, 1.0f);
+
         scaleX.setRepeatCount(ValueAnimator.INFINITE);
         scaleY.setRepeatCount(ValueAnimator.INFINITE);
-        scaleX.setDuration(1500);
-        scaleY.setDuration(1500);
-        scaleX.start();
-        scaleY.start();
+
+        pulseAnimation.playTogether(scaleX, scaleY);
+        pulseAnimation.setDuration(1500);
+        pulseAnimation.start();
     }
 
     private void setupStorageLauncher() {

@@ -1,40 +1,83 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo;
 
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
-import android.media.MediaMetadataRetriever;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.Player;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.transformer.Composition;
+import androidx.media3.transformer.EditedMediaItem;
+import androidx.media3.transformer.ExportException;
+import androidx.media3.transformer.ExportResult;
+import androidx.media3.transformer.Transformer;
+import androidx.media3.ui.PlayerView;
 
 import com.bumptech.glide.Glide;
+import com.canhub.cropper.CropImageContract;
+import com.canhub.cropper.CropImageContractOptions;
+import com.canhub.cropper.CropImageOptions;
+import com.canhub.cropper.CropImageView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.Color;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+@OptIn(markerClass = UnstableApi.class)
 public class ImageVideoPreviewActivity extends AppCompatActivity {
 
-    // Aapke Adapter mein jo keys hain wahi yahan honi chahye
+    private boolean isDataChanged = false;
     public static final String EXTRA_URI = "uri";
     public static final String EXTRA_IS_VIDEO = "is_video";
-    private static final int UCROP_REQUEST_CODE = 69;
 
-    private ImageView imagePreview, btnClose, btnShare, btnCrop, btnForward, btnInfo, playOverlay;
-    private VideoView videoPreview;
-    private LinearLayout cardCrop;
+    private ImageView imagePreview, btnClose, btnShare, btnCrop, btnTrim, btnInfo, btnSave;
+    private TextView tvSave;
+    private PlayerView playerView;
+    private ExoPlayer exoPlayer;
+    private LinearLayout cardCrop, cardTrim, cardSave;
     private boolean isVideo;
     private Uri mediaUri;
+    private boolean isMuted = false;
+
+    private final String SAVE_FOLDER_NAME = "Status Saver";
+
+    private final ActivityResultLauncher<CropImageContractOptions> cropImageLauncher =
+            registerForActivityResult(new CropImageContract(), result -> {
+                if (result.isSuccessful() && result.getUriContent() != null) {
+                    mediaUri = result.getUriContent();
+                    showImage(mediaUri);
+                    notifyDataChanged();
+                    checkIfAlreadySaved();
+                    Toast.makeText(this, "Edited Successfully! ✨", Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,163 +87,310 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         bindViews();
         initMedia();
         setupActions();
+        checkIfAlreadySaved();
+        setupBackPressed();
     }
 
     private void bindViews() {
         imagePreview = findViewById(R.id.imagePreview);
-        videoPreview = findViewById(R.id.videoPreview);
+        playerView = findViewById(R.id.playerView);
         btnClose = findViewById(R.id.btnClosePreview);
         btnShare = findViewById(R.id.btnShare);
+        btnSave = findViewById(R.id.btnSave);
+        tvSave = findViewById(R.id.tvSave);
         btnCrop = findViewById(R.id.btnCrop);
+        btnTrim = findViewById(R.id.btnTrim);
         cardCrop = findViewById(R.id.cardCrop);
-        btnForward = findViewById(R.id.btnForward);
+        cardTrim = findViewById(R.id.cardTrim);
+        cardSave = findViewById(R.id.cardSave);
         btnInfo = findViewById(R.id.btnInfo);
-        playOverlay = findViewById(R.id.playOverlay);
     }
 
     private void initMedia() {
-        // 🔥 FIX 1: Kyunki Adapter se String bheji thi, isliye getStringExtra use karein
         String uriString = getIntent().getStringExtra(EXTRA_URI);
         isVideo = getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false);
-
-        if (uriString != null) {
-            mediaUri = Uri.parse(uriString);
-        }
+        if (uriString != null) mediaUri = Uri.parse(uriString);
 
         cardCrop.setVisibility(isVideo ? View.GONE : View.VISIBLE);
+        cardTrim.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
         if (mediaUri != null) {
             if (isVideo) showVideo(mediaUri);
             else showImage(mediaUri);
         } else {
-            Toast.makeText(this, "Error: Media not found", Toast.LENGTH_SHORT).show();
             finish();
         }
     }
 
     private void setupActions() {
-        btnClose.setOnClickListener(v -> finish());
+        btnClose.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
         btnShare.setOnClickListener(v -> shareMedia());
-        btnForward.setOnClickListener(v -> shareMedia());
-        btnCrop.setOnClickListener(v -> cropImage());
+        btnCrop.setOnClickListener(v -> startAdvancedCrop());
+
+        // 🔥 Custom Trim Dialog call
+        btnTrim.setOnClickListener(v -> showTrimDialog());
+
         btnInfo.setOnClickListener(v -> showMediaInfo());
+        cardSave.setOnClickListener(v -> saveMediaToGallery());
+
+        if (playerView != null) {
+            playerView.setOnClickListener(v -> {
+                if (isVideo && exoPlayer != null) toggleMute();
+            });
+        }
     }
 
-    private void showImage(Uri uri) {
-        imagePreview.setVisibility(View.VISIBLE);
-        videoPreview.setVisibility(View.GONE);
-        playOverlay.setVisibility(View.GONE);
+    // 🔥 NEW: Custom Trim Dialog to get Start and End points
+    private void showTrimDialog() {
+        if (exoPlayer == null) return;
 
-        Glide.with(this)
-                .load(uri)
-                .placeholder(R.drawable.image_bg)
-                .into(imagePreview);
+        long totalDurationS = exoPlayer.getDuration() / 1000;
+        if (totalDurationS <= 0) {
+            Toast.makeText(this, "Video loading, try again...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom_trim, null);
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        EditText etStart = dialogView.findViewById(R.id.etStartTime);
+        EditText etEnd = dialogView.findViewById(R.id.etEndTime);
+        TextView tvTotal = dialogView.findViewById(R.id.tvTotalDuration);
+
+        tvTotal.setText("Total Duration: " + totalDurationS + "s");
+        etEnd.setText(String.valueOf(Math.min(totalDurationS, 30))); // Default to 30 or total
+
+        dialogView.findViewById(R.id.btnConfirmTrim).setOnClickListener(v -> {
+            String sStart = etStart.getText().toString();
+            String sEnd = etEnd.getText().toString();
+
+            if (sStart.isEmpty() || sEnd.isEmpty()) {
+                Toast.makeText(this, "Please enter values", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            long startMs = Long.parseLong(sStart) * 1000;
+            long endMs = Long.parseLong(sEnd) * 1000;
+
+            if (endMs <= startMs || endMs > exoPlayer.getDuration()) {
+                Toast.makeText(this, "Invalid range", Toast.LENGTH_SHORT).show();
+            } else {
+                dialog.dismiss();
+                executeMedia3Trim(startMs, endMs);
+            }
+        });
+
+        dialog.show();
+    }
+
+    // 🔥 NEW: Execute Custom Trim using Media3 Transformer
+    private void executeMedia3Trim(long startMs, long endMs) {
+        Toast.makeText(this, "Trimming: " + (startMs/1000) + "s to " + (endMs/1000) + "s ⏳", Toast.LENGTH_LONG).show();
+
+        File outputDir = new File(getExternalFilesDir(null), "TrimmedVideos");
+        if (!outputDir.exists()) outputDir.mkdirs();
+        File outputFile = new File(outputDir, "trimmed_" + System.currentTimeMillis() + ".mp4");
+
+        MediaItem.ClippingConfiguration clippingConfiguration = new MediaItem.ClippingConfiguration.Builder()
+                .setStartPositionMs(startMs)
+                .setEndPositionMs(endMs)
+                .build();
+
+        MediaItem mediaItem = new MediaItem.Builder()
+                .setUri(mediaUri)
+                .setClippingConfiguration(clippingConfiguration)
+                .build();
+
+        EditedMediaItem editedMediaItem = new EditedMediaItem.Builder(mediaItem)
+                .setRemoveAudio(false)
+                .build();
+
+        Transformer transformer = new Transformer.Builder(this)
+                .setVideoMimeType(MimeTypes.VIDEO_H264)
+                .addListener(new Transformer.Listener() {
+                    @Override
+                    public void onCompleted(Composition composition, ExportResult exportResult) {
+                        runOnUiThread(() -> {
+                            mediaUri = Uri.fromFile(outputFile);
+                            showVideo(mediaUri);
+                            showDownloadNotification("Trimmed_" + getFileName(mediaUri));
+                            notifyDataChanged();
+                            checkIfAlreadySaved();
+                            Toast.makeText(ImageVideoPreviewActivity.this, "Custom Trim Successful! ✂️", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+
+                    @Override
+                    public void onError(Composition composition, ExportResult exportResult, ExportException exportException) {
+                        runOnUiThread(() -> Toast.makeText(ImageVideoPreviewActivity.this, "Error: " + exportException.getMessage(), Toast.LENGTH_LONG).show());
+                    }
+                })
+                .build();
+
+        try {
+            transformer.start(editedMediaItem, outputFile.getAbsolutePath());
+        } catch (Exception e) {
+            Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void showVideo(Uri uri) {
         imagePreview.setVisibility(View.GONE);
-        videoPreview.setVisibility(View.VISIBLE);
-        playOverlay.setVisibility(View.VISIBLE);
+        playerView.setVisibility(View.VISIBLE);
 
-        // 🔥 VideoView ko play karne se pehle ye zaroori hai
-        videoPreview.setVideoURI(uri);
-        playOverlay.setImageResource(R.drawable.ic_play_circle);
+        if (exoPlayer != null) exoPlayer.release();
 
-        videoPreview.setOnPreparedListener(mp -> {
-            mp.setLooping(true);
-            videoPreview.start();
-            playOverlay.setVisibility(View.GONE);
-        });
+        // 🚀 Advanced Media3 Player Features
+        exoPlayer = new ExoPlayer.Builder(this).build();
+        playerView.setPlayer(exoPlayer);
+        playerView.setUseController(true); // Seeker/Controls dikhane ke liye
+        playerView.setControllerAutoShow(true);
+        playerView.setControllerHideOnTouch(true);
 
-        View.OnClickListener togglePlay = v -> {
-            if (videoPreview.isPlaying()) {
-                videoPreview.pause();
-                playOverlay.setImageResource(R.drawable.ic_play_circle);
-                playOverlay.setVisibility(View.VISIBLE);
-            } else {
-                videoPreview.start();
-                playOverlay.setVisibility(View.GONE);
-            }
-        };
-
-        playOverlay.setOnClickListener(togglePlay);
-        videoPreview.setOnClickListener(togglePlay);
+        exoPlayer.setMediaItem(MediaItem.fromUri(uri));
+        exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
+        exoPlayer.prepare();
+        exoPlayer.play();
     }
 
-    private void cropImage() {
+    private void showImage(Uri uri) {
+        imagePreview.setVisibility(View.VISIBLE);
+        playerView.setVisibility(View.GONE);
+        Glide.with(this).load(uri).into(imagePreview);
+    }
+
+    private void startAdvancedCrop() {
         if (isVideo || mediaUri == null) return;
-        Uri destUri = Uri.fromFile(new File(getCacheDir(), "cropped_" + System.currentTimeMillis() + ".jpg"));
-        UCrop.of(mediaUri, destUri)
-                .withAspectRatio(1, 1)
-                .withMaxResultSize(1080, 1080)
-                .start(this, UCROP_REQUEST_CODE);
+        CropImageOptions options = new CropImageOptions();
+        options.guidelines = CropImageView.Guidelines.ON;
+        cropImageLauncher.launch(new CropImageContractOptions(mediaUri, options));
+    }
+
+    private void saveMediaToGallery() {
+        if (mediaUri == null) return;
+        String fileName = getFileName(mediaUri);
+        String mimeType = isVideo ? "video/mp4" : "image/jpeg";
+
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+        values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + SAVE_FOLDER_NAME);
+
+        Uri externalUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        try {
+            Uri destUri = getContentResolver().insert(externalUri, values);
+            if (destUri != null) {
+                try (InputStream is = getContentResolver().openInputStream(mediaUri);
+                     OutputStream os = getContentResolver().openOutputStream(destUri)) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        os.write(buffer, 0, bytesRead);
+                    }
+                    showDownloadNotification(fileName);
+                    Toast.makeText(this, "Saved to Gallery! ✅", Toast.LENGTH_SHORT).show();
+                    notifyDataChanged();
+                    checkIfAlreadySaved();
+                }
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Save Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void shareMedia() {
         if (mediaUri == null) return;
-
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType(isVideo ? "video/*" : "image/*");
         shareIntent.putExtra(Intent.EXTRA_STREAM, mediaUri);
-
-        // 🔥 Scoped Storage ke liye permission dena zaroori hai
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
         startActivity(Intent.createChooser(shareIntent, "Share via"));
     }
 
-    // --- Media Info Logic (Baqi code thik hai lekin handle errors) ---
     private void showMediaInfo() {
         if (mediaUri == null) return;
         try {
-            // 1. Layout inflate karein
             View dialogView = getLayoutInflater().inflate(R.layout.dialog_media_info, null);
-
-            // 2. Dialog create karein
             AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
-
-
-
-            // 3. IDs ke mutabiq data set karein (Wahi IDs jo humne XML mein rakhi hain)
-            TextView tvTitle = dialogView.findViewById(R.id.tvDialogTitle);
+            if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             TextView tvType = dialogView.findViewById(R.id.tvMediaType);
             TextView tvName = dialogView.findViewById(R.id.tvFileName);
-            TextView tvSize = dialogView.findViewById(R.id.tvFileSize);
-            TextView tvRes = dialogView.findViewById(R.id.tvResolution);
-            TextView tvDur = dialogView.findViewById(R.id.tvDuration);
-            Button btnOk = dialogView.findViewById(R.id.btnOk);
-
-            // Data Fill karein
             tvType.setText("Type: " + (isVideo ? "Video" : "Image"));
             tvName.setText("Name: " + getFileName(mediaUri));
-
-            // Optional: Aap yahan File Size aur Resolution ka logic bhi daal sakte hain
-            // tvSize.setText("Size: Calculating...");
-
-            if (isVideo) {
-                tvDur.setVisibility(View.VISIBLE);
-                // tvDur.setText("Duration: ...");
-            } else {
-                tvDur.setVisibility(View.GONE);
-            }
-
-            // Close button logic
-            btnOk.setOnClickListener(v -> dialog.dismiss());
-
+            dialogView.findViewById(R.id.btnOk).setOnClickListener(v -> dialog.dismiss());
             dialog.show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Info not available: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        } catch (Exception ignored) {}
     }
 
     private String getFileName(Uri uri) {
-        String name = "Unknown";
-        try (android.database.Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int idx = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DISPLAY_NAME);
-                if (idx != -1) name = cursor.getString(idx);
+        return "status_" + System.currentTimeMillis() + (isVideo ? ".mp4" : ".jpg");
+    }
+
+    private void setupBackPressed() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (isDataChanged) setResult(RESULT_OK);
+                finish();
             }
-        } catch (Exception ignored) {}
-        return name;
+        });
+    }
+
+    private void notifyDataChanged() {
+        isDataChanged = true;
+    }
+
+    private void showDownloadNotification(String fileName) {
+        String channelId = "status_download_channel";
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId, "Downloads", NotificationManager.IMPORTANCE_DEFAULT);
+            if (notificationManager != null) notificationManager.createNotificationChannel(channel);
+        }
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentTitle("Process Complete")
+                .setContentText(fileName + " ready.")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true);
+        if (notificationManager != null) notificationManager.notify(fileName.hashCode(), builder.build());
+    }
+
+    private void toggleMute() {
+        if (exoPlayer != null) {
+            isMuted = !isMuted;
+            exoPlayer.setVolume(isMuted ? 0.0f : 1.0f);
+            Toast.makeText(this, isMuted ? "Muted 🔇" : "Audio On 🔊", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void checkIfAlreadySaved() {
+        String fileName = getFileName(mediaUri);
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SAVE_FOLDER_NAME + "/" + fileName);
+        if (file.exists()) {
+            cardSave.setEnabled(false);
+            cardSave.setAlpha(0.5f);
+            btnSave.setColorFilter(Color.GRAY);
+            if (tvSave != null) tvSave.setText("Saved");
+        } else {
+            cardSave.setEnabled(true);
+            cardSave.setAlpha(1.0f);
+            btnSave.setColorFilter(Color.WHITE);
+            if (tvSave != null) tvSave.setText("Save");
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (exoPlayer != null) exoPlayer.pause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (exoPlayer != null) exoPlayer.release();
     }
 }

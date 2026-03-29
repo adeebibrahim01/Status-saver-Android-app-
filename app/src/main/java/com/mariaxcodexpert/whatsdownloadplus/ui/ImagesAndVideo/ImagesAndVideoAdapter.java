@@ -49,11 +49,18 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
     private final ExecutorService executor = Executors.newFixedThreadPool(4);
     private RecyclerView recyclerView;
 
-    public ImagesAndVideoAdapter(Context context, RequestManager glide, boolean isVideo) {
+    // --- Interface for Click Handling ---
+    public interface OnItemClickListener {
+        void onItemClick(DocumentFile file, boolean isVideo);
+    }
+    private final OnItemClickListener clickListener;
+
+    public ImagesAndVideoAdapter(Context context, RequestManager glide, boolean isVideo, OnItemClickListener listener) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.glide = glide;
         this.isVideo = isVideo;
+        this.clickListener = listener;
     }
 
     private static final DiffUtil.ItemCallback<DocumentFile> DIFF_CALLBACK = new DiffUtil.ItemCallback<DocumentFile>() {
@@ -79,10 +86,8 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
         DocumentFile file = getItem(position);
         if (file == null) return;
 
-        // 1. Expiry Logic
         holder.expiryTime = file.lastModified() + 86400000L;
 
-        // 2. Notification Scheduling (Silent)
         String fileName = file.getName();
         if (fileName != null) {
             int statusId = fileName.hashCode();
@@ -96,18 +101,14 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             }
         }
 
-        // 3. --- UI STATE RESET (Crucial for Recycler View) ---
-        // Resetting progress bar to prevent NPE and UI glitches
         if (holder.downloadProgress != null) {
             holder.downloadProgress.setVisibility(View.GONE);
-            holder.downloadProgress.setIndeterminate(true); // Horizontal bar pe ye crash nahi karega agar properly handled ho
+            holder.downloadProgress.setIndeterminate(true);
         }
 
         if (holder.downloadIcon != null) {
             holder.downloadIcon.setVisibility(View.VISIBLE);
             holder.downloadIcon.setEnabled(true);
-
-            // Lambda ke andar current position dynamic leni chahiye
             holder.downloadIcon.setOnClickListener(v -> {
                 int currentPos = holder.getBindingAdapterPosition();
                 if (currentPos != RecyclerView.NO_POSITION) {
@@ -124,34 +125,30 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             holder.videoIcon.setVisibility(isVideoFile(file) ? View.VISIBLE : View.GONE);
         }
 
-        // 4. --- GLIDE IMAGE LOADING (Blink-Free Update) ---
         if (holder.imageThumb != null) {
             glide.load(file.getUri())
-                    // Purani image ko placeholder rakhein taake naya load hote waqt white blink na ho
                     .placeholder(holder.imageThumb.getDrawable())
                     .override(400, 400)
                     .centerCrop()
-                    // Animations band karne se refreshing ke waqt flickering khatam ho jati hai
                     .dontAnimate()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.imageThumb);
 
-            // Preview listener with safety check
             holder.imageThumb.setOnClickListener(v -> {
                 int currentPos = holder.getBindingAdapterPosition();
                 if (currentPos != RecyclerView.NO_POSITION) {
                     DocumentFile currentFile = getItem(currentPos);
-                    if (currentFile != null) {
-                        openPreview(currentFile, isVideoFile(currentFile));
+                    if (currentFile != null && clickListener != null) {
+                        // Notify Fragment instead of starting activity directly
+                        clickListener.onItemClick(currentFile, isVideoFile(currentFile));
                     }
                 }
             });
         }
 
-        // 5. --- SAVED STATE CHECK ---
-        // Isme hum current position pass kar rahe hain taake recycled holder pe wrong data na dikhe
         checkSavedState(file, holder, position);
     }
+
     private void checkSavedState(DocumentFile file, GalleryViewHolder holder, int position) {
         executor.execute(() -> {
             boolean isSaved = isFileInFolder(file.getName());
@@ -161,6 +158,32 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 }
             });
         });
+    }
+
+    private void showDownloadNotification(String fileName) {
+        String channelId = "status_download_channel";
+        android.app.NotificationManager notificationManager =
+                (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            android.app.NotificationChannel channel = new android.app.NotificationChannel(
+                    channelId, "Downloads", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+
+        androidx.core.app.NotificationCompat.Builder builder =
+                new androidx.core.app.NotificationCompat.Builder(context, channelId)
+                        .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                        .setContentTitle("Download Complete")
+                        .setContentText(fileName + " has been saved.")
+                        .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
+                        .setAutoCancel(true);
+
+        if (notificationManager != null) {
+            notificationManager.notify(fileName.hashCode(), builder.build());
+        }
     }
 
     private void saveFileWithAd(DocumentFile file, GalleryViewHolder holder, int position) {
@@ -179,11 +202,10 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
         executor.execute(() -> {
             boolean success = false;
-            try {
-                String name = file.getName();
+            String name = file.getName();
 
+            try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Android 10+ logic (Already working fine)
                     ContentValues values = new ContentValues();
                     values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
                     values.put(MediaStore.MediaColumns.MIME_TYPE, isVideoFile(file) ? "video/mp4" : "image/jpeg");
@@ -200,31 +222,23 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                         success = true;
                     }
                 } else {
-                    // 🔥 FIX FOR ANDROID 9 (Permission Denied Fix)
                     File dir = new File(Environment.getExternalStorageDirectory(), "Pictures/Status Saver");
                     if (!dir.exists()) {
-                        boolean created = dir.mkdirs();
-                        if (!created && !dir.exists()) throw new Exception("Folder create nahi ho saka!");
+                        dir.mkdirs();
                     }
 
                     File destFile = new File(dir, name);
-
-                    // Purani file agar exists karti hai toh delete karein taake overwrite ho sake
-                    if (destFile.exists()) destFile.delete();
-
                     try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
                          FileOutputStream out = new FileOutputStream(destFile)) {
                         copyStream(in, out);
                     }
 
-                    // Media scanner ko lazmi batana hai
                     Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                     mediaScanIntent.setData(Uri.fromFile(destFile));
                     context.sendBroadcast(mediaScanIntent);
                     success = true;
                 }
             } catch (Exception e) {
-                android.util.Log.e("SAVE_ERROR", "Error: " + e.getMessage());
                 success = false;
             }
 
@@ -233,43 +247,36 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 if (holder.getBindingAdapterPosition() == position) {
                     updateUIState(holder, false, finalSuccess);
                     if (finalSuccess) {
+                        showDownloadNotification(name);
                         Toast.makeText(context, "Saved Successfully! ✅", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(context, "Save Failed! Check Storage Permission.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Save Failed!", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
         });
     }
-    // Stream helper (Add this for clean code)
+
     private void copyStream(InputStream in, OutputStream out) throws Exception {
         byte[] buf = new byte[8192];
         int len;
         while ((len = in.read(buf)) != -1) out.write(buf, 0, len);
     }
+
     private void updateUIState(GalleryViewHolder holder, boolean isProcessing, boolean isSaved) {
         if (holder == null) return;
-
-        // Progress Bar: Sirf downloading ke waqt dikhayein
         if (holder.downloadProgress != null) {
             holder.downloadProgress.setVisibility(isProcessing ? View.VISIBLE : View.GONE);
         }
-
-        // Blink Fix: Processing ke waqt icons ko GONE karne ki bajaye
-        // hum unhe invisible rakh sakte hain ya download icon ko hi rehne de sakte hain
         if (holder.downloadIcon != null && holder.downloadStatus != null) {
             if (isProcessing) {
-                // Downloading ke waqt blink se bachne ke liye download icon ko dhundla (Alpha) kar dein
                 holder.downloadIcon.setVisibility(View.VISIBLE);
                 holder.downloadIcon.setAlpha(0.3f);
                 holder.downloadStatus.setVisibility(View.GONE);
             } else if (isSaved) {
-                // Save ho gaya: Double tick dikhayein
                 holder.downloadIcon.setVisibility(View.GONE);
                 holder.downloadStatus.setVisibility(View.VISIBLE);
-                holder.downloadStatus.setAlpha(1.0f);
             } else {
-                // Default: Download icon
                 holder.downloadIcon.setVisibility(View.VISIBLE);
                 holder.downloadIcon.setAlpha(1.0f);
                 holder.downloadStatus.setVisibility(View.GONE);
@@ -279,14 +286,11 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
     private boolean isFileInFolder(String fileName) {
         if (fileName == null) return false;
-
         try {
-            // Android 9/10/11+ sab ke liye behtar tareeka
             File dir = new File(Environment.getExternalStorageDirectory(), "Pictures/Status Saver");
             File file = new File(dir, fileName);
             if (file.exists() && file.length() > 0) return true;
 
-            // Backup for Android 11+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=?";
                 String[] selectionArgs = new String[]{fileName};
@@ -299,9 +303,9 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 }
             }
         } catch (Exception ignored) {}
-
         return false;
     }
+
     private boolean isVideoFile(DocumentFile f) {
         String n = f.getName();
         return n != null && (n.toLowerCase().endsWith(".mp4") || n.toLowerCase().endsWith(".mkv") || n.toLowerCase().endsWith(".3gp"));
@@ -326,7 +330,7 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                             long mins = (rem / 60000) % 60;
                             long secs = (rem / 1000) % 60;
                             h.countdownTimer.setText(String.format("Expires in %02d:%02d:%02d", hrs, mins, secs));
-                         }
+                        }
                     }
                 }
             }
@@ -353,12 +357,5 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             countdownTimer = v.findViewById(R.id.countdownTimer);
             downloadProgress = v.findViewById(R.id.downloadProgress);
         }
-    }
-
-    private void openPreview(DocumentFile file, boolean isVideo) {
-        Intent intent = new Intent(context, ImageVideoPreviewActivity.class);
-        intent.putExtra("uri", file.getUri().toString());
-        intent.putExtra("is_video", isVideo);
-        context.startActivity(intent);
     }
 }

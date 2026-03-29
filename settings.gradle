@@ -1,29 +1,18 @@
-// Plugin management with repositories
 pluginManagement {
     repositories {
-        // Standard repositories for Gradle plugins
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }  // Important for PhotoView
         gradlePluginPortal()
     }
 }
-
-// Dependency resolution management
 dependencyResolutionManagement {
-    // Prevent subprojects from using their own repositories
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-
     repositories {
-        // Standard repositories for app dependencies
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }  // Ensure JitPack is included for PhotoView
+        // 🔥 Isse FFmpeg aur Trimmer mil jayenge
+        maven { url 'https://jitpack.io' }
     }
 }
-
-// Root project configuration
 rootProject.name = "Whats Download Plus"
-
-// Include app module
-include(":app")
+include ':app'
