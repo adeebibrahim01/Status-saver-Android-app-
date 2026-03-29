@@ -1,129 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ECE5DD"
-    android:orientation="vertical"
-    android:paddingTop="16dp"
-    android:paddingBottom="16dp">
+    android:background="#F8FAFB"
+    android:clipChildren="false">
 
-    <!-- Fragment container for permissions/pages -->
-    <FrameLayout
-        android:id="@+id/fragmentContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="30dp"
-        android:clipToOutline="true"
-        android:elevation="6dp"
-        android:background="@drawable/whatsapp_card_bg"
-        android:padding="20dp">
-
-        <!-- Inner content to make it professional -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:padding="16dp">
-
-
-            <!-- App Title -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:textColor="#075E54"
-                android:gravity="center"
-                android:layout_marginBottom="6dp"
-                android:fontFamily="sans-serif-medium"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Permissions Required"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#555555"
-                android:gravity="center"
-                android:layout_marginBottom="1dp"
-                android:fontFamily="sans-serif-medium"/>
-
-
-        </LinearLayout>
-    </FrameLayout>
-
-
-    <!-- ViewPager2 for intro pages -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingTop="24dp"
-        android:paddingBottom="24dp"/>
-
-    <!-- Navigation dots -->
-    <LinearLayout
-        android:id="@+id/dotsLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="28dp" />
-
-    <!-- Bottom navigation with arrows -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingBottom="16dp"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
         android:clipChildren="false"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNav"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Left Arrow -->
-        <ImageButton
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:paddingHorizontal="24dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnLeft"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="@drawable/circle_white_ripple"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="Back"
             android:src="@drawable/ic_arrow_left"
-            android:contentDescription="Left"
-            android:scaleType="center"
-            android:elevation="6dp"
-            android:outlineProvider="background"
-            android:layout_marginEnd="16dp"
-            android:clipToOutline="true"/>
+            app:backgroundTint="#FFFFFF"
+            app:fabCustomSize="56dp"
+            app:tint="#075E54"
+            app:elevation="0dp"
+            app:borderWidth="1dp"
+            app:strokeColor="#1A075E54"
+            app:rippleColor="#1A075E54"
+            app:maxImageSize="28dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Center dots placeholder -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:id="@+id/dotsLayout"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="horizontal"
-            android:gravity="center"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnRight"
+            app:layout_constraintStart_toEndOf="@+id/btnLeft"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Right Arrow -->
-        <ImageButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnRight"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="@drawable/circle_white_ripple"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="Next"
             android:src="@drawable/ic_arrow_right"
-            android:contentDescription="Right"
-            android:scaleType="center"
-            android:elevation="6dp"
-            android:outlineProvider="background"
-            android:layout_marginStart="16dp"
-            android:clipToOutline="true"/>
-    </LinearLayout>
+            app:backgroundTint="#FFFFFF"
+            app:fabCustomSize="56dp"
+            app:tint="#075E54"
+            app:elevation="0dp"
+            app:borderWidth="1dp"
+            app:strokeColor="#1A075E54"
+            app:rippleColor="#1A075E54"
+            app:maxImageSize="28dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-</LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

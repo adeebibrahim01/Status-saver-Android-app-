@@ -51,10 +51,9 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:padding="8dp"
-        android:src="@drawable/ic_close_white"
+        android:src="@drawable/ic_close"
         android:background="@drawable/circle_bg_black_50"
         android:contentDescription="Close"
-        app:tint="#FFF"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="16dp"/>

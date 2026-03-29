@@ -1,18 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-
-    <!-- WhatsApp-style white/light card color -->
-    <solid android:color="#FFFFFF"/> <!-- Use #ECE5DD if you want chat bubble look -->
-
-    <!-- Rounded corners -->
-    <corners android:radius="16dp"/>
-
-    <!-- No stroke to avoid white border -->
-
-    <!-- Padding inside the card -->
-    <padding
-        android:left="12dp"
-        android:top="12dp"
-        android:right="12dp"
-        android:bottom="12dp"/>
-</shape>
+    <solid android:color="#FFFFFF"/>
+    <corners android:radius="1dp"/> </shape>

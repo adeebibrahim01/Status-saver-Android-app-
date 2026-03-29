@@ -23,14 +23,17 @@
             android:layout_height="wrap_content"
             android:text="@string/app_name"
             android:textColor="#FFFFFF"
-            android:textSize="28sp"
+            android:textSize="34sp"
             android:fontFamily="sans-serif-black"
-            android:letterSpacing="-0.03"
+            android:letterSpacing="-0.05"
             android:includeFontPadding="false"
-            android:elevation="4dp"
+            android:shadowDx="0"
+            android:shadowDy="6"
+            android:shadowRadius="12"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="1dp" />
 
         <LinearLayout
             android:id="@+id/secureLine"
@@ -39,7 +42,6 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:layout_marginTop="6dp"
-            android:background="@drawable/bg_secure_tag_subtle"
             android:paddingHorizontal="12dp"
             android:paddingVertical="3dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -58,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:text="• PRIVACY PROTECTED •"
-                android:textColor="#CCF6EA"
+                android:textColor="#00FF00"
                 android:textSize="10sp"
                 android:textAllCaps="true"
                 android:letterSpacing="0.15"
@@ -72,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:text="• Active Session • "
-            android:textColor="#B3FFFFFF"
+            android:textColor="#00FF00"
             android:textSize="11sp"
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.02"
@@ -159,127 +161,151 @@
             android:background="@drawable/whatsapp_top_bg_transparent"
             android:padding="8dp">
 
-            <!-- Today Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTodayDownloads"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_margin="4dp"
+                android:layout_margin="6dp"
                 app:cardCornerRadius="50dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@android:color/white"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
                 android:foreground="?attr/selectableItemBackground"
-                app:strokeColor="#DDDDDD"
-                app:strokeWidth="1dp"> <!-- subtle border for 3D look -->
+                app:strokeWidth="0dp"> <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/circle_3d_bg"
+                android:padding="10dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TODAY'S"
+                    android:textColor="#2FB19C"
+                    android:textSize="9sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.05"/>
+
+                <TextView
+                    android:id="@+id/tvTodayCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
                     android:gravity="center"
-                    android:background="@drawable/circle_3d_bg"> <!-- inner shadow -->
+                    android:text="0"
+                    android:textColor="#075E54"
+                    android:textSize="22sp"
+                    android:fontFamily="sans-serif-black" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Today's Downloads"
-                        android:textColor="#075E54"
-                        android:textSize="10sp"
-                        android:textStyle="bold"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Downloads"
+                    android:textColor="#9E9E9E"
+                    android:textSize="8sp"
+                    android:fontFamily="sans-serif-light"/>
 
-                    <TextView
-                        android:id="@+id/tvTodayCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:gravity="center"
-                        android:text="0"
-                        android:textColor="#075E54"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
-                </LinearLayout>
+            </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Last 7 Days Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardLast7Days"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_margin="4dp"
+                android:layout_margin="6dp"
                 app:cardCornerRadius="50dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@android:color/white"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
                 android:foreground="?attr/selectableItemBackground"
-                app:strokeColor="#DDDDDD"
-                app:strokeWidth="1dp">
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:background="@drawable/circle_3d_bg">
+                    android:background="@drawable/circle_3d_bg"
+                    android:padding="10dp">
 
                     <TextView
-                        android:id="@+id/tvLast7Days"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="7 Days Downloads"
-                        android:textColor="#075E54"
-                        android:textSize="10sp"
-                        android:textStyle="bold"/>
+                        android:text="LAST 7 Days"
+                        android:textColor="#2FB19C"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.05"/>
 
                     <TextView
                         android:id="@+id/tvLast7DaysCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="2dp"
                         android:gravity="center"
                         android:text="0"
                         android:textColor="#075E54"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
+                        android:textSize="22sp"
+                        android:fontFamily="sans-serif-black"/>
+
+                    <TextView
+                        android:id="@+id/tvLast7Days"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Downloads"
+                        android:textColor="#9E9E9E"
+                        android:textSize="8sp"
+                        android:fontFamily="sans-serif-light"/>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <!-- Active Streak Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardActiveStreak"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_margin="4dp"
+                android:layout_margin="6dp"
                 app:cardCornerRadius="50dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@android:color/white"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent"
                 android:foreground="?attr/selectableItemBackground"
-                app:strokeColor="#DDDDDD"
-                app:strokeWidth="1dp">
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
                     android:gravity="center"
-                    android:background="@drawable/circle_3d_bg">
+                    android:background="@drawable/circle_3d_bg"
+                    android:padding="10dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Current Streak"
-                        android:textColor="#075E54"
-                        android:textSize="10sp"
-                        android:textStyle="bold"/>
+                        android:text="STREAK"
+                        android:textColor="#FF9800"
+                        android:textSize="9sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.05"/>
 
                     <TextView
                         android:id="@+id/tvActiveStreak"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="2dp"
                         android:gravity="center"
                         android:text="0"
                         android:textColor="#075E54"
-                        android:textSize="18sp"
-                        android:textStyle="bold"/>
+                        android:textSize="22sp"
+                        android:fontFamily="sans-serif-black"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Days Active"
+                        android:textColor="#9E9E9E"
+                        android:textSize="8sp"
+                        android:fontFamily="sans-serif-light"/>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
@@ -302,7 +328,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardImages"
                     android:layout_width="0dp"
-                    android:layout_height="145dp"
+                    android:layout_height="130dp"
                     android:layout_weight="1"
                     android:layout_margin="6dp"
                     app:cardCornerRadius="24dp"
@@ -347,7 +373,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardVideos"
                     android:layout_width="0dp"
-                    android:layout_height="145dp"
+                    android:layout_height="130dp"
                     android:layout_weight="1"
                     android:layout_margin="6dp"
                     app:cardCornerRadius="24dp"
@@ -392,7 +418,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardSaved"
                     android:layout_width="0dp"
-                    android:layout_height="145dp"
+                    android:layout_height="130dp"
                     android:layout_weight="1"
                     android:layout_margin="6dp"
                     app:cardCornerRadius="24dp"
@@ -435,14 +461,13 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </LinearLayout>
-        <!-- RECENT DOWNLOADS SECTION -->
         <androidx.cardview.widget.CardView
             android:id="@+id/recentDownloadsSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
             android:layout_marginEnd="14dp"
-            android:layout_marginTop="6dp"
+
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="24dp"
             app:cardElevation="0dp"
@@ -454,58 +479,58 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingTop="12dp"
-                android:paddingBottom="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:paddingHorizontal="20dp"
-                    android:layout_marginBottom="1dp">
-
-                    <View
-                        android:layout_width="4dp"
-                        android:layout_height="16dp"
-                        android:background="@drawable/bg_indicator_green"
-                        android:layout_marginEnd="8dp"/>
-
-                    <TextView
-                        android:id="@+id/tvRecentDownloadsTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Recent Downloads"
-                        android:textSize="16sp"
-                        android:textColor="#1A1A1A"
-                        android:fontFamily="sans-serif-black"
-                        android:letterSpacing="0.01"/>
-                </LinearLayout>
+                android:paddingBottom="12dp"> <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp"
+                android:layout_marginBottom="12dp"> <View
+                android:layout_width="4dp"
+                android:layout_height="16dp"
+                android:background="@drawable/bg_indicator_green"
+                android:layout_marginEnd="8dp"/>
 
                 <TextView
+                    android:id="@+id/tvRecentDownloadsTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Recent Downloads"
+                    android:textSize="16sp"
+                    android:textColor="#1A1A1A"
+                    android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.01"/>
+            </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"> <TextView
                     android:id="@+id/tvRecentDownloadsEmpty"
                     android:layout_width="match_parent"
-                    android:layout_height="100dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginHorizontal="20dp"
                     android:text="No recent downloads available"
                     android:textColor="#9E9E9E"
                     android:textSize="13sp"
                     android:gravity="center"
                     android:visibility="gone"
-                    android:layout_marginHorizontal="20dp"
                     android:background="@drawable/bg_empty_dash"
                     android:fontFamily="sans-serif-medium"/>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvRecentDownloads"
-                    android:layout_width="match_parent"
-                    android:layout_height="140dp"
-                    android:orientation="horizontal"
-                    android:overScrollMode="never"
-                    android:clipToPadding="false"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
-                    android:clipChildren="false"
-                    android:nestedScrollingEnabled="false"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecentDownloads"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:overScrollMode="never"
+                        android:clipToPadding="false"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:clipChildren="false"
+                        android:nestedScrollingEnabled="false"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+                </FrameLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>

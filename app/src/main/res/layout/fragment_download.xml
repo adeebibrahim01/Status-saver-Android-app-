@@ -17,7 +17,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
-            android:background="@color/whatsapp_green"
+            android:background="@drawable/side_nav_bar"
             android:elevation="6dp"
             android:padding="6dp"
             app:layout_constraintTop_toTopOf="parent"
@@ -32,9 +32,9 @@
                 android:layout_marginTop="12dp"
                 android:fontFamily="sans-serif-black"
                 android:letterSpacing="-0.02"
-                android:text="All Downloaded Status"
+                android:text=""
                 android:textColor="@android:color/white"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 android:includeFontPadding="false" />
 
             <TextView
@@ -52,7 +52,9 @@
                 android:textAllCaps="true"
                 android:textColor="#CCFFFFFF"
                 android:textSize="10sp"
-                android:elevation="2dp" />
+                android:elevation="2dp"
+                android:layout_marginBottom="10dp"
+                />
         </com.google.android.material.appbar.AppBarLayout>
 
         <!-- RecyclerView -->

@@ -1,8 +1,12 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,7 +23,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -34,13 +37,12 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private NavController.OnDestinationChangedListener destinationListener;
     private ActivityResultLauncher<String> requestNotificationPermissionLauncher;
-    private ActivityResultLauncher<String> requestStoragePermissionLauncher; // Naya Launcher
+    private ActivityResultLauncher<String> requestStoragePermissionLauncher;
 
     private AppUpdateChecker appUpdateChecker;
 
     // Performance Handler to manage delayed tasks safely
     private final Handler performanceHandler = new Handler(Looper.getMainLooper());
-    // 1. Static variable top par hi rahega
     public static boolean isUIReady = false;
 
     @Override
@@ -68,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
         setupAppBarConfiguration();
         setupDrawerActions();
         setupToolbarTitleUpdater();
+
+        // --- FAB ANIMATION SETUP ---
         setupFAB();
 
         // 5. Critical Systems & Notification Handling
@@ -79,15 +83,44 @@ public class MainActivity extends AppCompatActivity {
             handleNotificationIntent(getIntent());
         }
 
-        // 6. 🔥 THE MASTER STROKE:
-        // Isay aakhir mein rakhein taake jab sab kuch setup ho jaye tab Splash khatam ho.
-        // 300ms ka chota sa delay UI ko "settle" hone ka waqt deta hai.
+        // 6. Splash Screen Sync
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             isUIReady = true;
         }, 300);
 
         // 7. Secondary Tasks
         performanceHandler.postDelayed(this::initSecondaryTasks, 1200);
+    }
+
+    private void setupFAB() {
+        // 1. Click Listener
+        binding.appBarMain.fab.setOnClickListener(v -> navController.navigate(R.id.nav_download));
+
+        // 2. 🔥 Animated Vector / Attractive Animation
+        // Agar aapne avd_download.xml banaya hai toh ye use karein:
+        try {
+            Drawable drawable = ContextCompat.getDrawable(this, R.drawable.avd_download);
+            if (drawable instanceof AnimatedVectorDrawable) {
+                binding.appBarMain.fab.setImageDrawable(drawable);
+                ((AnimatedVectorDrawable) drawable).start();
+            } else {
+                // Fallback: Agar AVD nahi hai toh Pulse Animation chalao (Bina file ke attractive lagega)
+                startFabPulseAnimation();
+            }
+        } catch (Exception e) {
+            startFabPulseAnimation();
+        }
+    }
+
+    private void startFabPulseAnimation() {
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(binding.appBarMain.fab, "scaleX", 1.0f, 1.1f, 1.0f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(binding.appBarMain.fab, "scaleY", 1.0f, 1.1f, 1.0f);
+        scaleX.setRepeatCount(ValueAnimator.INFINITE);
+        scaleY.setRepeatCount(ValueAnimator.INFINITE);
+        scaleX.setDuration(1500);
+        scaleY.setDuration(1500);
+        scaleX.start();
+        scaleY.start();
     }
 
     private void setupStorageLauncher() {
@@ -101,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    // Ye naya method MainActivity mein niche kahi bhi paste kar dein
     private void handleNotificationIntent(Intent intent) {
         if (intent != null && intent.hasExtra("openFragment")) {
             String fragmentName = intent.getStringExtra("openFragment");
@@ -110,32 +142,25 @@ public class MainActivity extends AppCompatActivity {
             if ("ImagesAndVideo".equals(fragmentName)) {
                 Bundle bundle = new Bundle();
                 bundle.putBoolean("showVideos", isVideo);
-
-                // 🔥 PROFESSIONAL FIX: Replace manually replace with NavController
-                // Is se drawer aur back navigation kharab nahi hogi
                 navController.navigate(R.id.nav_gallery, bundle);
-
-                // Intent ko clear kar dein taake dobara refresh par wahi na khule
                 intent.removeExtra("openFragment");
             }
         }
     }
+
     private void initSecondaryTasks() {
         if (isFinishing() || isDestroyed()) return;
 
-        // Background Checkers
         appUpdateChecker = new AppUpdateChecker(this);
         appUpdateChecker.checkForUpdate();
 
         new FeedbackPromptManager(this).start();
 
-        // 🔥 Dono permissions yahan mangein
-        askNotificationPermission(); // Android 13+ ke liye
-        askStoragePermission();      // Android 9 aur usse neeche ke liye
+        askNotificationPermission();
+        askStoragePermission();
     }
 
     private void askStoragePermission() {
-        // Android 9 (API 28) aur usse neeche ke liye WRITE_EXTERNAL_STORAGE lazmi hai
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -148,19 +173,15 @@ public class MainActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                // 1. First priority: Close Drawer if open
                 if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     binding.drawerLayout.closeDrawer(GravityCompat.START);
                 } else {
-                    // 2. Fragment Navigation Logic
                     int currentId = (navController.getCurrentDestination() != null)
                             ? navController.getCurrentDestination().getId() : -1;
 
                     if (currentId == R.id.nav_home || currentId == -1) {
-                        // Directly exit if on Home (Prevents going back to Splash/Permissions)
                         finish();
                     } else {
-                        // Smoothly go back to Home from any other fragment
                         navController.popBackStack(R.id.nav_home, false);
                     }
                 }
@@ -171,36 +192,26 @@ public class MainActivity extends AppCompatActivity {
     private void setupDrawerActions() {
         binding.navView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-
-            // Optimization: Don't reload if already on the same fragment
             if (navController.getCurrentDestination() != null &&
                     navController.getCurrentDestination().getId() == id) {
                 binding.drawerLayout.closeDrawers();
                 return false;
             }
-
-            // Close drawer immediately for visual feedback
             binding.drawerLayout.closeDrawers();
-
-            // 🔥 LAG FIX: Execute navigation AFTER drawer close animation (approx 280ms)
             performanceHandler.postDelayed(() -> {
                 if (isFinishing() || isDestroyed()) return;
-
                 if (id == R.id.nav_home) {
                     navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
                 } else if (id == R.id.nav_gallery) {
-                    // Custom bundle for direct Video Tab access
                     Bundle bundle = new Bundle();
                     bundle.putBoolean("showVideos", true);
                     navController.navigate(R.id.nav_gallery, bundle);
                 } else if (id == R.id.nav_download || id == R.id.nav_privacy_policy) {
                     NavigationUI.onNavDestinationSelected(item, navController);
                 } else {
-                    // Static actions (Share/Rate/Feedback)
                     handleMenuActions(id);
                 }
             }, 280);
-
             return true;
         });
     }
@@ -231,14 +242,8 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
 
-    // --- System & Helper Methods ---
-
     private void setToolbarTitle(String title) {
         if (getSupportActionBar() != null) getSupportActionBar().setTitle(title);
-    }
-
-    private void setupFAB() {
-        binding.appBarMain.fab.setOnClickListener(v -> navController.navigate(R.id.nav_download));
     }
 
     private void setupNotificationLauncher() {
@@ -277,12 +282,14 @@ public class MainActivity extends AppCompatActivity {
     private void sendFeedback() {
         openUrl("market://details?id=" + getPackageName(), "https://play.google.com/store/apps/details?id=" + getPackageName());
     }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
         handleNotificationIntent(intent);
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -296,13 +303,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        // Clean up to prevent memory leaks
         performanceHandler.removeCallbacksAndMessages(null);
         if (navController != null && destinationListener != null) {
             navController.removeOnDestinationChangedListener(destinationListener);
         }
         super.onDestroy();
         binding = null;
-        isUIReady = false; // Reset on exit
+        isUIReady = false;
     }
 }

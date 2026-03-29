@@ -2,59 +2,144 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="#ECE5DD"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="16dp"
-    android:paddingBottom="16dp">
+    android:background="#F8FAFB"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp">
 
-    <!-- Title -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:strokeWidth="1dp"
+        app:strokeColor="#1A075E54">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="24dp">
+
+            <ImageView
+                android:layout_width="54dp"
+                android:layout_height="54dp"
+                android:src="@mipmap/ic_launcher_round"
+                android:layout_marginBottom="12dp"
+                android:elevation="2dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:letterSpacing="0.02"
+                android:text="@string/app_name"
+                android:textColor="#075E54"
+                android:textSize="22sp"
+                android:includeFontPadding="false"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Status Downloader"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true"/>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select app from the list"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="#075E54"
+        android:layout_marginTop="32dp"
+        android:fontFamily="sans-serif-black"
         android:gravity="center"
-        android:layout_marginBottom="24dp"
-        android:fontFamily="sans-serif-medium"/>
+        android:text="Select App"
+        android:textColor="#1A1A1A"
+        android:textSize="24sp" />
 
-    <!-- WhatsApp Card -->
-    <LinearLayout
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:background="@drawable/whatsapp_card_bg"
-        android:elevation="4dp"
-        android:gravity="center_vertical">
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="24dp"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
+        android:text="Choose WhatsApp to scan media"
+        android:textColor="#888888"
+        android:textSize="14sp" />
 
-        <ImageView
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:src="@drawable/ic_whatsapp"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="WhatsApp icon"
-            android:scaleType="centerCrop" />
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/whatsappCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#E0E0E0"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="#FFFFFF">
 
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="WhatsApp"
-            android:textColor="#075E54"
-            android:textSize="18sp"
-            android:fontFamily="sans-serif-medium"/>
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
 
-        <CheckBox
-            android:id="@+id/selectWhatsappcheckbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/whatsapp_greeen"/>
-    </LinearLayout>
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_icon_soft_green"
+                android:padding="10dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="WhatsApp icon"
+                    android:src="@drawable/ic_whatsapp" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-bold"
+                    android:text="WhatsApp"
+                    android:textColor="#1A1A1A"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Official Messenger"
+                    android:textColor="#999999"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/selectWhatsappcheckbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="#075E54"
+                android:scaleX="1.1"
+                android:scaleY="1.1" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <View
         android:layout_width="match_parent"

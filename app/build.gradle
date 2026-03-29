@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.mariaxcodexpert.whatsdownloadplus"
-        minSdk 28 // 24 is better for wider device support (Android 7.0+)
+        minSdk 28
         targetSdk 35
         versionCode 16
         versionName "1.0.16"
@@ -18,12 +18,10 @@ android {
 
     buildTypes {
         release {
-            // Performance & Security Optimization
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 
-            // Debugging symbols remove karne ke liye (APK size kam hogi)
             ndk {
                 debugSymbolLevel 'none'
             }
@@ -39,13 +37,15 @@ android {
         viewBinding true
     }
 
-    // Performance: Avoid compressing specific files to speed up app loading
     aaptOptions {
         noCompress "tflite", "lite"
     }
 }
 
 dependencies {
+    // --- Splash Screen API (FIX: Isse theme error khatam ho jayega) ---
+    implementation "androidx.core:core-splashscreen:1.0.1"
+
     // --- AndroidX & UI Core ---
     implementation libs.appcompat
     implementation libs.material
@@ -63,28 +63,22 @@ dependencies {
     implementation libs.navigation.ui
 
     // --- Ads & Consent (UMP) ---
-    // Latest Stable Google Ads SDK
     implementation 'com.google.android.gms:play-services-ads:23.0.0'
     implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
     implementation "com.google.android.ump:user-messaging-platform:2.2.0"
 
-    // --- Room Database (Fast Storage) ---
+    // --- Room Database ---
     def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
     // --- Image & Video Processing ---
-    // Glide (Upgraded to 4.16.0 for better performance)
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
-
-    // ExoPlayer (Stable 2.19.1)
     implementation 'com.google.android.exoplayer:exoplayer:2.19.1'
-
-    // UCrop (Image Cropping)
     implementation 'com.github.yalantis:ucrop:2.2.8'
 
-    // UI Helpers
+    // --- UI Helpers ---
     implementation 'com.airbnb.android:lottie:6.3.0'
     implementation 'io.github.chrisbanes:PhotoView:2.3.0'
 
@@ -92,7 +86,7 @@ dependencies {
     implementation "com.google.android.play:app-update:2.1.0"
     implementation "com.google.android.play:review:2.0.1"
 
-    // Background Tasks (Optimized for battery)
+    // --- Background Tasks ---
     implementation "androidx.work:work-runtime:2.9.0"
 
     // --- Testing ---

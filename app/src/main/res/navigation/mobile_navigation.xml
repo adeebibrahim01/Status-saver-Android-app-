@@ -5,34 +5,39 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/nav_home">
 
-    <!-- Home -->
     <fragment
         android:id="@+id/nav_home"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Home.HomeFragment"
         android:label="@string/app_name"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_gallery"
+            app:destination="@id/nav_gallery" />
+    </fragment>
 
-    <!-- Gallery -->
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment"
-        android:label="@string/app_name"
-        tools:layout="@layout/fragment_imagesandvideo" />
+        android:label="Gallery"
+        tools:layout="@layout/fragment_imagesandvideo">
 
-    <!-- Download -->
+        <action
+            android:id="@+id/action_gallery_to_preview"
+            app:destination="@id/imageVideoPreviewActivity" />
+    </fragment>
+
+
+    <activity
+        android:id="@+id/imageVideoPreviewActivity"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImageVideoPreviewActivity"
+        android:label="Preview"
+        tools:layout="@layout/image_video_preview_activity" />
     <fragment
         android:id="@+id/nav_download"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Download.DownloadFragment"
-        android:label="@string/app_name"
+        android:label="Downloads"
         tools:layout="@layout/fragment_download" />
 
-    <fragment
-        android:id="@+id/imageVideoPreviewFragment"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment"
-        android:label="Preview" />
-
-
-    <!-- Only Privacy Policy Fragment -->
     <fragment
         android:id="@+id/nav_privacy_policy"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Privacy_policy.PrivacyPolicyFragment"

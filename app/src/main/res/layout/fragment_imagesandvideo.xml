@@ -20,8 +20,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
-            android:background="@color/whatsapp_green"
+            android:background="@drawable/side_nav_bar"
             android:elevation="4dp">
+
 
 
             <TextView
@@ -42,7 +43,7 @@
                 android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:background="@color/whatsapp_green"
+                android:background="@drawable/side_nav_bar"
                 app:tabIndicatorColor="@android:color/white"
                 app:tabIndicatorHeight="3dp"
                 app:tabIndicatorFullWidth="false"

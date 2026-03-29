@@ -46,7 +46,7 @@
         app:backgroundTint="#40000000"
         app:icon="@drawable/ic_close"
         app:iconSize="24dp"
-        app:iconTint="@color/white"
+        app:iconTint="@color/red"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />

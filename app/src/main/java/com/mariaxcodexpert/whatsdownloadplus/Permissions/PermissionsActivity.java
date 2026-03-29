@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -28,34 +29,20 @@ public class PermissionsActivity extends AppCompatActivity {
 
     private static final String PREFS_NAME = "AppPrefs";
     private static final String KEY_STATUS_FOLDER_URI = "statusFolderUri";
-
     private SharedPreferences prefs;
     public Uri selectedStatusFolderUri;
     private ViewPager2 viewPager;
     private final int[] layouts = {R.layout.layout_select_app, R.layout.layout_permissions};
     private boolean hasNavigated = false;
 
-    // 1. SAF Folder Picker Launcher (For Android 10/11+)
+    // Activity Results
     private final ActivityResultLauncher<Intent> folderPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    Uri uri = result.getData().getData();
-                    handleFolderSelection(uri);
+                    handleFolderSelection(result.getData().getData());
                 } else {
-                    Toast.makeText(this, "Folder selection is required!", Toast.LENGTH_SHORT).show();
-                }
-            }
-    );
-
-    // 2. Legacy Permission Launcher (For Android 9 and below)
-    private final ActivityResultLauncher<String> legacyPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    checkAndSetLegacyPath();
-                } else {
-                    Toast.makeText(this, "Storage permission is required for Android 9!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Selection required!", Toast.LENGTH_SHORT).show();
                 }
             }
     );
@@ -67,12 +54,22 @@ public class PermissionsActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         viewPager = findViewById(R.id.viewPager);
+
+        // Adapter setup
         PermissionsPagerAdapter adapter = new PermissionsPagerAdapter(this, layouts, viewPager);
         viewPager.setAdapter(adapter);
         viewPager.setUserInputEnabled(false);
 
+        // Navigation Buttons
         findViewById(R.id.btnLeft).setOnClickListener(v -> viewPager.setCurrentItem(0, true));
-        findViewById(R.id.btnRight).setOnClickListener(v -> startPermissionFlow());
+
+        findViewById(R.id.btnRight).setOnClickListener(v -> {
+            if (viewPager.getCurrentItem() == 0) {
+                viewPager.setCurrentItem(1, true);
+            } else {
+                startPermissionFlow();
+            }
+        });
 
         restoreFolderUri();
 
@@ -81,49 +78,20 @@ public class PermissionsActivity extends AppCompatActivity {
         }
     }
 
-    private void startPermissionFlow() {
-        // 🔥 Android 10 (API 29) aur us se upar ke liye SAF (Folder Picker)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            openStatusFolderPicker();
-        } else {
-            // 🔥 Android 9 aur us se niche ke liye Legacy Permission
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                checkAndSetLegacyPath();
-            } else {
-                legacyPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
-            }
-        }
-    }
+    // 🔥 Made Public for Adapter to access
+    public void showGuideBottomSheet() {
+        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
+                new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
 
-    private void checkAndSetLegacyPath() {
-        // Android 9 ke default paths
-        String[] paths = {
-                Environment.getExternalStorageDirectory().getPath() + "/WhatsApp/Media/.Statuses",
-                Environment.getExternalStorageDirectory().getPath() + "/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"
-        };
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.layout_guide_bottom_sheet, null);
 
-        File selectedFolder = null;
-        for (String p : paths) {
-            File f = new File(p);
-            if (f.exists()) {
-                selectedFolder = f;
-                break;
-            }
-        }
+        bottomSheetView.findViewById(R.id.btnGotIt).setOnClickListener(view -> bottomSheetDialog.dismiss());
 
-        if (selectedFolder != null) {
-            Uri uri = Uri.fromFile(selectedFolder);
-            saveAndRedirect(uri);
-        } else {
-            // Agar default path na mile toh manual pick karwaein
-            Toast.makeText(this, "WhatsApp folder not found. Please select it manually.", Toast.LENGTH_LONG).show();
-            openStatusFolderPicker();
-        }
+        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.show();
     }
 
     public void openStatusFolderPicker() {
-        // Android 11+ exact path hint
         String folderPath = "primary:Android/media/com.whatsapp/WhatsApp/Media/.Statuses";
         Uri pickerInitialUri = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", folderPath);
 
@@ -138,6 +106,9 @@ public class PermissionsActivity extends AppCompatActivity {
         }
     }
 
+    // ... handleFolderSelection, startPermissionFlow, restoreFolderUri, etc. (Previous Logic) ...
+    // Note: Make sure to keep the methods you had before like handleFolderSelection below.
+
     private void handleFolderSelection(Uri uri) {
         if (isValidWhatsAppFolder(uri)) {
             try {
@@ -147,16 +118,14 @@ public class PermissionsActivity extends AppCompatActivity {
                 Toast.makeText(this, "Permission error!", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "Wrong folder! Please select the '.Statuses' folder.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Select '.Statuses' folder!", Toast.LENGTH_LONG).show();
             openStatusFolderPicker();
         }
     }
 
     private boolean isValidWhatsAppFolder(Uri treeUri) {
         if (treeUri == null) return false;
-        String path = Uri.decode(treeUri.toString());
-        // Ab hum sirf '.Statuses' check kar rahe hain taake custom paths (GB/Business) bhi chal saken
-        return path.toLowerCase().contains(".statuses");
+        return Uri.decode(treeUri.toString()).toLowerCase().contains(".statuses");
     }
 
     private void saveAndRedirect(Uri uri) {
@@ -166,19 +135,35 @@ public class PermissionsActivity extends AppCompatActivity {
         redirectToMain();
     }
 
+    private void startPermissionFlow() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            openStatusFolderPicker();
+        } else {
+            // Android 9 logic (already in your code)
+            checkAndSetLegacyPath();
+        }
+    }
+
+    private void checkAndSetLegacyPath() {
+        String path = Environment.getExternalStorageDirectory().getPath() + "/WhatsApp/Media/.Statuses";
+        File f = new File(path);
+        if (f.exists()) {
+            saveAndRedirect(Uri.fromFile(f));
+        } else {
+            openStatusFolderPicker();
+        }
+    }
+
     private boolean isAlreadyGranted() {
         if (selectedStatusFolderUri == null) return false;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return true;
-
         return getContentResolver().getPersistedUriPermissions().stream()
                 .anyMatch(p -> p.getUri().equals(selectedStatusFolderUri));
     }
 
     private void restoreFolderUri() {
         String savedUri = prefs.getString(KEY_STATUS_FOLDER_URI, null);
-        if (savedUri != null) {
-            selectedStatusFolderUri = Uri.parse(savedUri);
-        }
+        if (savedUri != null) selectedStatusFolderUri = Uri.parse(savedUri);
     }
 
     private void redirectToMain() {

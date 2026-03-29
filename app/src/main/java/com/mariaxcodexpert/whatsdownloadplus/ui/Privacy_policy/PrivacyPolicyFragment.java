@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +17,8 @@ import androidx.fragment.app.Fragment;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 
 public class PrivacyPolicyFragment extends Fragment {
+
+    private WebView webView;
 
     @Nullable
     @Override
@@ -29,15 +33,35 @@ public class PrivacyPolicyFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 🔥 CRASH FIX: View dhoondne se pehle null check lagayein
+        // 1. Edge-to-Edge Padding Fix
         View mainView = view.findViewById(R.id.main);
-
         if (mainView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                // Bottom navigation bar aur top status bar ki padding auto-adjust hogi
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
                 return insets;
             });
         }
+
+
+    }
+
+    private void setupWebView() {
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.setWebViewClient(new WebViewClient());
+
+        // Apni Privacy Policy ka URL yahan dalein
+        webView.loadUrl("https://mariaxcodexpert.blogspot.com/p/privacy-policy.html");
+    }
+
+    @Override
+    public void onDestroyView() {
+        // Memory leak se bachne ke liye webview clean up
+        if (webView != null) {
+            webView.stopLoading();
+            webView.destroy();
+        }
+        super.onDestroyView();
     }
 }

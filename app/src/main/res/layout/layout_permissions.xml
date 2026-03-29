@@ -1,110 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:background="#ECE5DD"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#F8FAFB"
+    android:orientation="vertical">
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:overScrollMode="never">
 
         <LinearLayout
-            android:orientation="vertical"
-            android:padding="24dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="32dp">
 
+            <FrameLayout
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_icon_soft_green"
+                android:padding="24dp">
 
-            <!-- 1. WhatsApp Status Folder -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="12dp"
-                android:background="@drawable/whatsapp_card_bg"
-                android:layout_marginBottom="12dp"
-                android:clipToOutline="true"
-                android:elevation="0dp">
-
-                <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="1"
-                    android:textColor="#FFFFFF"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:background="@drawable/circle_teal"
-                    android:layout_marginEnd="12dp" />
-
-                <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/permissionTitleStatus"
-                        android:text="Status Folder Access"
-                        android:textStyle="bold"
-                        android:textColor="#2FB19C"
-                        android:textSize="14sp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="sans-serif-medium"
-                        android:letterSpacing="0.02"
-                        android:lineSpacingExtra="2dp"/>
-
-                </LinearLayout>
-
-
-                <Button
-                    android:id="@+id/allowStatusFolderButton"
-                    android:text="Allow"
-                    android:textAllCaps="false"
-                    android:textColor="#FFFFFF"
-                    android:background="@drawable/permission_button_bg"
-                    android:layout_width="90dp"
-                    android:layout_height="50dp"
-                    android:fontFamily="sans-serif-medium"/>
-            </LinearLayout>
-
-            <!-- 3. Guide Status Folder Button -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp">
-
-                <Button
-                    android:id="@+id/statusfolder"
-                    android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#C8E6C9"
-                    android:elevation="4dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:paddingStart="24dp"
-                    android:paddingEnd="24dp"
-                    android:stateListAnimator="@null"
-                    android:text="How to Set WhatsApp Status Folder path"
-                    android:textAllCaps="false"
-                    android:textColor="#ffffff" />
+                    android:src="@drawable/ic_folder_security"
+                    app:tint="#2FB19C" />
+            </FrameLayout>
 
-            </LinearLayout>
-
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="sans-serif-black"
+                android:text="Permissions Required"
+                android:textColor="#1A1A1A"
+                android:textSize="24sp"
+                android:letterSpacing="-0.01"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="*If you are having any difficulty, contact us at mariaadeeb982@gmail.com"
-                android:textSize="12sp"
-                android:textColor="#555555"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="40dp"
                 android:gravity="center"
-                android:layout_marginTop="20dp"/>
+                android:text="Grant access to save your favorite status"
+                android:textColor="#888888"
+                android:textSize="14sp"
+                android:lineSpacingExtra="2dp"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#E0E0E0"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/circle_teal"
+                        android:gravity="center"
+                        android:text="1"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-black" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/permissionTitleStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="Status Folder"
+                            android:textColor="#1A1A1A"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="To fetch recent status"
+                            android:textColor="#999999"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/allowStatusFolderButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minWidth="85dp"
+                        android:text="Allow"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:fontFamily="sans-serif-bold"
+                        app:backgroundTint="#2FB19C"
+                        app:cornerRadius="14dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/statusfolder"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="How to set path? View Guide"
+                android:textAllCaps="false"
+                android:textColor="#2FB19C"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium"
+                app:cornerRadius="16dp"
+                app:strokeColor="#2FB19C"
+                app:strokeWidth="1dp" />
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="2dp"
+                android:layout_marginTop="48dp"
+                android:background="#E0E0E0" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:lineSpacingExtra="6dp"
+                android:text="Need help? Contact us at\nmariaadeeb982@gmail.com"
+                android:textColor="#AAAAAA"
+                android:textSize="11sp"
+                android:letterSpacing="0.02"/>
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
