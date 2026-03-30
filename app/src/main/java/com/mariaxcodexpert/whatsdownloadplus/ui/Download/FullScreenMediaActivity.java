@@ -191,7 +191,7 @@ public class FullScreenMediaActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
         return null;
     }
-
+//ok
     private void toggleUI() {
         isUiVisible = !isUiVisible;
         float alpha = isUiVisible ? 1f : 0f;
