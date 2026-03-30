@@ -22,7 +22,9 @@ import androidx.media3.ui.PlayerView;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
+import com.google.android.gms.ads.AdView;
 import com.google.android.material.button.MaterialButton;
+import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
 import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
@@ -40,6 +42,9 @@ public class FullScreenMediaActivity extends AppCompatActivity {
     private View bottomActions, topScrim;
     private MaterialButton closeButton, shareActionButton, repostActionButton, deleteActionButton;
 
+    // Banner Ad View
+    private AdView adView;
+
     private Uri mediaUri;
     private boolean isVideo = false;
     private boolean isUiVisible = true;
@@ -56,8 +61,12 @@ public class FullScreenMediaActivity extends AppCompatActivity {
         savedFilesDB = new SavedFilesDB(this);
         initViews();
 
+        // Banner Ad loading using AdManager logic
+        if (adView != null) {
+            AdManager.loadBannerAd(this, adView);
+        }
+
         // 🔥 DATA RETRIEVAL FIX
-        // Intent se string lekar Uri mein convert karna zaroori hai
         String uriString = getIntent().getStringExtra(EXTRA_URI);
         isVideo = getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false);
 
@@ -86,6 +95,9 @@ public class FullScreenMediaActivity extends AppCompatActivity {
         shareActionButton = findViewById(R.id.shareActionButton);
         repostActionButton = findViewById(R.id.repostActionButton);
         deleteActionButton = findViewById(R.id.deleteActionButton);
+
+        // Find the Banner AdView from XML
+        adView = findViewById(R.id.adView);
     }
 
     private void setupImage() {
@@ -191,23 +203,36 @@ public class FullScreenMediaActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
         return null;
     }
-//ok
+
     private void toggleUI() {
         isUiVisible = !isUiVisible;
         float alpha = isUiVisible ? 1f : 0f;
         bottomActions.animate().alpha(alpha).setDuration(250).start();
         closeButton.animate().alpha(alpha).setDuration(250).start();
         topScrim.animate().alpha(alpha).setDuration(250).start();
+
+        // Optional: Banner ko bhi toggle kar sakte hain agar zaroorat ho
+        if (adView != null) {
+            adView.animate().alpha(alpha).setDuration(250).start();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (adView != null) adView.resume();
     }
 
     @Override
     protected void onPause() {
+        if (adView != null) adView.pause();
         super.onPause();
         if (exoPlayer != null) exoPlayer.pause();
     }
 
     @Override
     protected void onDestroy() {
+        if (adView != null) adView.destroy();
         super.onDestroy();
         if (exoPlayer != null) {
             exoPlayer.stop();

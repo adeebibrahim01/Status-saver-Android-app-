@@ -149,12 +149,69 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         btnTrim.setOnClickListener(v -> showTrimDialog());
 
         btnInfo.setOnClickListener(v -> showMediaInfo());
-        cardSave.setOnClickListener(v -> saveMediaToGallery());
+        cardSave.setOnClickListener(v -> saveMediaWithAd());
 
         if (playerView != null) {
             playerView.setOnClickListener(v -> {
                 if (isVideo && exoPlayer != null) toggleMute();
             });
+        }
+    }
+
+
+// --- Naye Methods add karein ---
+
+    private void saveMediaWithAd() {
+        if (mediaUri == null) return;
+
+        // 1. Check karein ke Ad ready hai ya nahi
+        if (com.mariaxcodexpert.whatsdownloadplus.AdManager.canRequestAds() &&
+                com.mariaxcodexpert.whatsdownloadplus.AdManager.isAdLoaded()) {
+
+            // 2. Interstitial Ad dikhayein, phir save karein
+            com.mariaxcodexpert.whatsdownloadplus.AdManager.showInterstitial(this, this::executeSave);
+
+        } else {
+            // 3. Agar ad nahi hai, to direct save karein aur agle waqt ke liye ad load kar dein
+            executeSave();
+            com.mariaxcodexpert.whatsdownloadplus.AdManager.preloadAd(getApplicationContext());
+        }
+    }
+
+    private void executeSave() {
+        String fileName = originalFileName;
+        String mimeType = isVideo ? "video/mp4" : "image/jpeg";
+        View rootView = findViewById(android.R.id.content);
+
+        try {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + SAVE_FOLDER_NAME);
+
+            Uri externalUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            Uri destUri = getContentResolver().insert(externalUri, values);
+
+            if (destUri != null) {
+                try (InputStream is = getContentResolver().openInputStream(mediaUri);
+                     OutputStream os = getContentResolver().openOutputStream(destUri)) {
+
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        os.write(buffer, 0, bytesRead);
+                    }
+
+                    showDownloadNotification(fileName);
+                    SmartNotify.success(rootView, "Saved to Status Saver! ✅");
+
+                    // Ye dono lines zaroori hain UI update karne ke liye
+                    notifyDataChanged();
+                    checkIfAlreadySaved();
+                }
+            }
+        } catch (Exception e) {
+            SmartNotify.error(rootView, "Save Failed: " + e.getMessage());
         }
     }
 
