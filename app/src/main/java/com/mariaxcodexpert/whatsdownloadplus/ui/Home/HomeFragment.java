@@ -40,7 +40,7 @@ public class HomeFragment extends Fragment {
     private HomeViewModel viewModel;
     private static final int MAX_ITEMS = 10;
     private static final String DOWNLOAD_FOLDER_NAME = "Status Saver";
-
+    private RecentDownloadsAdapter adapter;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -75,9 +75,9 @@ public class HomeFragment extends Fragment {
 
         // Load & Set Adapter
         List<MediaItem> recentItems = getRecentMediaFromFolder();
-        RecentDownloadsAdapter adapter = new RecentDownloadsAdapter(recentItems, binding.tvRecentDownloadsEmpty);
+        // NAYA (Ise use karen):
+        adapter = new RecentDownloadsAdapter(recentItems, binding.tvRecentDownloadsEmpty);
         binding.rvRecentDownloads.setAdapter(adapter);
-
         return binding.getRoot();
     }
 
@@ -269,6 +269,24 @@ public class HomeFragment extends Fragment {
                 navController.navigate(R.id.nav_gallery, args);
                 intent.removeExtra("openFragment");
             }
+        }
+    }
+    // 🔥 FIX: refresh logic moved here
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshAllData();
+    }
+
+    private void refreshAllData() {
+        // 1. Stats and Streak
+        updateStreak();
+        updateDownloadsStats();
+
+        // 2. Recent Downloads (Auto-refresh from folder)
+        List<MediaItem> recentItems = getRecentMediaFromFolder();
+        if (adapter != null) {
+            adapter.updateData(recentItems);
         }
     }
 

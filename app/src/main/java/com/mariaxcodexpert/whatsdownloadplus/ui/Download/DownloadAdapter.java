@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Home.DownloadStatsManager;
 import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
@@ -101,7 +102,8 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
                     intent.putExtra(FullScreenMediaActivity.EXTRA_URI, contentUri.toString());
                     intent.setDataAndType(contentUri, videoFlag ? "video/*" : "image/*");
                 } else {
-                    android.widget.Toast.makeText(context, "File not found!", android.widget.Toast.LENGTH_SHORT).show();
+                    // Naya code:
+                    SmartNotify.error(holder.itemView, "File not found!");
                     return;
                 }
             } else {
@@ -124,8 +126,8 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
             int clickPos = holder.getBindingAdapterPosition();
             if (clickPos == RecyclerView.NO_POSITION || clickPos >= mediaUris.size()) return;
 
-            // Hum position pass kar rahe hain, deleteFile method baqi handle kar lega
-            deleteFile(clickPos, isVideoList.get(clickPos));
+            // Fixed: Teesri cheez 'v' (click wala view) pass kar di
+            deleteFile(clickPos, isVideoList.get(clickPos), v);
 
             // Optional callback trigger
             if (deleteCallback != null && clickPos < mediaUris.size()) {
@@ -134,27 +136,24 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
         });
     }
 
-    private void deleteFile(int pos, boolean isVideo) {
+    // Method signature mein 'View view' add kiya taake SmartNotify ko target mil sake
+    private void deleteFile(int pos, boolean isVideo, View view) {
         if (pos < 0 || pos >= mediaUris.size()) return;
 
         Uri fileUri = mediaUris.get(pos);
         boolean deleted = false;
 
         try {
-            // 🔥 CASE 1: Android 9 aur Legacy Files (file:// scheme)
             if ("file".equals(fileUri.getScheme())) {
                 java.io.File file = new java.io.File(fileUri.getPath());
                 if (file.exists()) {
                     deleted = file.delete();
                 }
-            }
-            // 🔥 CASE 2: Android 10+ MediaStore (content:// scheme)
-            else {
+            } else {
                 deleted = context.getContentResolver().delete(fileUri, null, null) > 0;
             }
 
             if (deleted) {
-                // Database se remove karne ke liye file name nikalna
                 String fileName = "";
                 if ("file".equals(fileUri.getScheme())) {
                     fileName = new java.io.File(fileUri.getPath()).getName();
@@ -166,16 +165,20 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
                     savedFilesDB.removeFile(fileName);
                 }
 
-                // Adapter se remove karein
+                // 1. Adapter se remove karein
                 removeItem(pos);
-                Toast.makeText(context, "Deleted successfully!", Toast.LENGTH_SHORT).show();
+
+                // 2. SmartNotify use karein (Ab 'view' accessible hai)
+                SmartNotify.success(view, "Deleted successfully!");
+
             } else {
-                Toast.makeText(context, "Could not delete file", Toast.LENGTH_SHORT).show();
+                // Error ke liye bhi SmartNotify use karein
+                SmartNotify.error(view, "Could not delete file");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(context, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            SmartNotify.error(view, "Error: " + e.getMessage());
         }
     }
     private String getFileNameFromUri(Uri uri, boolean isVideo) {
@@ -226,12 +229,16 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.Status
     }
 
     public static class StatusViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageThumb, videoIcon, deleteIcon;
+        ImageView imageThumb, videoIcon;
+        // 1. ImageView ki jagah MaterialButton use karein
+        com.google.android.material.button.MaterialButton deleteIcon;
 
         public StatusViewHolder(@NonNull View itemView) {
             super(itemView);
             imageThumb = itemView.findViewById(R.id.imageThumb);
             videoIcon = itemView.findViewById(R.id.videoIcon);
+
+            // 2. Ab casting error nahi aayega kyunki types match ho gayi hain
             deleteIcon = itemView.findViewById(R.id.deleteIcon);
         }
     }

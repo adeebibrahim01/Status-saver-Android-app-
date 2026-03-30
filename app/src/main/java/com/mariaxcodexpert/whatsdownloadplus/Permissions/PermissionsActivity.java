@@ -11,7 +11,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.view.View;
-import android.widget.Toast;
+import android.view.ViewGroup;
+import android.widget.CheckBox;
+
+import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
+
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -42,7 +46,8 @@ public class PermissionsActivity extends AppCompatActivity {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     handleFolderSelection(result.getData().getData());
                 } else {
-                    Toast.makeText(this, "Selection required!", Toast.LENGTH_SHORT).show();
+                    // Purana  remove karke ye add karein:
+                    SmartNotify.warning(findViewById(android.R.id.content), "Selection required! ⚠️");
                 }
             }
     );
@@ -63,19 +68,38 @@ public class PermissionsActivity extends AppCompatActivity {
         // Navigation Buttons
         findViewById(R.id.btnLeft).setOnClickListener(v -> viewPager.setCurrentItem(0, true));
 
+        // OnCreate ke andar btnRight ka updated code:
         findViewById(R.id.btnRight).setOnClickListener(v -> {
             if (viewPager.getCurrentItem() == 0) {
-                viewPager.setCurrentItem(1, true);
+                // Check karein ke checkbox tick hai ya nahi
+                if (isWhatsappSelected()) {
+                    viewPager.setCurrentItem(1, true);
+                } else {
+                    // Agar tick nahi hai toh move nahi karega aur warning dega
+                    SmartNotify.warning(v, "Please select WhatsApp first! ✅");
+                }
             } else {
                 startPermissionFlow();
             }
         });
+
 
         restoreFolderUri();
 
         if (isAlreadyGranted()) {
             redirectToMain();
         }
+    }
+
+    // Ye helper method Activity class ke andar kahin bhi niche add kar dein
+    private boolean isWhatsappSelected() {
+        // Hum ViewPager ke current view se checkbox find karenge
+        View currentView = ((ViewGroup) viewPager.getChildAt(0)).getChildAt(viewPager.getCurrentItem());
+        if (currentView != null) {
+            CheckBox cb = currentView.findViewById(R.id.selectWhatsappcheckbox);
+            return cb != null && cb.isChecked();
+        }
+        return false;
     }
 
     // 🔥 Made Public for Adapter to access
@@ -115,10 +139,12 @@ public class PermissionsActivity extends AppCompatActivity {
                 getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 saveAndRedirect(uri);
             } catch (Exception e) {
-                Toast.makeText(this, "Permission error!", Toast.LENGTH_SHORT).show();
+                // Professional error handling
+                SmartNotify.error(findViewById(android.R.id.content), "Permission error! Please grant access to continue. ⚠️");
             }
         } else {
-            Toast.makeText(this, "Select '.Statuses' folder!", Toast.LENGTH_LONG).show();
+            // Purana  hata kar ye professional notification lagayein:
+            SmartNotify.warning(findViewById(android.R.id.content), "Select '.Statuses' folder to proceed! 📁");
             openStatusFolderPicker();
         }
     }

@@ -17,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.documentfile.provider.DocumentFile;
@@ -29,6 +28,7 @@ import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -88,27 +88,25 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
 
         holder.expiryTime = file.lastModified() + 86400000L;
 
+        // Notification logic same rahegi...
         String fileName = file.getName();
         if (fileName != null) {
             int statusId = fileName.hashCode();
             if (!com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.isNotified(context, statusId, 1)) {
                 com.mariaxcodexpert.whatsdownloadplus.model.NotificationScheduler.schedule(
-                        context,
-                        statusId,
-                        holder.expiryTime,
-                        isVideoFile(file)
-                );
+                        context, statusId, holder.expiryTime, isVideoFile(file));
             }
         }
 
         if (holder.downloadProgress != null) {
             holder.downloadProgress.setVisibility(View.GONE);
-            holder.downloadProgress.setIndeterminate(true);
         }
 
+        // Default: Dono ko hide rakhein jab tak background check complete na ho jaye
+        if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.INVISIBLE);
+        if (holder.downloadStatus != null) holder.downloadStatus.setVisibility(View.INVISIBLE);
+
         if (holder.downloadIcon != null) {
-            holder.downloadIcon.setVisibility(View.VISIBLE);
-            holder.downloadIcon.setEnabled(true);
             holder.downloadIcon.setOnClickListener(v -> {
                 int currentPos = holder.getBindingAdapterPosition();
                 if (currentPos != RecyclerView.NO_POSITION) {
@@ -117,20 +115,18 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             });
         }
 
-        if (holder.downloadStatus != null) {
-            holder.downloadStatus.setVisibility(View.GONE);
-        }
-
         if (holder.videoIcon != null) {
             holder.videoIcon.setVisibility(isVideoFile(file) ? View.VISIBLE : View.GONE);
         }
 
         if (holder.imageThumb != null) {
+
             glide.load(file.getUri())
-                    .placeholder(holder.imageThumb.getDrawable())
+                    .placeholder(R.drawable.placeholder_shape) // Pehle static shape dikhayein
+                    .error(R.drawable.placeholder_shape)
                     .override(400, 400)
                     .centerCrop()
-                    .dontAnimate()
+                    // .dontAnimate() ko hata dein agar loading transition chahiye
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.imageThumb);
 
@@ -139,34 +135,35 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                 if (currentPos != RecyclerView.NO_POSITION) {
                     DocumentFile currentFile = getItem(currentPos);
                     if (currentFile != null && clickListener != null) {
-                        // Notify Fragment instead of starting activity directly
                         clickListener.onItemClick(currentFile, isVideoFile(currentFile));
                     }
                 }
             });
         }
 
+        // Background check start karein
         checkSavedState(file, holder, position);
     }
 
     private void checkSavedState(DocumentFile file, GalleryViewHolder holder, int position) {
         executor.execute(() -> {
+            // File check logic same rahegi
             boolean isSaved = isFileInFolder(file.getName());
+
             handler.post(() -> {
+                // Re-check position to avoid flickering during fast scroll
                 if (holder.getBindingAdapterPosition() == position) {
-                    // Agar save hai toh downloadStatus (Downloaded Tick) dikhao, warna downloadIcon
                     if (isSaved) {
-                        holder.downloadIcon.setVisibility(View.GONE);
-                        holder.downloadStatus.setVisibility(View.VISIBLE);
+                        if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.GONE);
+                        if (holder.downloadStatus != null) holder.downloadStatus.setVisibility(View.VISIBLE);
                     } else {
-                        holder.downloadIcon.setVisibility(View.VISIBLE);
-                        holder.downloadStatus.setVisibility(View.GONE);
+                        if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.VISIBLE);
+                        if (holder.downloadStatus != null) holder.downloadStatus.setVisibility(View.GONE);
                     }
                 }
             });
         });
     }
-
     private void showDownloadNotification(String fileName) {
         String channelId = "status_download_channel";
         android.app.NotificationManager notificationManager =
@@ -224,9 +221,11 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                     if (destUri != null) {
                         try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
                              OutputStream out = context.getContentResolver().openOutputStream(destUri)) {
-                            copyStream(in, out);
+                            if (in != null && out != null) {
+                                copyStream(in, out);
+                                success = true;
+                            }
                         }
-                        success = true;
                     }
                 } else {
                     File dir = new File(Environment.getExternalStorageDirectory(), "Pictures/Status Saver");
@@ -237,33 +236,40 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
                     File destFile = new File(dir, name);
                     try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
                          FileOutputStream out = new FileOutputStream(destFile)) {
-                        copyStream(in, out);
+                        if (in != null) {
+                            copyStream(in, out);
+                            success = true;
+                        }
                     }
 
                     Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
                     mediaScanIntent.setData(Uri.fromFile(destFile));
                     context.sendBroadcast(mediaScanIntent);
-                    success = true;
                 }
             } catch (Exception e) {
                 success = false;
             }
 
             final boolean finalSuccess = success;
+
+            // Handler already UI thread par post kar raha hai
             handler.post(() -> {
+                // Check karein ke holder abhi bhi wahi hai (RecyclerView recycling fix)
                 if (holder.getBindingAdapterPosition() == position) {
                     updateUIState(holder, false, finalSuccess);
+
                     if (finalSuccess) {
                         showDownloadNotification(name);
-                        Toast.makeText(context, "Saved Successfully! ✅", Toast.LENGTH_SHORT).show();
+                        // FIX: 'view' ki jagah 'holder.itemView' use kiya hai
+                        SmartNotify.success(holder.itemView, "Saved Successfully! ✅");
                     } else {
-                        Toast.makeText(context, "Save Failed!", Toast.LENGTH_SHORT).show();
+                        // FIX: 'view' ki jagah 'holder.itemView' use kiya hai
+                        SmartNotify.error(holder.itemView, "Save Failed! ❌");
                     }
                 }
             });
         });
     }
-
     private void copyStream(InputStream in, OutputStream out) throws Exception {
         byte[] buf = new byte[8192];
         int len;

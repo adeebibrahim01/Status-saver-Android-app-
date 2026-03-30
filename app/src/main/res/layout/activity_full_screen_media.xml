@@ -6,15 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
-    android:fitsSystemWindows="false"
-    tools:context=".ui.Download.FullScreenMediaActivity">
+    android:fitsSystemWindows="false">
 
     <FrameLayout
         android:id="@+id/mediaContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent">
 
         <com.github.chrisbanes.photoview.PhotoView
             android:id="@+id/fullImage"
@@ -23,14 +20,16 @@
             android:scaleType="fitCenter"
             android:visibility="visible" />
 
-        <VideoView
-            android:id="@+id/fullVideo"
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/fullPlayerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:use_controller="false"
+            app:resize_mode="fit" />
 
         <View
+            android:id="@+id/topScrim"
             android:layout_width="match_parent"
             android:layout_height="140dp"
             android:layout_gravity="top"
@@ -42,15 +41,15 @@
         style="@style/Widget.Material3.Button.IconButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_margin="20dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
         app:backgroundTint="#40000000"
         app:icon="@drawable/ic_close"
         app:iconSize="24dp"
-        app:iconTint="@color/red"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
-
+        app:iconTint="@color/white"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
     <LinearLayout
         android:id="@+id/bottomActions"
         android:layout_width="wrap_content"
@@ -60,11 +59,21 @@
         android:elevation="8dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp"
+        android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/repostActionButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            app:icon="@drawable/ic_repost"
+            app:iconTint="@color/white" />
+
+        <View android:layout_width="1dp" android:layout_height="24dp" android:background="#4DFFFFFF" android:layout_marginHorizontal="8dp"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/shareActionButton"
@@ -72,26 +81,17 @@
             android:layout_width="52dp"
             android:layout_height="52dp"
             app:icon="@drawable/ic_share"
-            app:iconSize="24dp"
-            app:iconTint="#E0FFFFFF"
-            app:rippleColor="#33FFFFFF" />
+            app:iconTint="#E0FFFFFF" />
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:layout_marginHorizontal="12dp"
-            android:background="#4DFFFFFF" />
+        <View android:layout_width="1dp" android:layout_height="24dp" android:background="#4DFFFFFF" android:layout_marginHorizontal="8dp"/>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/saveActionButtons"
-            style="@style/Widget.Material3.Button.IconButton.Filled"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:backgroundTint="@color/whatsapp_green"
-            app:icon="@drawable/ic_double_tick"
-            app:iconSize="24dp"
-            app:iconTint="@color/white"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+            android:id="@+id/deleteActionButton"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            app:icon="@drawable/ic_delete"
+            app:iconTint="@color/red" />
 
     </LinearLayout>
 

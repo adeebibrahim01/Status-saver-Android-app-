@@ -44,164 +44,162 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="#FFFFFF"/>
 
-    <ImageView
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnClosePreview"
+        style="@style/Widget.Material3.Button.IconButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:layout_margin="16dp"
         android:padding="8dp"
-        android:src="@drawable/ic_close"
-        android:background="@drawable/circle_bg_black_50"
-        android:contentDescription="Close"
-        app:layout_constraintTop_toTopOf="parent"
+        app:backgroundTint="#80000000"
+        app:icon="@drawable/ic_close"
+        app:iconSize="24dp"
+        app:iconTint="@color/white"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="16dp"/>
+        app:layout_constraintTop_toTopOf="parent"
+        android:contentDescription="Close" />
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/actionLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/card_bg_preview_square"
-        android:paddingVertical="12dp"
+        android:paddingVertical="16dp"
         android:paddingHorizontal="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:constraint_referenced_ids="cardSave,cardShare,cardCrop,cardTrim,cardInfo"
+            app:flow_horizontalStyle="packed"
+            app:flow_horizontalGap="20dp"
+            app:flow_wrapMode="none"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/cardSave"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="5"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <LinearLayout
-                android:id="@+id/cardSave"
-                android:layout_width="0dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+            <ImageView
+                android:id="@+id/btnSave"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="10dp"
+                android:background="@drawable/bg_action_circle"
+                android:src="@drawable/ic_download"
+                app:tint="#FFFFFF" />
+            <TextView
+                android:id="@+id/tvSave"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true">
-                <ImageView
-                    android:id="@+id/btnSave"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_action_circle"
-                    android:src="@drawable/ic_download"
-                    app:tint="#FFFFFF" />
-                <TextView
-                    android:id="@+id/tvSave"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Save"
-                    android:textColor="#E0FFFFFF"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/cardShare"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackgroundBorderless">
-                <ImageView
-                    android:id="@+id/btnShare"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_action_circle"
-                    android:src="@drawable/ic_share_white"
-                    app:tint="#FFFFFF" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Share"
-                    android:textColor="#E0FFFFFF"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/cardCrop"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackgroundBorderless">
-                <ImageView
-                    android:id="@+id/btnCrop"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_action_circle"
-                    android:src="@drawable/ic_crop_white"
-                    app:tint="#FFFFFF" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Edit"
-                    android:textColor="#E0FFFFFF"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/cardTrim"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackgroundBorderless">
-                <ImageView
-                    android:id="@+id/btnTrim"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_action_circle"
-                    android:src="@drawable/ic_content_cut"
-                    app:tint="#FFFFFF" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Trim"
-                    android:textColor="#E0FFFFFF"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/cardInfo"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:background="?attr/selectableItemBackgroundBorderless">
-                <ImageView
-                    android:id="@+id/btnInfo"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_action_circle"
-                    android:src="@drawable/ic_info_white"
-                    app:tint="#FFFFFF" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Info"
-                    android:textColor="#E0FFFFFF"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
+                android:layout_marginTop="4dp"
+                android:text="Save"
+                android:textColor="#E0FFFFFF"
+                android:textSize="11sp"/>
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cardShare"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+            <ImageView
+                android:id="@+id/btnShare"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="10dp"
+                android:background="@drawable/bg_action_circle"
+                android:src="@drawable/ic_share_white"
+                app:tint="#FFFFFF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Share"
+                android:textColor="#E0FFFFFF"
+                android:textSize="11sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cardCrop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+            <ImageView
+                android:id="@+id/btnCrop"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="10dp"
+                android:background="@drawable/bg_action_circle"
+                android:src="@drawable/ic_crop_white"
+                app:tint="#FFFFFF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Edit"
+                android:textColor="#E0FFFFFF"
+                android:textSize="11sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cardTrim"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+            <ImageView
+                android:id="@+id/btnTrim"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="10dp"
+                android:background="@drawable/bg_action_circle"
+                android:src="@drawable/ic_content_cut"
+                app:tint="#FFFFFF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Trim"
+                android:textColor="#E0FFFFFF"
+                android:textSize="11sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cardInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless">
+            <ImageView
+                android:id="@+id/btnInfo"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="10dp"
+                android:background="@drawable/bg_action_circle"
+                android:src="@drawable/ic_info_white"
+                app:tint="#FFFFFF" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Info"
+                android:textColor="#E0FFFFFF"
+                android:textSize="11sp"/>
+        </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

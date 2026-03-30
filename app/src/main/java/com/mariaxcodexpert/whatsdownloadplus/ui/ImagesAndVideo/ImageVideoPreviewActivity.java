@@ -19,7 +19,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -45,6 +44,7 @@ import com.canhub.cropper.CropImageContractOptions;
 import com.canhub.cropper.CropImageOptions;
 import com.canhub.cropper.CropImageView;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
 
 import java.io.File;
 import java.io.InputStream;
@@ -56,8 +56,8 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     private boolean isDataChanged = false;
     public static final String EXTRA_URI = "uri";
     public static final String EXTRA_IS_VIDEO = "is_video";
-
-    private ImageView imagePreview, btnClose, btnShare, btnCrop, btnTrim, btnInfo, btnSave;
+    private com.google.android.material.button.MaterialButton btnClose;
+    private ImageView imagePreview, btnShare, btnCrop, btnTrim, btnInfo, btnSave;
     private TextView tvSave;
     private PlayerView playerView;
     private ExoPlayer exoPlayer;
@@ -67,8 +67,10 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     private boolean isMuted = false;
     private String originalFileName; // Isme original WhatsApp name save hoga
     private final String SAVE_FOLDER_NAME = "Status Saver";
+    private android.view.GestureDetector gestureDetector;
     // Top par jahan "private Uri mediaUri;" wagaira hain, wahan ye add karein:
     private final java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+
     private final ActivityResultLauncher<CropImageContractOptions> cropImageLauncher =
             registerForActivityResult(new CropImageContract(), result -> {
                 if (result.isSuccessful() && result.getUriContent() != null) {
@@ -76,7 +78,15 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                     showImage(mediaUri);
                     notifyDataChanged();
                     checkIfAlreadySaved();
-                    Toast.makeText(this, "Edited Successfully! ✨", Toast.LENGTH_SHORT).show();
+
+                    // FIX: Activity ka root view nikaal kar SmartNotify use kiya hai
+                    View rootView = findViewById(android.R.id.content);
+                    SmartNotify.success(rootView, "Edited Successfully! ✨");
+
+                } else if (result.getError() != null) {
+                    // Agar crop mein koi error aaye toh red snackbar dikhayein
+                    View rootView = findViewById(android.R.id.content);
+                    SmartNotify.error(rootView, "Crop Failed: " + result.getError().getMessage());
                 }
             });
 
@@ -148,44 +158,55 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         }
     }
 
-    // 🔥 NEW: Custom Trim Dialog to get Start and End points
     private void showTrimDialog() {
         if (exoPlayer == null) return;
 
+        // Root view for when dialog is not visible
+        View rootView = findViewById(android.R.id.content);
+
         long totalDurationS = exoPlayer.getDuration() / 1000;
         if (totalDurationS <= 0) {
-            Toast.makeText(this, "Video loading, try again...", Toast.LENGTH_SHORT).show();
+            SmartNotify.error(rootView, "Video loading, try again...");
             return;
         }
 
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_custom_trim, null);
         AlertDialog dialog = new AlertDialog.Builder(this).setView(dialogView).create();
-        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
 
         EditText etStart = dialogView.findViewById(R.id.etStartTime);
         EditText etEnd = dialogView.findViewById(R.id.etEndTime);
         TextView tvTotal = dialogView.findViewById(R.id.tvTotalDuration);
 
         tvTotal.setText("Total Duration: " + totalDurationS + "s");
-        etEnd.setText(String.valueOf(Math.min(totalDurationS, 30))); // Default to 30 or total
+        etEnd.setText(String.valueOf(Math.min(totalDurationS, 30)));
 
         dialogView.findViewById(R.id.btnConfirmTrim).setOnClickListener(v -> {
             String sStart = etStart.getText().toString();
             String sEnd = etEnd.getText().toString();
 
             if (sStart.isEmpty() || sEnd.isEmpty()) {
-                Toast.makeText(this, "Please enter values", Toast.LENGTH_SHORT).show();
+                // Yahan 'v' (button) use kar rahe hain kyunki dialog abhi open hai
+                SmartNotify.info(v, "Please enter values");
                 return;
             }
 
-            long startMs = Long.parseLong(sStart) * 1000;
-            long endMs = Long.parseLong(sEnd) * 1000;
+            try {
+                long startMs = Long.parseLong(sStart) * 1000;
+                long endMs = Long.parseLong(sEnd) * 1000;
 
-            if (endMs <= startMs || endMs > exoPlayer.getDuration()) {
-                Toast.makeText(this, "Invalid range", Toast.LENGTH_SHORT).show();
-            } else {
-                dialog.dismiss();
-                executeMedia3Trim(startMs, endMs);
+                if (endMs <= startMs || endMs > exoPlayer.getDuration()) {
+                    SmartNotify.error(v, "Invalid range! Check start/end points.");
+                } else {
+                    dialog.dismiss();
+                    // Dismiss ke baad rootView use karein kyunki dialogView destroy ho chuka hoga
+                    SmartNotify.success(rootView, "Trimming started... Please wait.");
+                    executeMedia3Trim(startMs, endMs);
+                }
+            } catch (NumberFormatException e) {
+                SmartNotify.error(v, "Please enter valid numbers");
             }
         });
 
@@ -194,8 +215,11 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
 
     // 🔥 NEW: Execute Custom Trim using Media3 Transformer
     private void executeMedia3Trim(long startMs, long endMs) {
-        Toast.makeText(this, "Trimming: " + (startMs/1000) + "s to " + (endMs/1000) + "s ⏳", Toast.LENGTH_LONG).show();
+// Root view nikaalein (Activity ke andar)
+        View rootView = findViewById(android.R.id.content);
 
+// SmartNotify use karein
+        SmartNotify.info(rootView, "Trimming: " + (startMs/1000) + "s to " + (endMs/1000) + "s ⏳");
         File outputDir = new File(getExternalFilesDir(null), "TrimmedVideos");
         if (!outputDir.exists()) outputDir.mkdirs();
         File outputFile = new File(outputDir, "trimmed_" + System.currentTimeMillis() + ".mp4");
@@ -229,14 +253,23 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
 
                             // Isko call karne se button "Save" par wapas aa jayega
                             checkIfAlreadySaved();
+// Activity ka root view nikaalein
+                            View rootView = findViewById(android.R.id.content);
 
-                            Toast.makeText(ImageVideoPreviewActivity.this, "Trimmed! ✂️", Toast.LENGTH_SHORT).show();
-                        });
+// SmartNotify use karein
+                            SmartNotify.success(rootView, "Trimmed! ✂️");
+ });
                     }
 
                     @Override
                     public void onError(Composition composition, ExportResult exportResult, ExportException exportException) {
-                        runOnUiThread(() -> Toast.makeText(ImageVideoPreviewActivity.this, "Error: " + exportException.getMessage(), Toast.LENGTH_LONG).show());
+                        runOnUiThread(() -> {
+                            // Activity ka root view nikaalein
+                            View rootView = findViewById(android.R.id.content);
+
+                            // SmartNotify ka error (Red) style use karein
+                            SmartNotify.error(rootView, "Error: " + exportException.getMessage());
+                        });
                     }
                 })
                 .build();
@@ -244,7 +277,11 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         try {
             transformer.start(editedMediaItem, outputFile.getAbsolutePath());
         } catch (Exception e) {
-            Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            // Activity ka root view nikaalein
+            View rootView1 = findViewById(android.R.id.content);
+
+            // SmartNotify ka error style (Red) use karein
+            SmartNotify.error(rootView1, "Export failed: " + e.getMessage());
         }
     }
 
@@ -252,21 +289,81 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         imagePreview.setVisibility(View.GONE);
         playerView.setVisibility(View.VISIBLE);
 
-        if (exoPlayer != null) exoPlayer.release();
+        if (exoPlayer != null) {
+            exoPlayer.release();
+        }
 
-        // 🚀 Advanced Media3 Player Features
-        exoPlayer = new ExoPlayer.Builder(this).build();
+        // 1. Setup Player with Audio Attributes & Seek Increments
+        exoPlayer = new ExoPlayer.Builder(this)
+                .setAudioAttributes(
+                        new androidx.media3.common.AudioAttributes.Builder()
+                                .setUsage(androidx.media3.common.C.USAGE_MEDIA)
+                                .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
+                                .build(),
+                        true
+                )
+                .setSeekBackIncrementMs(10000)    // 10 sec back
+                .setSeekForwardIncrementMs(10000) // 10 sec forward
+                .build();
+
+        // 2. Error Listener
+        exoPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onPlayerError(androidx.media3.common.PlaybackException error) {
+                SmartNotify.error(findViewById(android.R.id.content), "Error playing video! ❌");
+            }
+        });
+
+        // 3. UI & Controls Customization
         playerView.setPlayer(exoPlayer);
-        playerView.setUseController(true); // Seeker/Controls dikhane ke liye
-        playerView.setControllerAutoShow(true);
+        playerView.setKeepScreenOn(true);
+        playerView.setResizeMode(androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT);
+
+        playerView.setUseController(true);
+        playerView.setControllerShowTimeoutMs(2000);
         playerView.setControllerHideOnTouch(true);
 
+        // 🔥 MODERN GESTURES: Double Tap & Single Tap
+        final android.view.GestureDetector gestureDetector = new android.view.GestureDetector(this,
+                new android.view.GestureDetector.SimpleOnGestureListener() {
+
+                    @Override
+                    public boolean onDoubleTap(android.view.MotionEvent e) {
+                        float width = playerView.getWidth();
+                        float x = e.getX();
+
+                        if (x < width * 0.35) {
+                            // Left Side Double Tap: Rewind
+                            exoPlayer.seekBack();
+                            SmartNotify.info(findViewById(android.R.id.content), "Rewind 10s ⏪");
+                        } else if (x > width * 0.65) {
+                            // Right Side Double Tap: Forward
+                            exoPlayer.seekForward();
+                            SmartNotify.info(findViewById(android.R.id.content), "Forward 10s ⏩");
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onSingleTapConfirmed(android.view.MotionEvent e) {
+                        // Middle/Single Tap: Toggle Mute
+                        toggleMute();
+                        return true;
+                    }
+                });
+
+        // Touch listener jo controller ke clicks ko disturb nahi karega
+        playerView.setOnTouchListener((v, event) -> {
+            gestureDetector.onTouchEvent(event);
+            return true;
+        });
+
+        // 4. Load Media
         exoPlayer.setMediaItem(MediaItem.fromUri(uri));
         exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
+        exoPlayer.setPlayWhenReady(true);
         exoPlayer.prepare();
-        exoPlayer.play();
     }
-
     private void showImage(Uri uri) {
         imagePreview.setVisibility(View.VISIBLE);
         playerView.setVisibility(View.GONE);
@@ -304,7 +401,13 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                             os.write(buffer, 0, bytesRead);
                         }
                         showDownloadNotification(fileName);
-                        Toast.makeText(this, "Saved to Status Saver! ✅", Toast.LENGTH_SHORT).show();
+                        // Activity ka root view nikaalein
+                        View rootView = findViewById(android.R.id.content);
+
+// SmartNotify use karein (Success Style)
+                        SmartNotify.success(rootView, "Saved to Status Saver! ✅");
+
+// Data refresh karein
                         notifyDataChanged();
                         checkIfAlreadySaved(); // 🔥 Save hote hi button disable ho jayega
                     }
@@ -323,13 +426,21 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                     }
                     sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(destFile)));
                     showDownloadNotification(fileName);
-                    Toast.makeText(this, "Saved Successfully! ✅", Toast.LENGTH_SHORT).show();
+                    // Activity ka root view (pure screen ka main container)
+                    View rootView = findViewById(android.R.id.content);
+
+// SmartNotify ka Success (Green) style
+                    SmartNotify.success(rootView, "Saved Successfully! ✅");
                     notifyDataChanged();
                     checkIfAlreadySaved(); // 🔥
                 }
             }
         } catch (Exception e) {
-            Toast.makeText(this, "Save Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            // Activity ka root view nikaalein
+            View rootView = findViewById(android.R.id.content);
+
+            // SmartNotify ka error (Red) style use karein
+            SmartNotify.error(rootView, "Save Failed: " + e.getMessage());
         }
     }
     private void shareMedia() {
@@ -393,7 +504,11 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         if (exoPlayer != null) {
             isMuted = !isMuted;
             exoPlayer.setVolume(isMuted ? 0.0f : 1.0f);
-            Toast.makeText(this, isMuted ? "Muted 🔇" : "Audio On 🔊", Toast.LENGTH_SHORT).show();
+            // Root view nikaalein (Activity context mein)
+            View rootView = findViewById(android.R.id.content);
+
+// SmartNotify use karein (Muted/Unmuted toggle ke liye)
+            SmartNotify.info(rootView, isMuted ? "Muted 🔇" : "Audio On 🔊");
         }
     }
 
@@ -452,7 +567,20 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (exoPlayer != null) exoPlayer.pause();
+        // Jab user screen se hat jaye (Fragment ya Activity change) toh pause karein
+        if (exoPlayer != null) {
+            exoPlayer.pause();
+            exoPlayer.setPlayWhenReady(false); // Ye audio ko strictly stop kar deta hai
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Technical safety: onStop ensure karta hai ke background mein kuch na chale
+        if (exoPlayer != null) {
+            exoPlayer.pause();
+        }
     }
 
     @Override

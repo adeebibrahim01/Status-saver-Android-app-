@@ -133,8 +133,16 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
         return items.size();
     }
 
-    // 🔥 FIX: Data Update logic ko synchronize kiya hai
+
     public void updateData(List<MediaItem> newItems) {
+        if (newItems == null) {
+            items.clear();
+            notifyDataSetChanged();
+            updateEmptyState();
+            return;
+        }
+
+        // DiffUtil calculation
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
             public int getOldListSize() { return items.size(); }
@@ -142,20 +150,22 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
             public int getNewListSize() { return newItems.size(); }
             @Override
             public boolean areItemsTheSame(int oldPos, int newPos) {
-                return items.get(oldPos).uri.equals(newItems.get(newPos).uri);
+                // Check based on URI
+                return items.get(oldPos).uri.toString().equals(newItems.get(newPos).uri.toString());
             }
             @Override
             public boolean areContentsTheSame(int oldPos, int newPos) {
-                return items.get(oldPos).uri.toString().equals(newItems.get(newPos).uri.toString());
+                return items.get(oldPos).uri.equals(newItems.get(newPos).uri);
             }
         });
 
         items.clear();
-        if (newItems != null) {
-            items.addAll(newItems);
-        }
+        items.addAll(newItems);
+
+        // Dispatch and safety notify
         diffResult.dispatchUpdatesTo(this);
-        updateEmptyState(); // Check again after update
+        notifyDataSetChanged(); // Added for legacy support/instant refresh
+        updateEmptyState();
     }
 
     private void updateEmptyState() {
