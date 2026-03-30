@@ -8,17 +8,14 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 
-import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
-
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -26,8 +23,9 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
 
-import java.io.File;
+import java.util.List;
 
 public class PermissionsActivity extends AppCompatActivity {
 
@@ -39,14 +37,22 @@ public class PermissionsActivity extends AppCompatActivity {
     private final int[] layouts = {R.layout.layout_select_app, R.layout.layout_permissions};
     private boolean hasNavigated = false;
 
-    // Activity Results
+    // 1. Notification Permission Launcher (For Android 13+)
+    private final ActivityResultLauncher<String> requestNotificationLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                // Notification permission mile ya na mile, hum folder picker par bhej denge
+                openStatusFolderPicker();
+            }
+    );
+
+    // 2. Folder Picker Launcher (SAF)
     private final ActivityResultLauncher<Intent> folderPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     handleFolderSelection(result.getData().getData());
                 } else {
-                    // Purana  remove karke ye add karein:
                     SmartNotify.warning(findViewById(android.R.id.content), "Selection required! ⚠️");
                 }
             }
@@ -60,29 +66,23 @@ public class PermissionsActivity extends AppCompatActivity {
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         viewPager = findViewById(R.id.viewPager);
 
-        // Adapter setup
         PermissionsPagerAdapter adapter = new PermissionsPagerAdapter(this, layouts, viewPager);
         viewPager.setAdapter(adapter);
         viewPager.setUserInputEnabled(false);
 
-        // Navigation Buttons
         findViewById(R.id.btnLeft).setOnClickListener(v -> viewPager.setCurrentItem(0, true));
 
-        // OnCreate ke andar btnRight ka updated code:
         findViewById(R.id.btnRight).setOnClickListener(v -> {
             if (viewPager.getCurrentItem() == 0) {
-                // Check karein ke checkbox tick hai ya nahi
                 if (isWhatsappSelected()) {
                     viewPager.setCurrentItem(1, true);
                 } else {
-                    // Agar tick nahi hai toh move nahi karega aur warning dega
                     SmartNotify.warning(v, "Please select WhatsApp first! ✅");
                 }
             } else {
                 startPermissionFlow();
             }
         });
-
 
         restoreFolderUri();
 
@@ -91,9 +91,7 @@ public class PermissionsActivity extends AppCompatActivity {
         }
     }
 
-    // Ye helper method Activity class ke andar kahin bhi niche add kar dein
     private boolean isWhatsappSelected() {
-        // Hum ViewPager ke current view se checkbox find karenge
         View currentView = ((ViewGroup) viewPager.getChildAt(0)).getChildAt(viewPager.getCurrentItem());
         if (currentView != null) {
             CheckBox cb = currentView.findViewById(R.id.selectWhatsappcheckbox);
@@ -102,20 +100,8 @@ public class PermissionsActivity extends AppCompatActivity {
         return false;
     }
 
-    // 🔥 Made Public for Adapter to access
-    public void showGuideBottomSheet() {
-        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
-                new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
-
-        View bottomSheetView = getLayoutInflater().inflate(R.layout.layout_guide_bottom_sheet, null);
-
-        bottomSheetView.findViewById(R.id.btnGotIt).setOnClickListener(view -> bottomSheetDialog.dismiss());
-
-        bottomSheetDialog.setContentView(bottomSheetView);
-        bottomSheetDialog.show();
-    }
-
     public void openStatusFolderPicker() {
+        // Direct Android 11+ / Android 10 path setup
         String folderPath = "primary:Android/media/com.whatsapp/WhatsApp/Media/.Statuses";
         Uri pickerInitialUri = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", folderPath);
 
@@ -130,8 +116,19 @@ public class PermissionsActivity extends AppCompatActivity {
         }
     }
 
-    // ... handleFolderSelection, startPermissionFlow, restoreFolderUri, etc. (Previous Logic) ...
-    // Note: Make sure to keep the methods you had before like handleFolderSelection below.
+    private void startPermissionFlow() {
+        // 🔥 Android 13+ ke liye Notification mangna zaroori hai agar app reject hone se bachani hai
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestNotificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            } else {
+                openStatusFolderPicker();
+            }
+        } else {
+            // Android 10, 11, 12 ke liye direct picker
+            openStatusFolderPicker();
+        }
+    }
 
     private void handleFolderSelection(Uri uri) {
         if (isValidWhatsAppFolder(uri)) {
@@ -139,11 +136,9 @@ public class PermissionsActivity extends AppCompatActivity {
                 getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 saveAndRedirect(uri);
             } catch (Exception e) {
-                // Professional error handling
-                SmartNotify.error(findViewById(android.R.id.content), "Permission error! Please grant access to continue. ⚠️");
+                SmartNotify.error(findViewById(android.R.id.content), "Permission error! Please grant access. ⚠️");
             }
         } else {
-            // Purana  hata kar ye professional notification lagayein:
             SmartNotify.warning(findViewById(android.R.id.content), "Select '.Statuses' folder to proceed! 📁");
             openStatusFolderPicker();
         }
@@ -161,28 +156,8 @@ public class PermissionsActivity extends AppCompatActivity {
         redirectToMain();
     }
 
-    private void startPermissionFlow() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            openStatusFolderPicker();
-        } else {
-            // Android 9 logic (already in your code)
-            checkAndSetLegacyPath();
-        }
-    }
-
-    private void checkAndSetLegacyPath() {
-        String path = Environment.getExternalStorageDirectory().getPath() + "/WhatsApp/Media/.Statuses";
-        File f = new File(path);
-        if (f.exists()) {
-            saveAndRedirect(Uri.fromFile(f));
-        } else {
-            openStatusFolderPicker();
-        }
-    }
-
     private boolean isAlreadyGranted() {
         if (selectedStatusFolderUri == null) return false;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return true;
         return getContentResolver().getPersistedUriPermissions().stream()
                 .anyMatch(p -> p.getUri().equals(selectedStatusFolderUri));
     }
@@ -197,5 +172,17 @@ public class PermissionsActivity extends AppCompatActivity {
         hasNavigated = true;
         startActivity(new Intent(this, MainActivity.class));
         finish();
+    }
+
+
+    public void showGuideBottomSheet() {
+        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
+                new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
+
+        // layout_guide_bottom_sheet wahi layout hai jo aapne guide dikhane ke liye banaya hoga
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.layout_guide_bottom_sheet, null);
+        bottomSheetView.findViewById(R.id.btnGotIt).setOnClickListener(view -> bottomSheetDialog.dismiss());
+        bottomSheetDialog.setContentView(bottomSheetView);
+        bottomSheetDialog.show();
     }
 }

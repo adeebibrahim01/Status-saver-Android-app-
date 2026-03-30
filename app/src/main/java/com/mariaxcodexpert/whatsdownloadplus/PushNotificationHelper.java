@@ -8,8 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+
 import androidx.core.app.NotificationCompat;
 
 public class PushNotificationHelper {
@@ -22,52 +24,51 @@ public class PushNotificationHelper {
     }
 
     private void createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Status Expiry Alerts",
-                    NotificationManager.IMPORTANCE_HIGH); // 🔥 Level 4 Importance (Pop-up)
+        // 🔥 Android 10 (API 29) mein Notification Channels lazmi hain.
+        // Hum "if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)" nikaal sakte hain agar minSDK 26+ ho.
+        NotificationChannel channel = new NotificationChannel(
+                CHANNEL_ID,
+                "Status Expiry Alerts",
+                NotificationManager.IMPORTANCE_HIGH); // Heads-up notification ke liye High Importance
 
-            channel.setDescription("Alerts for WhatsApp status expiry");
-            channel.enableLights(true);
-            channel.setLightColor(Color.GREEN);
-            channel.enableVibration(true);
-            // Lock screen par content dikhane ke liye
-            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        channel.setDescription("Alerts for WhatsApp status expiry");
+        channel.enableLights(true);
+        channel.setLightColor(Color.GREEN);
+        channel.enableVibration(true);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
-            NotificationManager nm = context.getSystemService(NotificationManager.class);
-            if (nm != null) nm.createNotificationChannel(channel);
+        NotificationManager nm = context.getSystemService(NotificationManager.class);
+        if (nm != null) {
+            nm.createNotificationChannel(channel);
         }
     }
 
     public void sendNotification(String title, String message, Intent intent, int id) {
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        int flags = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                ? (PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
-                : PendingIntent.FLAG_UPDATE_CURRENT;
+        // 🔥 CLEANUP: SDK 29+ par PendingIntent.FLAG_IMMUTABLE hamesha chahiye hota hai.
+        // Purana Marshmallow (M) wala check nikaal diya hai.
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
 
         PendingIntent pi = PendingIntent.getActivity(context, id, intent, flags);
 
-        // Professional Touch: Default notification sound set karna
-        android.net.Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setSound(defaultSoundUri) // Sound add kiya
-                .setVibrate(new long[]{1000, 1000, 1000}) // Vibration pattern
-                .setPriority(NotificationCompat.PRIORITY_MAX) // 🔥 MAX Priority for Heads-up
-                .setCategory(NotificationCompat.CATEGORY_ALARM) // System ko batata hai ke ye urgent hai
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setSound(defaultSoundUri)
+                .setVibrate(new long[]{0, 500, 200, 500}) // Standard vibration pattern
+                .setPriority(NotificationCompat.PRIORITY_MAX) // Heads-up display trigger karega
+                .setCategory(NotificationCompat.CATEGORY_EVENT) // Expiry alerts ke liye EVENT category behtar hai
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentIntent(pi);
 
         if (nm != null) {
             nm.notify(id, builder.build());
-            Log.d("PushNotificationHelper", "High Priority notification sent. ID: " + id);
+            Log.d("PushNotificationHelper", "Modern High Priority Notification Sent. ID: " + id);
         }
     }
 }

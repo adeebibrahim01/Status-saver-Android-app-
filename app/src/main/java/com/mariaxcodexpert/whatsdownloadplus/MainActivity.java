@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
         // 5. Critical Systems & Notification Handling
         setupNotificationLauncher();
-        setupStorageLauncher();
+
         setupBackPressedHandling();
 
         if (getIntent() != null) {
@@ -145,16 +145,7 @@ public class MainActivity extends AppCompatActivity {
         pulseAnimation.start();
     }
 
-    private void setupStorageLauncher() {
-        requestStoragePermissionLauncher = registerForActivityResult(
-                new ActivityResultContracts.RequestPermission(),
-                isGranted -> {
-                    if (!isGranted) {
-                        Toast.makeText(this, "Storage permission is required to save statuses.", Toast.LENGTH_LONG).show();
-                    }
-                }
-        );
-    }
+
 
     private void handleNotificationIntent(Intent intent) {
         if (intent != null && intent.hasExtra("openFragment")) {
@@ -178,18 +169,11 @@ public class MainActivity extends AppCompatActivity {
 
         new FeedbackPromptManager(this).start();
 
+        // 1. Notification permission mangi jayegi (Zaroori hai)
         askNotificationPermission();
-        askStoragePermission();
+
     }
 
-    private void askStoragePermission() {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestStoragePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            }
-        }
-    }
 
     private void setupBackPressedHandling() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {

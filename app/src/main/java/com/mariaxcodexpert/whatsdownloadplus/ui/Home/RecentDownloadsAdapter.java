@@ -3,17 +3,14 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,13 +19,12 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Download.FullScreenMediaActivity;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloadsAdapter.ViewHolder> {
 
-    private final List<MediaItem> items = new ArrayList<>(); // Initialize directly
+    private final List<MediaItem> items = new ArrayList<>();
     private final TextView emptyMessage;
 
     public RecentDownloadsAdapter(List<MediaItem> initialItems, @Nullable TextView emptyMessage) {
@@ -52,7 +48,8 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
 
     @Override
     public long getItemId(int position) {
-        return items.get(position).uri.hashCode();
+        // Stable IDs using URI hash for better performance
+        return items.get(position).uri.toString().hashCode();
     }
 
     @NonNull
@@ -68,7 +65,7 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
         MediaItem item = items.get(position);
         if (item == null || item.uri == null) return;
 
-        // Thumbnail Loading
+        // Thumbnail Loading (Glide handles content URIs perfectly)
         Glide.with(holder.imgThumb.getContext())
                 .load(item.uri)
                 .thumbnail(0.15f)
@@ -81,58 +78,29 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
         holder.videoIcon.setVisibility(item.isVideo ? View.VISIBLE : View.GONE);
 
         holder.itemView.setOnClickListener(v -> {
-            try {
-                Context ctx = v.getContext();
-                Uri finalUri = item.uri;
+            Context ctx = v.getContext();
 
-                // 🔥 FIX: Android 9 (File Scheme) handle karne ke liye
-                if ("file".equals(item.uri.getScheme())) {
-                    String path = item.uri.getPath();
-                    if (path != null) {
-                        File file = new File(path);
-                        if (file.exists()) {
-                            // Authority must match Manifest: com.mariaxcodexpert.whatsdownloadplus.fileprovider
-                            finalUri = FileProvider.getUriForFile(ctx,
-                                    ctx.getPackageName() + ".fileprovider", file);
-                        } else {
-                            Toast.makeText(ctx, "File path not found!", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                    }
-                }
+            // 🔥 CLEANED: Direct URI handling (No FileProvider needed)
+            Intent intent = new Intent(ctx, FullScreenMediaActivity.class);
+            intent.putExtra(FullScreenMediaActivity.EXTRA_URI, item.uri.toString());
+            intent.putExtra(FullScreenMediaActivity.EXTRA_IS_VIDEO, item.isVideo);
 
-                // 🔥 Intent Setup
-                Intent intent = new Intent(ctx, FullScreenMediaActivity.class);
+            // Important for MediaStore URIs
+            intent.setDataAndType(item.uri, item.isVideo ? "video/*" : "image/*");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                // 1. Send as String (Safety for Large Bundles)
-                intent.putExtra(FullScreenMediaActivity.EXTRA_URI, finalUri.toString());
-                intent.putExtra(FullScreenMediaActivity.EXTRA_IS_VIDEO, item.isVideo);
-
-                // 2. Data and Type (Critical for some Players/Galleries)
-                intent.setDataAndType(finalUri, item.isVideo ? "video/*" : "image/*");
-
-                // 3. Security Flags
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                // 4. Activity Context Check
-                if (!(ctx instanceof android.app.Activity)) {
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                }
-
-                ctx.startActivity(intent);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                android.util.Log.e("MediaOpenError", "Error: " + e.getMessage());
-                Toast.makeText(v.getContext(), "Error: Make sure file exists", Toast.LENGTH_SHORT).show();
+            if (!(ctx instanceof android.app.Activity)) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             }
+
+            ctx.startActivity(intent);
         });
     }
+
     @Override
     public int getItemCount() {
         return items.size();
     }
-
 
     public void updateData(List<MediaItem> newItems) {
         if (newItems == null) {
@@ -142,7 +110,6 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
             return;
         }
 
-        // DiffUtil calculation
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
             public int getOldListSize() { return items.size(); }
@@ -150,7 +117,6 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
             public int getNewListSize() { return newItems.size(); }
             @Override
             public boolean areItemsTheSame(int oldPos, int newPos) {
-                // Check based on URI
                 return items.get(oldPos).uri.toString().equals(newItems.get(newPos).uri.toString());
             }
             @Override
@@ -161,22 +127,14 @@ public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloads
 
         items.clear();
         items.addAll(newItems);
-
-        // Dispatch and safety notify
         diffResult.dispatchUpdatesTo(this);
-        notifyDataSetChanged(); // Added for legacy support/instant refresh
         updateEmptyState();
     }
 
     private void updateEmptyState() {
         if (emptyMessage != null) {
-            // Android 9 compatibility: post on UI thread to ensure view is ready
             emptyMessage.post(() -> {
-                if (items.isEmpty()) {
-                    emptyMessage.setVisibility(View.VISIBLE);
-                } else {
-                    emptyMessage.setVisibility(View.GONE);
-                }
+                emptyMessage.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
             });
         }
     }

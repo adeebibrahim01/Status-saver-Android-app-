@@ -8,39 +8,43 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
+/**
+ * Android 10+ Optimized Application Class.
+ * Handled with Modern Lifecycle Observers for Ads and Visibility.
+ */
 public class MyApp extends Application implements DefaultLifecycleObserver {
 
-    private static final String TAG = "MyApp";
+    private static final String TAG = "MyApp_StatusSaver";
     private static boolean isInForeground = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // Registering the observer
+        // App ki lifecycle track karne ke liye (Ads ke liye zaroori hai)
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
-        // AdManager initialization - App khulte hi pehla ad load hoga
+        // AdManager ko start-up par initialize karna
         AdManager.init(this);
+
+        Log.d(TAG, "Application Started - MariaXCodeExpert");
     }
 
     @Override
     public void onStart(@NonNull LifecycleOwner owner) {
-        DefaultLifecycleObserver.super.onStart(owner);
         isInForeground = true;
-        Log.d(TAG, "App in FOREGROUND");
+        Log.d(TAG, "App Status: FOREGROUND");
 
-        // Agar user app se bahar ja kar wapas aaye aur ad loaded na ho, to try karein
-        if (!AdManager.isAdLoaded()) {
+        // Background se wapas aane par Ad load karna taake user ko delay na mile
+        if (AdManager.canRequestAds() && !AdManager.isAdLoaded()) {
             AdManager.preloadAd(this);
         }
     }
 
     @Override
     public void onStop(@NonNull LifecycleOwner owner) {
-        DefaultLifecycleObserver.super.onStop(owner);
         isInForeground = false;
-        Log.d(TAG, "App in BACKGROUND");
+        Log.d(TAG, "App Status: BACKGROUND");
     }
 
     public static boolean isAppInForeground() {

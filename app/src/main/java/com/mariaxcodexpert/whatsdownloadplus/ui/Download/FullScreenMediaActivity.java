@@ -23,18 +23,16 @@ import androidx.media3.ui.PlayerView;
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
 import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
 
-import java.io.File;
-
 @OptIn(markerClass = UnstableApi.class)
 public class FullScreenMediaActivity extends AppCompatActivity {
 
-    public static final String EXTRA_URI = "extra_uri";
-    public static final String EXTRA_IS_VIDEO = "extra_is_video";
+    // 🔥 Keys ko static final rakhein taake mismatch na ho
+    public static final String EXTRA_URI = "EXTRA_URI";
+    public static final String EXTRA_IS_VIDEO = "EXTRA_IS_VIDEO";
 
     private PhotoView fullImage;
     private PlayerView playerView;
@@ -43,6 +41,7 @@ public class FullScreenMediaActivity extends AppCompatActivity {
     private MaterialButton closeButton, shareActionButton, repostActionButton, deleteActionButton;
 
     private Uri mediaUri;
+    private boolean isVideo = false;
     private boolean isUiVisible = true;
     private SavedFilesDB savedFilesDB;
 
@@ -50,21 +49,32 @@ public class FullScreenMediaActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Edge-to-Edge display
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(R.layout.activity_full_screen_media);
 
         savedFilesDB = new SavedFilesDB(this);
         initViews();
 
+        // 🔥 DATA RETRIEVAL FIX
+        // Intent se string lekar Uri mein convert karna zaroori hai
         String uriString = getIntent().getStringExtra(EXTRA_URI);
-        boolean isVideo = getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false);
+        isVideo = getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false);
 
-        if (uriString != null) {
+        if (uriString != null && !uriString.isEmpty()) {
             mediaUri = Uri.parse(uriString);
-            if (isVideo) setupVideo(); else setupImage();
+
+            if (isVideo) {
+                setupVideo();
+            } else {
+                setupImage();
+            }
+        } else {
+            SmartNotify.error(findViewById(android.R.id.content), "Media not found!");
+            finish();
         }
 
-        setupListeners(isVideo);
+        setupListeners();
     }
 
     private void initViews() {
@@ -72,114 +82,39 @@ public class FullScreenMediaActivity extends AppCompatActivity {
         playerView = findViewById(R.id.fullPlayerView);
         bottomActions = findViewById(R.id.bottomActions);
         topScrim = findViewById(R.id.topScrim);
-
         closeButton = findViewById(R.id.closeButton);
         shareActionButton = findViewById(R.id.shareActionButton);
         repostActionButton = findViewById(R.id.repostActionButton);
         deleteActionButton = findViewById(R.id.deleteActionButton);
     }
 
-    private void setupListeners(boolean isVideo) {
-        closeButton.setOnClickListener(v -> finish());
-        shareActionButton.setOnClickListener(v -> shareMedia(false));
-        repostActionButton.setOnClickListener(v -> shareMedia(true));
-
-        // 🔥 Dialog khatam, ab click par direct delete hoga
-        deleteActionButton.setOnClickListener(v -> {
-            if (mediaUri != null) {
-                deleteFile(mediaUri, isVideo, v);
-            }
-        });
-
-        fullImage.setOnPhotoTapListener((view, x, y) -> toggleUI());
-    }
-
-    // 🔥 EXACT SAME LOGIC AS DOWNLOAD ADAPTER
-    private void deleteFile(Uri fileUri, boolean isVideo, View view) {
-        boolean deleted = false;
-        try {
-            // 1. Check Scheme and Delete Physically
-            if ("file".equals(fileUri.getScheme())) {
-                File file = new File(fileUri.getPath());
-                if (file.exists()) {
-                    deleted = file.delete();
-                }
-            } else {
-                // MediaStore delete (Android 10+)
-                deleted = getContentResolver().delete(fileUri, null, null) > 0;
-            }
-
-            if (deleted) {
-                // 2. Get Filename for DB
-                String fileName;
-                if ("file".equals(fileUri.getScheme())) {
-                    fileName = new File(fileUri.getPath()).getName();
-                } else {
-                    fileName = getFileNameFromUri(fileUri);
-                }
-
-                // 3. Remove from Database
-                if (savedFilesDB != null && fileName != null) {
-                    savedFilesDB.removeFile(fileName);
-                }
-
-                // 4. Update Gallery Scan (For Android 9/Legacy)
-                if ("file".equals(fileUri.getScheme())) {
-                    android.media.MediaScannerConnection.scanFile(this,
-                            new String[]{fileUri.getPath()}, null, null);
-                }
-
-                SmartNotify.success(view, "Deleted successfully!");
-
-                // Finish activity with result OK so fragment can refresh if needed
-                view.postDelayed(() -> {
-                    setResult(Activity.RESULT_OK);
-                    finish();
-                }, 500);
-
-            } else {
-                SmartNotify.error(view, "Could not delete file");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            SmartNotify.error(view, "Error: " + e.getMessage());
-        }
-    }
-
-    private String getFileNameFromUri(Uri uri) {
-        if ("file".equals(uri.getScheme())) {
-            return new File(uri.getPath()).getName();
-        }
-        String[] projection = { MediaStore.MediaColumns.DISPLAY_NAME };
-        try (Cursor cursor = getContentResolver().query(uri, projection, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int index = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME);
-                return cursor.getString(index);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     private void setupImage() {
         playerView.setVisibility(View.GONE);
         fullImage.setVisibility(View.VISIBLE);
-        Glide.with(this).load(mediaUri).into(fullImage);
+
+        // 🔥 HIGH PERFORMANCE LOADING
+        Glide.with(this)
+                .load(mediaUri)
+                .placeholder(R.drawable.image_bg)
+                .error(R.drawable.ic_download)
+                .into(fullImage);
     }
 
     private void setupVideo() {
         fullImage.setVisibility(View.GONE);
         playerView.setVisibility(View.VISIBLE);
 
+        // ExoPlayer Setup
         exoPlayer = new ExoPlayer.Builder(this).build();
         playerView.setPlayer(exoPlayer);
-        exoPlayer.setMediaItem(MediaItem.fromUri(mediaUri));
+
+        MediaItem mediaItem = MediaItem.fromUri(mediaUri);
+        exoPlayer.setMediaItem(mediaItem);
         exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
         exoPlayer.prepare();
         exoPlayer.play();
 
+        // Double Tap to Seek (10s)
         GestureDetector detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDoubleTap(MotionEvent e) {
@@ -194,29 +129,30 @@ public class FullScreenMediaActivity extends AppCompatActivity {
             }
         });
 
+        playerView.setClickable(true);
         playerView.setOnTouchListener((v, event) -> {
             detector.onTouchEvent(event);
             return true;
         });
     }
 
-    private void toggleUI() {
-        isUiVisible = !isUiVisible;
-        float alpha = isUiVisible ? 1f : 0f;
-        bottomActions.animate().alpha(alpha).setDuration(300).start();
-        closeButton.animate().alpha(alpha).setDuration(300).start();
-        topScrim.animate().alpha(alpha).setDuration(300).start();
+    private void setupListeners() {
+        closeButton.setOnClickListener(v -> finish());
+        shareActionButton.setOnClickListener(v -> shareMedia(false));
+        repostActionButton.setOnClickListener(v -> shareMedia(true));
 
-        if (isUiVisible) {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
+        deleteActionButton.setOnClickListener(v -> {
+            if (mediaUri != null) deleteFile(mediaUri, v);
+        });
+
+        fullImage.setOnPhotoTapListener((view, x, y) -> toggleUI());
     }
 
     private void shareMedia(boolean isRepost) {
+        if (mediaUri == null) return;
+
         Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType(getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false) ? "video/*" : "image/*");
+        intent.setType(isVideo ? "video/*" : "image/*");
         intent.putExtra(Intent.EXTRA_STREAM, mediaUri);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
@@ -232,6 +168,38 @@ public class FullScreenMediaActivity extends AppCompatActivity {
         }
     }
 
+    private void deleteFile(Uri fileUri, View view) {
+        try {
+            int deletedRows = getContentResolver().delete(fileUri, null, null);
+            if (deletedRows > 0) {
+                String fileName = getFileNameFromUri(fileUri);
+                if (savedFilesDB != null && fileName != null) savedFilesDB.removeFile(fileName);
+                SmartNotify.success(view, "Deleted successfully!");
+                view.postDelayed(() -> {
+                    setResult(Activity.RESULT_OK);
+                    finish();
+                }, 800);
+            }
+        } catch (Exception e) {
+            SmartNotify.error(view, "Permission Denied");
+        }
+    }
+
+    private String getFileNameFromUri(Uri uri) {
+        try (Cursor cursor = getContentResolver().query(uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) return cursor.getString(0);
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private void toggleUI() {
+        isUiVisible = !isUiVisible;
+        float alpha = isUiVisible ? 1f : 0f;
+        bottomActions.animate().alpha(alpha).setDuration(250).start();
+        closeButton.animate().alpha(alpha).setDuration(250).start();
+        topScrim.animate().alpha(alpha).setDuration(250).start();
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -241,6 +209,10 @@ public class FullScreenMediaActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (exoPlayer != null) exoPlayer.release();
+        if (exoPlayer != null) {
+            exoPlayer.stop();
+            exoPlayer.release();
+            exoPlayer = null;
+        }
     }
 }

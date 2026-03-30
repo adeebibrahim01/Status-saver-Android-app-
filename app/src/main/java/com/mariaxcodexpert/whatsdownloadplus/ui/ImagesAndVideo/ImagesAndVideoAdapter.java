@@ -209,61 +209,40 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
             String name = file.getName();
 
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    ContentValues values = new ContentValues();
-                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-                    values.put(MediaStore.MediaColumns.MIME_TYPE, isVideoFile(file) ? "video/mp4" : "image/jpeg");
-                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Status Saver");
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                values.put(MediaStore.MediaColumns.MIME_TYPE, isVideoFile(file) ? "video/mp4" : "image/jpeg");
+                // Android 10+ Standard Path
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Status Saver");
 
-                    Uri collection = isVideoFile(file) ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                    Uri destUri = context.getContentResolver().insert(collection, values);
+                Uri collection = isVideoFile(file) ?
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI :
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-                    if (destUri != null) {
-                        try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
-                             OutputStream out = context.getContentResolver().openOutputStream(destUri)) {
-                            if (in != null && out != null) {
-                                copyStream(in, out);
-                                success = true;
-                            }
-                        }
-                    }
-                } else {
-                    File dir = new File(Environment.getExternalStorageDirectory(), "Pictures/Status Saver");
-                    if (!dir.exists()) {
-                        dir.mkdirs();
-                    }
+                Uri destUri = context.getContentResolver().insert(collection, values);
 
-                    File destFile = new File(dir, name);
+                if (destUri != null) {
                     try (InputStream in = context.getContentResolver().openInputStream(file.getUri());
-                         FileOutputStream out = new FileOutputStream(destFile)) {
-                        if (in != null) {
+                         OutputStream out = context.getContentResolver().openOutputStream(destUri)) {
+                        if (in != null && out != null) {
                             copyStream(in, out);
                             success = true;
                         }
                     }
-
-                    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                    mediaScanIntent.setData(Uri.fromFile(destFile));
-                    context.sendBroadcast(mediaScanIntent);
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 success = false;
             }
 
             final boolean finalSuccess = success;
-
-            // Handler already UI thread par post kar raha hai
             handler.post(() -> {
-                // Check karein ke holder abhi bhi wahi hai (RecyclerView recycling fix)
                 if (holder.getBindingAdapterPosition() == position) {
                     updateUIState(holder, false, finalSuccess);
-
                     if (finalSuccess) {
                         showDownloadNotification(name);
-                        // FIX: 'view' ki jagah 'holder.itemView' use kiya hai
                         SmartNotify.success(holder.itemView, "Saved Successfully! ✅");
                     } else {
-                        // FIX: 'view' ki jagah 'holder.itemView' use kiya hai
                         SmartNotify.error(holder.itemView, "Save Failed! ❌");
                     }
                 }
@@ -300,28 +279,30 @@ public class ImagesAndVideoAdapter extends ListAdapter<DocumentFile, ImagesAndVi
     private boolean isFileInFolder(String fileName) {
         if (fileName == null) return false;
         try {
-            File dir = new File(Environment.getExternalStorageDirectory(), "Pictures/Status Saver");
-            File file = new File(dir, fileName);
-            if (file.exists() && file.length() > 0) return true;
+            // Sirf MediaStore Query (Android 10 to 14+)
+            String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=?";
+            String[] selectionArgs = new String[]{fileName};
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=?";
-                String[] selectionArgs = new String[]{fileName};
-                Uri collection = isVideoFile(DocumentFile.fromFile(file)) ?
-                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI :
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            // Check for both Images and Videos
+            Uri imagesUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            Uri videosUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
 
-                try (Cursor cursor = context.getContentResolver().query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
-                    return cursor != null && cursor.getCount() > 0;
-                }
+            try (Cursor cImg = context.getContentResolver().query(imagesUri, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+                if (cImg != null && cImg.getCount() > 0) return true;
             }
+
+            try (Cursor cVid = context.getContentResolver().query(videosUri, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+                if (cVid != null && cVid.getCount() > 0) return true;
+            }
+
         } catch (Exception ignored) {}
         return false;
     }
 
     private boolean isVideoFile(DocumentFile f) {
-        String n = f.getName();
-        return n != null && (n.toLowerCase().endsWith(".mp4") || n.toLowerCase().endsWith(".mkv") || n.toLowerCase().endsWith(".3gp"));
+        if (f == null || f.getName() == null) return false;
+        String n = f.getName().toLowerCase();
+        return n.endsWith(".mp4") || n.endsWith(".mkv") || n.endsWith(".3gp");
     }
 
     public void startCountdownUpdater(RecyclerView rv) {

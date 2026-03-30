@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +25,6 @@ import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.VersionHelper;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -41,23 +39,20 @@ public class HomeFragment extends Fragment {
     private static final int MAX_ITEMS = 10;
     private static final String DOWNLOAD_FOLDER_NAME = "Status Saver";
     private RecentDownloadsAdapter adapter;
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
 
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         navController = NavHostFragment.findNavController(this);
 
-        viewModel = new ViewModelProvider(this,
-                ViewModelProvider.AndroidViewModelFactory.getInstance(requireActivity().getApplication()))
-                .get(HomeViewModel.class);
+        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
 
         setupClickListeners();
         observeViewModel();
 
         // Stats Update
         updateStreak();
-        updateDownloadsStats(); // 🔥 Re-added for UI updates
+        updateDownloadsStats();
 
         // App Version
         VersionHelper versionHelper = new VersionHelper(requireContext());
@@ -65,66 +60,57 @@ public class HomeFragment extends Fragment {
         requireActivity().setTitle("Home");
 
         // RecyclerView Setup
-        binding.rvRecentDownloads.setLayoutManager(
-                new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false)
-        );
+        binding.rvRecentDownloads.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.rvRecentDownloads.setHasFixedSize(true);
-        binding.rvRecentDownloads.setItemAnimator(null);
 
         handleIntentExtras();
 
-        // Load & Set Adapter
-        List<MediaItem> recentItems = getRecentMediaFromFolder();
-        // NAYA (Ise use karen):
+        // Load Initial Media
+        List<MediaItem> recentItems = getRecentMediaFromMediaStore();
         adapter = new RecentDownloadsAdapter(recentItems, binding.tvRecentDownloadsEmpty);
         binding.rvRecentDownloads.setAdapter(adapter);
+
         return binding.getRoot();
     }
 
-    private List<MediaItem> getRecentMediaFromFolder() {
+    // 🔥 CLEANED: Android 10+ Optimized Media Fetching
+    private List<MediaItem> getRecentMediaFromMediaStore() {
         List<MediaItem> result = new ArrayList<>();
         Context context = getContext();
         if (context == null) return result;
 
-        // 1. Direct Folder Path (Best for Android 9 & Instant Refresh)
-        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), DOWNLOAD_FOLDER_NAME);
+        // Dono Images aur Videos fetch karein
+        fetchMedia(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, false, result);
+        fetchMedia(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, result);
 
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            if (files != null && files.length > 0) {
-                // Latest files first (Sorting by last modified)
-                java.util.Arrays.sort(files, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+        // Sorting by Date (Newest First)
+        Collections.sort(result, (a, b) -> Long.compare(b.dateAdded, a.dateAdded));
 
-                for (File file : files) {
-                    if (file.isFile()) {
-                        String name = file.getName().toLowerCase();
-                        if (name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") ||
-                                name.endsWith(".mp4") || name.endsWith(".mkv")) {
+        // Limit to MAX_ITEMS
+        if (result.size() > MAX_ITEMS) {
+            return new ArrayList<>(result.subList(0, MAX_ITEMS));
+        }
+        return result;
+    }
 
-                            boolean isVideo = name.endsWith(".mp4") || name.endsWith(".mkv");
+    private void fetchMedia(Context context, Uri uri, boolean isVideo, List<MediaItem> out) {
+        // Sirf "Status Saver" folder ki files filter karein
+        String selection = MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+        String[] args = { "%" + DOWNLOAD_FOLDER_NAME + "%" };
 
-                            // 🔥 IMPORTANT: Android 9+ compatibility ke liye
-                            // Hum yahan direct File Uri bhej rahe hain,
-                            // Adapter isay FileProvider mein convert kar lega click par.
-                            result.add(new MediaItem(Uri.fromFile(file), isVideo, file.lastModified()));
-                        }
-                    }
-                    if (result.size() >= MAX_ITEMS) break;
+        try (Cursor cursor = context.getContentResolver().query(uri,
+                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_ADDED},
+                selection, args, MediaStore.MediaColumns.DATE_ADDED + " DESC")) {
+            if (cursor != null) {
+                int idCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID);
+                int dateCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED);
+                while (cursor.moveToNext() && out.size() < MAX_ITEMS * 2) {
+                    long id = cursor.getLong(idCol);
+                    long date = cursor.getLong(dateCol) * 1000L; // Seconds to Millis
+                    out.add(new MediaItem(ContentUris.withAppendedId(uri, id), isVideo, date));
                 }
             }
-        }
-
-        // 2. Backup: MediaStore (Agar folder scan results na de, khas kar Android 11+ Scoped Storage mein)
-        if (result.isEmpty()) {
-            fetchMedia(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, false, result);
-            fetchMedia(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true, result);
-
-            // Sorting MediaStore results by dateAdded
-            Collections.sort(result, (a, b) -> Long.compare(b.dateAdded, a.dateAdded));
-        }
-
-        // Final limit check
-        return result.size() > MAX_ITEMS ? new ArrayList<>(result.subList(0, MAX_ITEMS)) : result;
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     private void updateDownloadsStats() {
@@ -132,19 +118,16 @@ public class HomeFragment extends Fragment {
             Context context = getContext();
             if (context == null) return;
 
-            // Today Midnight
-            Calendar calToday = Calendar.getInstance();
-            zeroTime(calToday);
+            Calendar calToday = Calendar.getInstance(); zeroTime(calToday);
             long todayTimestamp = calToday.getTimeInMillis() / 1000;
 
-            // 7 Days Ago
-            Calendar cal7Days = Calendar.getInstance();
-            zeroTime(cal7Days);
+            Calendar cal7Days = Calendar.getInstance(); zeroTime(cal7Days);
             cal7Days.add(Calendar.DAY_OF_YEAR, -7);
             long sevenDaysTimestamp = cal7Days.getTimeInMillis() / 1000;
 
-            int todayCount = getDownloadCountSince(context, todayTimestamp);
-            int last7DaysCount = getDownloadCountSince(context, sevenDaysTimestamp);
+            // Stats directly from MediaStore
+            int todayCount = getCountFromMediaStore(context, todayTimestamp);
+            int last7DaysCount = getCountFromMediaStore(context, sevenDaysTimestamp);
 
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
@@ -157,43 +140,24 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private int getDownloadCountSince(Context context, long sinceTimestamp) {
+    private int getCountFromMediaStore(Context context, long sinceTimestamp) {
         int count = 0;
-        File folder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), DOWNLOAD_FOLDER_NAME);
+        String selection = MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ? AND " + MediaStore.MediaColumns.DATE_ADDED + " >= ?";
+        String[] args = { "%" + DOWNLOAD_FOLDER_NAME + "%", String.valueOf(sinceTimestamp) };
 
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.lastModified() >= (sinceTimestamp * 1000L)) {
-                        count++;
-                    }
-                }
-            }
-        }
+        // Check Images
+        count += queryCount(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selection, args);
+        // Check Videos
+        count += queryCount(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, selection, args);
+
         return count;
     }
 
-    private void fetchMedia(Context context, Uri uri, boolean isVideo, List<MediaItem> out) {
-        String selection = MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
-        String[] args = { "%" + DOWNLOAD_FOLDER_NAME + "%" };
-
-        try (Cursor cursor = context.getContentResolver().query(uri,
-                new String[]{MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DATE_ADDED},
-                selection, args, MediaStore.MediaColumns.DATE_ADDED + " DESC")) {
-            if (cursor != null) {
-                int idCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID);
-                int dateCol = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED);
-                while (cursor.moveToNext() && out.size() < MAX_ITEMS * 2) {
-                    long id = cursor.getLong(idCol);
-                    long date = cursor.getLong(dateCol) * 1000L;
-                    out.add(new MediaItem(ContentUris.withAppendedId(uri, id), isVideo, date));
-                }
-            }
-        } catch (Exception e) { e.printStackTrace(); }
+    private int queryCount(Context context, Uri uri, String selection, String[] args) {
+        try (Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.MediaColumns._ID}, selection, args, null)) {
+            return (cursor != null) ? cursor.getCount() : 0;
+        } catch (Exception e) { return 0; }
     }
-
-    // ... handleIntentExtras, setupClickListeners, etc. (Baqi logic same hai jo aapne bheja) ...
 
     private void zeroTime(Calendar cal) {
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -206,13 +170,6 @@ public class HomeFragment extends Fragment {
         binding.cardImages.setOnClickListener(v -> openGallery(false));
         binding.cardVideos.setOnClickListener(v -> openGallery(true));
         binding.cardSaved.setOnClickListener(v -> navigateToDownload());
-        binding.cardTodayDownloads.setOnClickListener(v -> animateCard((MaterialCardView) v, binding.tvTodayCount));
-        binding.cardLast7Days.setOnClickListener(v -> animateCard((MaterialCardView) v, binding.tvLast7DaysCount));
-        binding.cardActiveStreak.setOnClickListener(v -> animateCard((MaterialCardView) v, binding.tvActiveStreak));
-    }
-
-    private void animateCard(MaterialCardView card, TextView text) {
-        CardLiquidAnimator.animate(card, text, 0xFFFFFF, 0x075E54, 600, 0.02f);
     }
 
     private void openGallery(boolean showVideos) {
@@ -227,9 +184,6 @@ public class HomeFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getJoinedDate().observe(getViewLifecycleOwner(), joinedText -> binding.joinedText.setText(joinedText));
-        viewModel.getToolbarTitle().observe(getViewLifecycleOwner(), title -> {
-            if (getActivity() != null) getActivity().setTitle(title);
-        });
     }
 
     private void updateStreak() {
@@ -263,15 +217,12 @@ public class HomeFragment extends Fragment {
         if (intent != null && intent.hasExtra("openFragment")) {
             String fragmentToOpen = intent.getStringExtra("openFragment");
             if ("ImagesAndVideo".equals(fragmentToOpen)) {
-                boolean isVideo = intent.getBooleanExtra("isVideo", false);
-                Bundle args = new Bundle();
-                args.putBoolean("showVideos", isVideo);
-                navController.navigate(R.id.nav_gallery, args);
+                openGallery(intent.getBooleanExtra("isVideo", false));
                 intent.removeExtra("openFragment");
             }
         }
     }
-    // 🔥 FIX: refresh logic moved here
+
     @Override
     public void onResume() {
         super.onResume();
@@ -279,12 +230,9 @@ public class HomeFragment extends Fragment {
     }
 
     private void refreshAllData() {
-        // 1. Stats and Streak
         updateStreak();
         updateDownloadsStats();
-
-        // 2. Recent Downloads (Auto-refresh from folder)
-        List<MediaItem> recentItems = getRecentMediaFromFolder();
+        List<MediaItem> recentItems = getRecentMediaFromMediaStore();
         if (adapter != null) {
             adapter.updateData(recentItems);
         }

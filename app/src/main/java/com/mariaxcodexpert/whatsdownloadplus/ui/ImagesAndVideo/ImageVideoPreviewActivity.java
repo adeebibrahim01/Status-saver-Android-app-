@@ -293,37 +293,22 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
             exoPlayer.release();
         }
 
-        // 1. Setup Player with Audio Attributes & Seek Increments
         exoPlayer = new ExoPlayer.Builder(this)
-                .setAudioAttributes(
-                        new androidx.media3.common.AudioAttributes.Builder()
-                                .setUsage(androidx.media3.common.C.USAGE_MEDIA)
-                                .setContentType(androidx.media3.common.C.AUDIO_CONTENT_TYPE_MOVIE)
-                                .build(),
-                        true
-                )
-                .setSeekBackIncrementMs(10000)    // 10 sec back
-                .setSeekForwardIncrementMs(10000) // 10 sec forward
+                .setSeekBackIncrementMs(10000)
+                .setSeekForwardIncrementMs(10000)
                 .build();
 
-        // 2. Error Listener
-        exoPlayer.addListener(new Player.Listener() {
-            @Override
-            public void onPlayerError(androidx.media3.common.PlaybackException error) {
-                SmartNotify.error(findViewById(android.R.id.content), "Error playing video! ❌");
-            }
-        });
-
-        // 3. UI & Controls Customization
         playerView.setPlayer(exoPlayer);
         playerView.setKeepScreenOn(true);
         playerView.setResizeMode(androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT);
 
+        // --- Controller Settings ---
         playerView.setUseController(true);
-        playerView.setControllerShowTimeoutMs(2000);
-        playerView.setControllerHideOnTouch(true);
+        // Jab tak user screen pe click na kare controls hide nahi honge agar hum timeout barha dein
+        playerView.setControllerShowTimeoutMs(3000); // 3 seconds baad hide hoga (standard)
+        playerView.setControllerHideOnTouch(false);  // Touch karne par foran hide nahi hoga
 
-        // 🔥 MODERN GESTURES: Double Tap & Single Tap
+        // 🔥 GESTURES UPDATE
         final android.view.GestureDetector gestureDetector = new android.view.GestureDetector(this,
                 new android.view.GestureDetector.SimpleOnGestureListener() {
 
@@ -331,34 +316,33 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
                     public boolean onDoubleTap(android.view.MotionEvent e) {
                         float width = playerView.getWidth();
                         float x = e.getX();
-
                         if (x < width * 0.35) {
-                            // Left Side Double Tap: Rewind
                             exoPlayer.seekBack();
-                            SmartNotify.info(findViewById(android.R.id.content), "Rewind 10s ⏪");
                         } else if (x > width * 0.65) {
-                            // Right Side Double Tap: Forward
                             exoPlayer.seekForward();
-                            SmartNotify.info(findViewById(android.R.id.content), "Forward 10s ⏩");
                         }
                         return true;
                     }
 
                     @Override
                     public boolean onSingleTapConfirmed(android.view.MotionEvent e) {
-                        // Middle/Single Tap: Toggle Mute
-                        toggleMute();
+                        // Mute ki jagah ab ye Play/Pause karega aur controls dikhayega
+                        if (exoPlayer.isPlaying()) {
+                            exoPlayer.pause();
+                            playerView.showController(); // Controls pakkay dikhayega
+                        } else {
+                            exoPlayer.play();
+                            // Play hone par controls automatically timeout ke baad hide ho jayen ge
+                        }
                         return true;
                     }
                 });
 
-        // Touch listener jo controller ke clicks ko disturb nahi karega
         playerView.setOnTouchListener((v, event) -> {
             gestureDetector.onTouchEvent(event);
             return true;
         });
 
-        // 4. Load Media
         exoPlayer.setMediaItem(MediaItem.fromUri(uri));
         exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
         exoPlayer.setPlayWhenReady(true);
@@ -379,67 +363,37 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
 
     private void saveMediaToGallery() {
         if (mediaUri == null) return;
-        String fileName = getFileName(mediaUri); // Original name use hoga
+        String fileName = originalFileName;
         String mimeType = isVideo ? "video/mp4" : "image/jpeg";
+        View rootView = findViewById(android.R.id.content);
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-                values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
-                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + SAVE_FOLDER_NAME);
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
+            // Android 10+ Standard Path
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + SAVE_FOLDER_NAME);
 
-                Uri externalUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                Uri destUri = getContentResolver().insert(externalUri, values);
+            Uri externalUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            Uri destUri = getContentResolver().insert(externalUri, values);
 
-                if (destUri != null) {
-                    try (InputStream is = getContentResolver().openInputStream(mediaUri);
-                         OutputStream os = getContentResolver().openOutputStream(destUri)) {
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        while ((bytesRead = is.read(buffer)) != -1) {
-                            os.write(buffer, 0, bytesRead);
-                        }
-                        showDownloadNotification(fileName);
-                        // Activity ka root view nikaalein
-                        View rootView = findViewById(android.R.id.content);
-
-// SmartNotify use karein (Success Style)
-                        SmartNotify.success(rootView, "Saved to Status Saver! ✅");
-
-// Data refresh karein
-                        notifyDataChanged();
-                        checkIfAlreadySaved(); // 🔥 Save hote hi button disable ho jayega
-                    }
-                }
-            } else {
-                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SAVE_FOLDER_NAME);
-                if (!dir.exists()) dir.mkdirs();
-                File destFile = new File(dir, fileName);
-
+            if (destUri != null) {
                 try (InputStream is = getContentResolver().openInputStream(mediaUri);
-                     OutputStream os = new java.io.FileOutputStream(destFile)) {
+                     OutputStream os = getContentResolver().openOutputStream(destUri)) {
+
                     byte[] buffer = new byte[8192];
                     int bytesRead;
                     while ((bytesRead = is.read(buffer)) != -1) {
                         os.write(buffer, 0, bytesRead);
                     }
-                    sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(destFile)));
-                    showDownloadNotification(fileName);
-                    // Activity ka root view (pure screen ka main container)
-                    View rootView = findViewById(android.R.id.content);
 
-// SmartNotify ka Success (Green) style
-                    SmartNotify.success(rootView, "Saved Successfully! ✅");
+                    showDownloadNotification(fileName);
+                    SmartNotify.success(rootView, "Saved to Status Saver! ✅");
                     notifyDataChanged();
-                    checkIfAlreadySaved(); // 🔥
+                    checkIfAlreadySaved();
                 }
             }
         } catch (Exception e) {
-            // Activity ka root view nikaalein
-            View rootView = findViewById(android.R.id.content);
-
-            // SmartNotify ka error (Red) style use karein
             SmartNotify.error(rootView, "Save Failed: " + e.getMessage());
         }
     }
@@ -524,23 +478,14 @@ public class ImageVideoPreviewActivity extends AppCompatActivity {
         executor.execute(() -> {
             boolean isSaved = false;
             try {
-                // Logic 1: Direct File Check (Same as Adapter)
-                File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), SAVE_FOLDER_NAME);
-                File file = new File(dir, originalFileName);
-                if (file.exists() && file.length() > 0) {
-                    isSaved = true;
-                }
+                // Modern MediaStore Check (API 29 to 34+)
+                Uri collection = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+                String[] selectionArgs = new String[]{originalFileName, "%" + SAVE_FOLDER_NAME + "%"};
 
-                // Logic 2: MediaStore Check (Same as Adapter)
-                if (!isSaved && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    Uri collection = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                    String selection = MediaStore.MediaColumns.DISPLAY_NAME + "=? AND " + MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
-                    String[] selectionArgs = new String[]{originalFileName, "%" + SAVE_FOLDER_NAME + "%"};
-
-                    try (android.database.Cursor cursor = getContentResolver().query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
-                        if (cursor != null && cursor.getCount() > 0) {
-                            isSaved = true;
-                        }
+                try (android.database.Cursor cursor = getContentResolver().query(collection, new String[]{MediaStore.MediaColumns._ID}, selection, selectionArgs, null)) {
+                    if (cursor != null && cursor.getCount() > 0) {
+                        isSaved = true;
                     }
                 }
             } catch (Exception ignored) {}

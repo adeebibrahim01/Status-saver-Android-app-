@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:fontFamily="sans-serif-bold"
-                android:text="Step 2: Old Phone (Android 10 or below)?"
+                android:text="Step 2: Android 10 "
                 android:textColor="#2FB19C"
                 android:textSize="15sp" />
 
