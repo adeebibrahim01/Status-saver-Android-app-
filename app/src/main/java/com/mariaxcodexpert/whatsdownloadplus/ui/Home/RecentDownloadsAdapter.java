@@ -2,11 +2,11 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,9 +25,9 @@ import java.util.List;
 public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloadsAdapter.ViewHolder> {
 
     private final List<MediaItem> items = new ArrayList<>();
-    private final TextView emptyMessage;
+    private final LinearLayout emptyMessage;
 
-    public RecentDownloadsAdapter(List<MediaItem> initialItems, @Nullable TextView emptyMessage) {
+    public RecentDownloadsAdapter(List<MediaItem> initialItems, @Nullable LinearLayout emptyMessage) {
         if (initialItems != null) {
             this.items.addAll(initialItems);
         }

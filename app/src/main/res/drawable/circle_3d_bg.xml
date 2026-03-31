@@ -2,12 +2,15 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item>
-        <shape android:shape="oval">
+        <shape android:shape="rectangle">
+            <corners android:radius="20dp" />
             <gradient
+                android:angle="45"
                 android:startColor="#2FB19C"
                 android:centerColor="#E0E0E0"
                 android:endColor="#2FB19C"
-                android:type="sweep" /> </shape>
+                android:type="sweep" />
+        </shape>
     </item>
 
     <item
@@ -15,8 +18,10 @@
         android:top="1.5dp"
         android:right="1.5dp"
         android:bottom="1.5dp">
-        <shape android:shape="oval">
-            <solid android:color="#D1D1D1" /> </shape>
+        <shape android:shape="rectangle">
+            <corners android:radius="18.5dp" />
+            <solid android:color="#D1D1D1" />
+        </shape>
     </item>
 
     <item
@@ -24,7 +29,8 @@
         android:top="3dp"
         android:right="3dp"
         android:bottom="3dp">
-        <shape android:shape="oval">
+        <shape android:shape="rectangle">
+            <corners android:radius="17dp" />
             <solid android:color="#FFFFFF" />
 
             <gradient

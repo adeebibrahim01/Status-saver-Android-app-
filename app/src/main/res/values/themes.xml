@@ -6,7 +6,7 @@
         <item name="colorOnPrimary">@android:color/white</item>
         <item name="android:windowBackground">@android:color/white</item>
         <item name="android:statusBarColor">#004D40</item>
-        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:navigationBarColor">#004D40</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
 
         <item name="windowSplashScreenAnimatedIcon" tools:targetApi="s">@android:color/transparent</item>

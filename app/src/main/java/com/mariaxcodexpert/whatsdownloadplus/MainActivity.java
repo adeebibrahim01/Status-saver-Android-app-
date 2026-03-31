@@ -13,7 +13,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.HapticFeedbackConstants;
 import android.view.Menu;
+import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
@@ -41,22 +44,15 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<String> requestStoragePermissionLauncher;
 
     private AppUpdateChecker appUpdateChecker;
-
-    // Performance Handler to manage delayed tasks safely
     private final Handler performanceHandler = new Handler(Looper.getMainLooper());
     public static boolean isUIReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // 1. THEME & WINDOW OPTIMIZATION
         setTheme(R.style.Theme_WhatsDownloadPlus);
         super.onCreate(savedInstanceState);
 
-        // 🔥 STATUS BAR & BUTTONS COLOR FIX (Edge-to-Edge)
-        // Isse aapka gradient/color bars ke peeche nazar aayega
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-        // Window background ko white set karna (Safe side)
         getWindow().setBackgroundDrawableResource(android.R.color.white);
 
         // 2. GDPR + ADS HANDLING
@@ -67,62 +63,54 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 3. ViewBinding & UI Setup
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setSupportActionBar(binding.appBarMain.toolbar);
 
-        // 4. 🔥 NAVIGATION ENGINE SETUP (CRASH FIX)
-        // NavHostFragment ke zariye NavController dhoondhein taake IllegalStateException na aaye
         androidx.navigation.fragment.NavHostFragment navHostFragment = (androidx.navigation.fragment.NavHostFragment)
                 getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
 
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
-
-            // Navigation dependent setups
             setupAppBarConfiguration();
             setupDrawerActions();
             setupToolbarTitleUpdater();
-
-            // --- FAB ANIMATION SETUP ---
-            setupFAB();
-        } else {
-            // Log ya Toast agar fragment na miley (Debugging ke liye)
-            android.util.Log.e("MainActivity", "NavHostFragment not found!");
+            setupFAB(); // Fixed: Refresh + Nav Logic
         }
 
-        // 5. Critical Systems & Notification Handling
         setupNotificationLauncher();
-
         setupBackPressedHandling();
 
         if (getIntent() != null) {
             handleNotificationIntent(getIntent());
         }
 
-        // 6. Splash Screen Sync
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            isUIReady = true;
-        }, 300);
-
-        // 7. Secondary Tasks
+        new Handler(Looper.getMainLooper()).postDelayed(() -> isUIReady = true, 300);
         performanceHandler.postDelayed(this::initSecondaryTasks, 1200);
     }
 
     private void setupFAB() {
-        // 1. Click Listener
-        binding.appBarMain.fab.setOnClickListener(v -> navController.navigate(R.id.nav_download));
+        // 1. Double Logic: Click per Refresh + Vibration + Navigation
+        binding.appBarMain.fab.setOnClickListener(v -> {
+            // Haptic Touch Feel
+            v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
 
-        // 2. 🔥 Animated Vector / Attractive Animation
-        // Agar aapne avd_download.xml banaya hai toh ye use karein:
+            // Advance Pop Animation
+            v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(100).withEndAction(() -> {
+                v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start();
+
+                // Show Refresh Overlay -> Scan -> Navigate
+                startStatusRefreshProcess();
+            }).start();
+        });
+
+        // 2. Continuous Pulse Animation (Attractive Look)
         try {
             Drawable drawable = ContextCompat.getDrawable(this, R.drawable.avd_download);
             if (drawable instanceof AnimatedVectorDrawable) {
                 binding.appBarMain.fab.setImageDrawable(drawable);
                 ((AnimatedVectorDrawable) drawable).start();
             } else {
-                // Fallback: Agar AVD nahi hai toh Pulse Animation chalao (Bina file ke attractive lagega)
                 startFabPulseAnimation();
             }
         } catch (Exception e) {
@@ -130,28 +118,90 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startFabPulseAnimation() {
-        // AnimatorSet use karne se dono animation ek sath start/stop hongi
-        AnimatorSet pulseAnimation = new AnimatorSet();
+    private void startStatusRefreshProcess() {
+        // Overlay Setup
+        View overlay = findViewById(R.id.refreshOverlay);
+        if (overlay == null) return;
 
+        overlay.setVisibility(View.VISIBLE);
+        overlay.setAlpha(0f);
+        overlay.setScaleX(0.7f);
+        overlay.setScaleY(0.7f);
+
+        // Glass Entry Animation
+        overlay.animate().alpha(1f).scaleX(1f).scaleY(1f)
+                .setInterpolator(new AccelerateDecelerateInterpolator())
+                .setDuration(400).start();
+
+        // Content Dimming (Fragment Area)
+        View navHost = findViewById(R.id.nav_host_fragment_content_main);
+        if (navHost != null) navHost.animate().alpha(0.3f).setDuration(400).start();
+
+        // Simulated Scanning + Logic Execution
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+
+            // UI Update inside Glass (Visual confirmation)
+            View progress = findViewById(R.id.statusProgress);
+            View resultIcon = findViewById(R.id.ivStatusResultIcon);
+            android.widget.TextView infoText = findViewById(R.id.tvStatusInfo);
+
+            if (progress != null) progress.setVisibility(View.GONE);
+            if (resultIcon != null) resultIcon.setVisibility(View.VISIBLE);
+            if (infoText != null) infoText.setText("Saved Media Updated!");
+
+            // 1 Second wait to show "Success" then Navigate
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                hideRefreshOverlay();
+
+                // 🔥 Professional Navigation to Saved/Downloads
+                if (navController != null) {
+                    // Agar user pehle se wahan nahi hai, toh navigate karein
+                    if (navController.getCurrentDestination() != null &&
+                            navController.getCurrentDestination().getId() != R.id.nav_download) {
+                        navController.navigate(R.id.nav_download);
+                    }
+                }
+            }, 1000);
+
+        }, 1800); // Scanning Time
+    }
+
+    private void hideRefreshOverlay() {
+        View overlay = findViewById(R.id.refreshOverlay);
+        if (overlay == null) return;
+
+        overlay.animate().alpha(0f).scaleX(0.7f).scaleY(0.7f).setDuration(300).withEndAction(() -> {
+            overlay.setVisibility(View.GONE);
+
+            // Reset Views for Next Time Use
+            View progress = findViewById(R.id.statusProgress);
+            View resultIcon = findViewById(R.id.ivStatusResultIcon);
+            android.widget.TextView infoText = findViewById(R.id.tvStatusInfo);
+
+            if (progress != null) progress.setVisibility(View.VISIBLE);
+            if (resultIcon != null) resultIcon.setVisibility(View.GONE);
+            if (infoText != null) infoText.setText("Scanning Status...");
+
+        }).start();
+
+        View navHost = findViewById(R.id.nav_host_fragment_content_main);
+        if (navHost != null) navHost.animate().alpha(1f).setDuration(300).start();
+    }
+    private void startFabPulseAnimation() {
+        AnimatorSet pulseAnimation = new AnimatorSet();
         ObjectAnimator scaleX = ObjectAnimator.ofFloat(binding.appBarMain.fab, "scaleX", 1.0f, 1.1f, 1.0f);
         ObjectAnimator scaleY = ObjectAnimator.ofFloat(binding.appBarMain.fab, "scaleY", 1.0f, 1.1f, 1.0f);
-
         scaleX.setRepeatCount(ValueAnimator.INFINITE);
         scaleY.setRepeatCount(ValueAnimator.INFINITE);
-
         pulseAnimation.playTogether(scaleX, scaleY);
         pulseAnimation.setDuration(1500);
         pulseAnimation.start();
     }
 
-
-
     private void handleNotificationIntent(Intent intent) {
         if (intent != null && intent.hasExtra("openFragment")) {
             String fragmentName = intent.getStringExtra("openFragment");
             boolean isVideo = intent.getBooleanExtra("isVideo", false);
-
             if ("ImagesAndVideo".equals(fragmentName)) {
                 Bundle bundle = new Bundle();
                 bundle.putBoolean("showVideos", isVideo);
@@ -163,17 +213,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void initSecondaryTasks() {
         if (isFinishing() || isDestroyed()) return;
-
         appUpdateChecker = new AppUpdateChecker(this);
         appUpdateChecker.checkForUpdate();
-
         new FeedbackPromptManager(this).start();
-
-        // 1. Notification permission mangi jayegi (Zaroori hai)
         askNotificationPermission();
-
     }
-
 
     private void setupBackPressedHandling() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -184,7 +228,6 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     int currentId = (navController.getCurrentDestination() != null)
                             ? navController.getCurrentDestination().getId() : -1;
-
                     if (currentId == R.id.nav_home || currentId == -1) {
                         finish();
                     } else {
@@ -243,7 +286,6 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_gallery, R.id.nav_download, R.id.nav_privacy_policy
         ).setOpenableLayout(binding.drawerLayout).build();
-
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
     }

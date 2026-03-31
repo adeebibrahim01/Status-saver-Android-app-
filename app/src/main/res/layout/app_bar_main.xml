@@ -36,4 +36,11 @@
         app:elevation="12dp"
         app:pressedTranslationZ="12dp"
         app:borderWidth="0dp" />
+    <include layout="@layout/layout_refresh_glass"
+        android:id="@+id/refreshOverlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
