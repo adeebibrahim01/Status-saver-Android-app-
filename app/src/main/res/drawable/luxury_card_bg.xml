@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#0A0A0A" /> <!-- Deep Black -->
+    <stroke android:width="1.5dp" android:color="#D4AF37" /> <!-- Golden Border -->
+    <corners android:radius="30dp" />
+</shape>

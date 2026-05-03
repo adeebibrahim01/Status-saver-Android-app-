@@ -1,168 +1,321 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Download;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.media3.common.MediaItem;
-import androidx.media3.common.Player;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.util.UnstableApi;
-import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.ui.PlayerView;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.bumptech.glide.Glide;
-import com.github.chrisbanes.photoview.PhotoView;
 import com.google.android.gms.ads.AdView;
-import com.google.android.material.button.MaterialButton;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
-import com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.SavedFilesDB;
+import com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity;
+import com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoEntity;
+import com.mariaxcodexpert.whatsdownloadplus.ShakeDetector;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @OptIn(markerClass = UnstableApi.class)
 public class FullScreenMediaActivity extends AppCompatActivity {
 
-    // 🔥 Keys ko static final rakhein taake mismatch na ho
-    public static final String EXTRA_URI = "EXTRA_URI";
-    public static final String EXTRA_IS_VIDEO = "EXTRA_IS_VIDEO";
+    public static final String EXTRA_LIST = MediaListAdapter.EXTRA_MEDIA_LIST;
+    public static final String EXTRA_POS = MediaListAdapter.EXTRA_POSITION;
+    public static final int RESULT_DELETED = 101;
 
-    private PhotoView fullImage;
-    private PlayerView playerView;
-    private ExoPlayer exoPlayer;
-    private View bottomActions, topScrim;
-    private MaterialButton closeButton, shareActionButton, repostActionButton, deleteActionButton;
+    private ViewPager2 viewPager;
+    private MediaPagerAdapter adapter;
+    private List<Object> mediaList = new ArrayList<>();
+    private int currentPosition = 0;
 
-    // Banner Ad View
+    private LinearLayout bottomActions;
+    private View rootContainer, closeButton, adContainer;
     private AdView adView;
 
-    private Uri mediaUri;
-    private boolean isVideo = false;
+    private View deleteOverlay;
+    private CircularProgressIndicator deleteProgress;
+    private TextView tvDeletePercent;
+
     private boolean isUiVisible = true;
-    private SavedFilesDB savedFilesDB;
+    private DownloadViewModel viewModel;
+
+    // Shake Feature Variables
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private ShakeDetector mShakeDetector;
+
+    private final ActivityResultLauncher<IntentSenderRequest> deleteLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    if (viewModel != null) viewModel.completePendingDelete();
+                } else {
+                    if (deleteOverlay != null) deleteOverlay.setVisibility(View.GONE);
+                }
+            });
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // Edge-to-Edge display
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_screen_media);
 
-        savedFilesDB = new SavedFilesDB(this);
-        initViews();
+        viewModel = new ViewModelProvider(this).get(DownloadViewModel.class);
 
-        // Banner Ad loading using AdManager logic
-        if (adView != null) {
-            AdManager.loadBannerAd(this, adView);
-        }
+        handleIntentData();
 
-        // 🔥 DATA RETRIEVAL FIX
-        String uriString = getIntent().getStringExtra(EXTRA_URI);
-        isVideo = getIntent().getBooleanExtra(EXTRA_IS_VIDEO, false);
-
-        if (uriString != null && !uriString.isEmpty()) {
-            mediaUri = Uri.parse(uriString);
-
-            if (isVideo) {
-                setupVideo();
-            } else {
-                setupImage();
-            }
-        } else {
-            SmartNotify.error(findViewById(android.R.id.content), "Media not found!");
+        if (mediaList == null || mediaList.isEmpty()) {
             finish();
+            return;
         }
 
-        setupListeners();
-    }
+        // Initialize Shake Sensor
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        mShakeDetector = new ShakeDetector();
 
-    private void initViews() {
-        fullImage = findViewById(R.id.fullImage);
-        playerView = findViewById(R.id.fullPlayerView);
-        bottomActions = findViewById(R.id.bottomActions);
-        topScrim = findViewById(R.id.topScrim);
-        closeButton = findViewById(R.id.closeButton);
-        shareActionButton = findViewById(R.id.shareActionButton);
-        repostActionButton = findViewById(R.id.repostActionButton);
-        deleteActionButton = findViewById(R.id.deleteActionButton);
-
-        // Find the Banner AdView from XML
-        adView = findViewById(R.id.adView);
-    }
-
-    private void setupImage() {
-        playerView.setVisibility(View.GONE);
-        fullImage.setVisibility(View.VISIBLE);
-
-        // 🔥 HIGH PERFORMANCE LOADING
-        Glide.with(this)
-                .load(mediaUri)
-                .placeholder(R.drawable.image_bg)
-                .error(R.drawable.ic_download)
-                .into(fullImage);
-    }
-
-    private void setupVideo() {
-        fullImage.setVisibility(View.GONE);
-        playerView.setVisibility(View.VISIBLE);
-
-        // ExoPlayer Setup
-        exoPlayer = new ExoPlayer.Builder(this).build();
-        playerView.setPlayer(exoPlayer);
-
-        MediaItem mediaItem = MediaItem.fromUri(mediaUri);
-        exoPlayer.setMediaItem(mediaItem);
-        exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
-        exoPlayer.prepare();
-        exoPlayer.play();
-
-        // Double Tap to Seek (10s)
-        GestureDetector detector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onDoubleTap(MotionEvent e) {
-                if (e.getX() < playerView.getWidth() * 0.35) exoPlayer.seekBack();
-                else if (e.getX() > playerView.getWidth() * 0.65) exoPlayer.seekForward();
-                return true;
-            }
-            @Override
-            public boolean onSingleTapConfirmed(MotionEvent e) {
-                toggleUI();
-                return true;
+        mShakeDetector.setOnShakeListener(() -> {
+            // Shake hone par delete process trigger karein
+            if (currentPosition >= 0 && currentPosition < mediaList.size() && (deleteOverlay == null || deleteOverlay.getVisibility() != View.VISIBLE)) {
+                vibrateDevice();
+                SmartNotify.success(rootContainer, "> GESTURE DETECTED: TERMINATING FILE...");
+                processDeleteAction();
             }
         });
 
-        playerView.setClickable(true);
-        playerView.setOnTouchListener((v, event) -> {
-            detector.onTouchEvent(event);
-            return true;
+        initViews();
+        setupViewPager();
+        setupObservers();
+        setupListeners();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                killEverything();
+                finish();
+            }
+        });
+
+        if (adView != null) AdManager.loadBannerAd(this, adView);
+    }
+
+    private void vibrateDevice() {
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (v != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                v.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                v.vibrate(200);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void handleIntentData() {
+        Intent intent = getIntent();
+        if (intent == null || !intent.hasExtra(EXTRA_LIST)) return;
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ArrayList<Serializable> serializableList = intent.getSerializableExtra(EXTRA_LIST, ArrayList.class);
+                if (serializableList != null) {
+                    mediaList = (List<Object>) (List<?>) serializableList;
+                }
+            } else {
+                Serializable s = intent.getSerializableExtra(EXTRA_LIST);
+                if (s instanceof ArrayList) {
+                    mediaList = (List<Object>) s;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        currentPosition = intent.getIntExtra(EXTRA_POS, 0);
+    }
+
+    private void initViews() {
+        rootContainer = findViewById(android.R.id.content);
+        viewPager = findViewById(R.id.mediaViewPager);
+        bottomActions = findViewById(R.id.bottomActions);
+        closeButton = findViewById(R.id.closeButton);
+        adView = findViewById(R.id.adView);
+        adContainer = findViewById(R.id.adContainer);
+        deleteOverlay = findViewById(R.id.deleteOverlay);
+        deleteProgress = findViewById(R.id.deleteProgress);
+        tvDeletePercent = findViewById(R.id.tvDeletePercent);
+    }
+
+    private void setupViewPager() {
+        adapter = new MediaPagerAdapter(this, mediaList, this::toggleUI);
+        viewPager.setAdapter(adapter);
+        viewPager.setOffscreenPageLimit(1);
+        viewPager.setCurrentItem(currentPosition, false);
+        viewPager.registerOnPageChangeCallback(pageChangeCallback);
+
+        viewPager.postDelayed(() -> {
+            if (!isFinishing() && adapter != null) {
+                adapter.handlePlayback(currentPosition);
+            }
+        }, 400);
+    }
+
+    private void setupObservers() {
+        viewModel.deleteSuccess.observe(this, success -> {
+            if (Boolean.TRUE.equals(success)) {
+                onDeleteProcessCompleted();
+            }
+        });
+
+        viewModel.permissionIntent.observe(this, pendingIntent -> {
+            if (pendingIntent != null) {
+                IntentSenderRequest isr = new IntentSenderRequest.Builder(pendingIntent).build();
+                deleteLauncher.launch(isr);
+                viewModel.clearPermissionIntent();
+            }
         });
     }
 
     private void setupListeners() {
-        closeButton.setOnClickListener(v -> finish());
-        shareActionButton.setOnClickListener(v -> shareMedia(false));
-        repostActionButton.setOnClickListener(v -> shareMedia(true));
-
-        deleteActionButton.setOnClickListener(v -> {
-            if (mediaUri != null) deleteFile(mediaUri, v);
+        closeButton.setOnClickListener(v -> {
+            killEverything();
+            finish();
         });
 
-        fullImage.setOnPhotoTapListener((view, x, y) -> toggleUI());
+        findViewById(R.id.cardShareFull).setOnClickListener(v -> shareMedia(false));
+        findViewById(R.id.cardRepost).setOnClickListener(v -> shareMedia(true));
+
+        findViewById(R.id.cardDelete).setOnClickListener(v -> {
+            processDeleteAction();
+        });
+    }
+
+    private void processDeleteAction() {
+        if (currentPosition >= 0 && currentPosition < mediaList.size()) {
+            // 1. Pehle video pause karo
+            if (adapter != null) adapter.pauseAll();
+
+            // 2. Interstitial dikhao
+            AdManager.showInterstitial(this, new AdManager.AdCallback() {
+                @Override
+                public void onAdClosed() {
+                    startDeleteAnimation();
+                }
+
+                @Override
+                public void onAdFailed() {
+                    startDeleteAnimation();
+                }
+            });
+        }
+    }
+
+    private void startDeleteAnimation() {
+        if (deleteOverlay == null) {
+            viewModel.deleteFile(mediaList.get(currentPosition));
+            return;
+        }
+
+        deleteOverlay.setVisibility(View.VISIBLE);
+        deleteOverlay.setAlpha(0f);
+        deleteOverlay.animate().alpha(1.0f).setDuration(200).start();
+
+        ValueAnimator anim = ValueAnimator.ofInt(0, 100);
+        anim.setDuration(600);
+        anim.addUpdateListener(animation -> {
+            int val = (int) animation.getAnimatedValue();
+            if (deleteProgress != null) deleteProgress.setProgress(val);
+            if (tvDeletePercent != null) tvDeletePercent.setText(val + "%");
+        });
+
+        anim.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (currentPosition < mediaList.size()) {
+                    if (adapter != null) adapter.releaseAll();
+                    viewModel.deleteFile(mediaList.get(currentPosition));
+                }
+            }
+        });
+        anim.start();
+    }
+
+    private void onDeleteProcessCompleted() {
+        if (deleteOverlay != null) {
+            deleteOverlay.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                deleteOverlay.setVisibility(View.GONE);
+            }).start();
+        }
+
+        setResult(RESULT_DELETED);
+
+        if (currentPosition >= 0 && currentPosition < mediaList.size()) {
+            mediaList.remove(currentPosition);
+            adapter.notifyItemRemoved(currentPosition);
+        }
+
+        if (mediaList.isEmpty()) {
+            finish();
+        } else {
+            if (currentPosition >= mediaList.size()) {
+                currentPosition = mediaList.size() - 1;
+            }
+
+            viewPager.postDelayed(() -> {
+                if (adapter != null && !isFinishing()) {
+                    adapter.handlePlayback(currentPosition);
+                }
+            }, 300);
+        }
     }
 
     private void shareMedia(boolean isRepost) {
-        if (mediaUri == null) return;
+        if (mediaList == null || mediaList.isEmpty() || currentPosition >= mediaList.size()) return;
 
+        Object item = mediaList.get(currentPosition);
+        String finalPath;
+        boolean isVideo;
+
+        if (item instanceof ImageEntity) {
+            ImageEntity img = (ImageEntity) item;
+            finalPath = (img.isDownloaded && img.gallery_path != null && !img.gallery_path.isEmpty())
+                    ? img.gallery_path : img.getUri();
+            isVideo = false;
+        } else if (item instanceof VideoEntity) {
+            VideoEntity vid = (VideoEntity) item;
+            finalPath = (vid.isDownloaded && vid.gallery_path != null && !vid.gallery_path.isEmpty())
+                    ? vid.gallery_path : vid.getUri();
+            isVideo = true;
+        } else return;
+
+        if (finalPath == null || finalPath.isEmpty()) return;
+
+        Uri mediaUri = Uri.parse(finalPath);
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType(isVideo ? "video/*" : "image/*");
         intent.putExtra(Intent.EXTRA_STREAM, mediaUri);
@@ -173,71 +326,73 @@ public class FullScreenMediaActivity extends AppCompatActivity {
             try {
                 startActivity(intent);
             } catch (Exception e) {
-                SmartNotify.error(findViewById(android.R.id.content), "WhatsApp not installed!");
+                SmartNotify.error(rootContainer, "WhatsApp not installed!");
             }
         } else {
             startActivity(Intent.createChooser(intent, "Share via:"));
         }
     }
 
-    private void deleteFile(Uri fileUri, View view) {
-        try {
-            int deletedRows = getContentResolver().delete(fileUri, null, null);
-            if (deletedRows > 0) {
-                String fileName = getFileNameFromUri(fileUri);
-                if (savedFilesDB != null && fileName != null) savedFilesDB.removeFile(fileName);
-                SmartNotify.success(view, "Deleted successfully!");
-                view.postDelayed(() -> {
-                    setResult(Activity.RESULT_OK);
-                    finish();
-                }, 800);
-            }
-        } catch (Exception e) {
-            SmartNotify.error(view, "Permission Denied");
+    private final ViewPager2.OnPageChangeCallback pageChangeCallback = new ViewPager2.OnPageChangeCallback() {
+        @Override
+        public void onPageSelected(int position) {
+            currentPosition = position;
+            if (adapter != null) adapter.handlePlayback(position);
         }
-    }
-
-    private String getFileNameFromUri(Uri uri) {
-        try (Cursor cursor = getContentResolver().query(uri, new String[]{MediaStore.MediaColumns.DISPLAY_NAME}, null, null, null)) {
-            if (cursor != null && cursor.moveToFirst()) return cursor.getString(0);
-        } catch (Exception ignored) {}
-        return null;
-    }
+    };
 
     private void toggleUI() {
         isUiVisible = !isUiVisible;
         float alpha = isUiVisible ? 1f : 0f;
-        bottomActions.animate().alpha(alpha).setDuration(250).start();
-        closeButton.animate().alpha(alpha).setDuration(250).start();
-        topScrim.animate().alpha(alpha).setDuration(250).start();
 
-        // Optional: Banner ko bhi toggle kar sakte hain agar zaroorat ho
-        if (adView != null) {
-            adView.animate().alpha(alpha).setDuration(250).start();
+        if (!isUiVisible) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+        }
+
+        View[] views = {bottomActions, closeButton, adContainer};
+        for (View v : views) {
+            if (v != null) {
+                v.animate().alpha(alpha).setDuration(250)
+                        .withStartAction(() -> { if (isUiVisible) v.setVisibility(View.VISIBLE); })
+                        .withEndAction(() -> { if (!isUiVisible) v.setVisibility(View.GONE); })
+                        .start();
+            }
+        }
+    }
+
+    private void killEverything() {
+        if (adapter != null) adapter.releaseAll();
+        if (viewPager != null) {
+            viewPager.unregisterOnPageChangeCallback(pageChangeCallback);
+            viewPager.setAdapter(null);
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (adView != null) adView.resume();
+        // Register sensor
+        if (mSensorManager != null && mAccelerometer != null) {
+            mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
     }
 
     @Override
     protected void onPause() {
-        if (adView != null) adView.pause();
+        // Unregister sensor
+        if (mSensorManager != null) {
+            mSensorManager.unregisterListener(mShakeDetector);
+        }
         super.onPause();
-        if (exoPlayer != null) exoPlayer.pause();
+        if (adapter != null) adapter.pauseAll();
     }
 
     @Override
     protected void onDestroy() {
+        killEverything();
         if (adView != null) adView.destroy();
         super.onDestroy();
-        if (exoPlayer != null) {
-            exoPlayer.stop();
-            exoPlayer.release();
-            exoPlayer = null;
-        }
     }
 }

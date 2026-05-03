@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="com.android.vending.BILLING" />
     <queries>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
@@ -24,6 +25,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WhatsDownloadPlus"
         android:enableOnBackInvokedCallback="true"
+        android:largeHeap="true"
+        android:hardwareAccelerated="true"
         tools:targetApi="34">
 
         <activity
@@ -35,29 +38,56 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.magic_lab.MagicLabActivity"
 
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
             android:exported="true"
-            android:label="@string/app_name"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
 
         <activity android:name=".ui.Privacy_policy.PrivacyPolicyHostActivity" android:exported="false" />
         <activity android:name=".ui.Download.FullScreenMediaActivity" android:exported="false" />
-        <activity android:name=".ui.ImagesAndVideo.ImageVideoPreviewActivity" android:exported="false" />
 
+        <activity
+            android:name=".ui.preview.MediaPreviewActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:hardwareAccelerated="true"
+            tools:ignore="LockedOrientationActivity" />
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name="StatsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".ui.Search.OnlineSearchFragment"
+            android:exported="false"
+            android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar"/>
+        <activity
+            android:name=".ui.Search.OnlineMediaPreviewActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
         <activity
             android:name=".Permissions.PermissionsActivity"
             android:exported="false"
             android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
 
-
-
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
-            android:theme="@style/Base.Theme.AppCompat" />
+            android:exported="false"
+            android:theme="@style/Base.Theme.AppCompat"
+            tools:replace="android:exported" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -69,11 +99,30 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-
-
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-9822767396000072~6754372345" />
 
-    </application>
-</manifest>
+
+        <meta-data
+            android:name="com.google.android.gms.ads.AD_MANAGER_APP"
+            android:value="true" />
+
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            android:resource="@xml/gma_ad_services_config"
+            tools:replace="android:resource" />
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+    </application> </manifest>

@@ -1,0 +1,78 @@
+type= user
+count= 1
+speed= 1.0
+start data >>
+
+# --- SECTION 1: IMAGE DOWNLOAD ---
+# 1. Splash to Main (Wait for app to load)
+UserWait(4000)
+
+# 2. IMAGE TAB (Pehli Image par click - Coordinates: 250, 450)
+captureDispatchPointer(0,0,0,250,450,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,250,450,0,0,0,0,0,0,0)
+UserWait(2000)
+
+# 3. SAVE IMAGE (Bottom Right Save Button - Coordinates: 900, 1700)
+captureDispatchPointer(0,0,0,900,1700,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,900,1700,0,0,0,0,0,0,0)
+UserWait(2000)
+
+# 4. BACK TO MAIN
+dispatchPress(4)
+UserWait(1500)
+
+
+# --- SECTION 2: VIDEO DOWNLOAD & TRIM ---
+# 5. VIDEO TAB SWITCH (Top Right - Coordinates: 800, 200)
+captureDispatchPointer(0,0,0,800,200,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,800,200,0,0,0,0,0,0,0)
+UserWait(1500)
+
+# 6. VIDEO OPEN (Pehli Video - Coordinates: 300, 500)
+captureDispatchPointer(0,0,0,300,500,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,300,500,0,0,0,0,0,0,0)
+UserWait(3000)
+
+# 7. CLICK TRIM (Bottom Left - Coordinates: 200, 1700)
+captureDispatchPointer(0,0,0,200,1700,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,200,1700,0,0,0,0,0,0,0)
+UserWait(1500)
+
+# 8. CONFIRM TRIM (Center Dialog - Coordinates: 540, 1200)
+captureDispatchPointer(0,0,0,540,1200,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,540,1200,0,0,0,0,0,0,0)
+UserWait(6000) # Wait for processing
+
+# 9. SAVE TRIMMED (Bottom Right - Coordinates: 900, 1700)
+captureDispatchPointer(0,0,0,900,1700,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,900,1700,0,0,0,0,0,0,0)
+UserWait(2000)
+
+# 10. BACK TO MAIN
+dispatchPress(4)
+UserWait(1500)
+
+
+# --- SECTION 3: CHECK DOWNLOADED FEATURES ---
+# 11. GO TO DOWNLOADED/SAVED TAB (Shayad Side Menu ya Bottom Nav - Coordinates: 950, 2000)
+# Note: Isko apni app ke "Saved" button ke mutabiq adjust karein
+captureDispatchPointer(0,0,0,950,2000,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,950,2000,0,0,0,0,0,0,0)
+UserWait(2000)
+
+# 12. OPEN SAVED ITEM (Check if it plays - Coordinates: 300, 500)
+captureDispatchPointer(0,0,0,300,500,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,300,500,0,0,0,0,0,0,0)
+UserWait(3000)
+
+# 13. RE-SHARE FROM SAVED (Share Button - Coordinates: 540, 1700)
+captureDispatchPointer(0,0,0,540,1700,0,0,0,0,0,0,0)
+captureDispatchPointer(51,51,1,540,1700,0,0,0,0,0,0,0)
+UserWait(3000)
+
+# 14. EXIT SHARE & BACK
+dispatchPress(4)
+UserWait(1000)
+dispatchPress(4)
+
+# --- FINISHED ---

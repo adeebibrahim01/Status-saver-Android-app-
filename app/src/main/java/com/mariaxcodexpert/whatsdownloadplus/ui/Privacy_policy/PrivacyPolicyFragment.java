@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,14 +44,6 @@ public class PrivacyPolicyFragment extends Fragment {
         }
 
 
-    }
-
-    private void setupWebView() {
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.setWebViewClient(new WebViewClient());
-
-        // Apni Privacy Policy ka URL yahan dalein
-        webView.loadUrl("https://mariaxcodexpert.blogspot.com/p/privacy-policy.html");
     }
 
     @Override

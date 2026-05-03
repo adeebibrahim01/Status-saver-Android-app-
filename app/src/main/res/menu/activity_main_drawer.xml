@@ -2,52 +2,57 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:showIn="navigation_view"
+    tools:showIn="navigation_view">
 
-    app:itemIconTint="@null">
-
-    <group android:checkableBehavior="single">
-
-        <!-- Home -->
+    <!-- SECTION 1: MAIN TERMINAL -->
+    <group android:id="@+id/main_group" android:checkableBehavior="single">
         <item
             android:id="@+id/nav_home"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="@string/menu_home" />
+            android:icon="@drawable/ic_menu_camera_sidebar"
+            android:title="Dashboard" />
 
-
-        <!-- Downloads -->
         <item
             android:id="@+id/nav_download"
-            android:icon="@drawable/ic_wa_download"
-            android:title="@string/download_drawer" />
-
-
-        <!-- Rate App -->
-        <item
-            android:id="@+id/nav_rate_app"
-            android:icon="@drawable/ic_rate"
-            android:title="Rate App" />
-
-
-        <!-- Feedback -->
-        <item
-            android:id="@+id/nav_feedback"
-            android:icon="@drawable/ic_feedback"
-            android:title="Send Feedback" />
-
-        <!-- Share App (Direct Intent) -->
-        <item
-            android:id="@+id/nav_share_app"
-            android:icon="@drawable/ic_share"
-            android:title="Share App" />
-
-        <!-- Privacy Policy (Fragment) -->
-        <item
-            android:id="@+id/nav_privacy_policy"
-            android:icon="@drawable/ic_privacy"
-            android:title="Privacy Policy" />
-
-
+            android:icon="@drawable/ic_wa_download_sidebar"
+            android:title="Downloads" />
     </group>
+
+    <!-- SECTION 2: EXCLUSIVE ACCESS (Divider auto-added by Group) -->
+    <group android:id="@+id/premium_group">
+        <item
+            android:id="@+id/nav_premium"
+            android:icon="@drawable/ic_premium_gold_sidebar"
+            android:title="Unlock Pro Experience" />
+    </group>
+
+    <!-- SECTION 3: ENGAGEMENT & GROWTH -->
+    <item android:title="Community &amp; Feedback">
+        <menu>
+            <item
+                android:id="@+id/nav_rate_app"
+                android:icon="@drawable/ic_rate_sidebar"
+                android:title="Recommend Us" />
+
+            <item
+                android:id="@+id/nav_share_app"
+                android:icon="@drawable/ic_share_sidebar"
+                android:title="Invite Friends" />
+
+            <item
+                android:id="@+id/nav_feedback"
+                android:icon="@drawable/ic_feedback_sidebar_channel"
+                android:title="Join WhatsApp Channel" />
+        </menu>
+    </item>
+
+    <!-- SECTION 4: TRUST CENTER -->
+    <item android:title="App Information">
+        <menu>
+            <item
+                android:id="@+id/nav_privacy_policy"
+                android:icon="@drawable/ic_privacy_sidebar"
+                android:title="Privacy &amp; Terms" />
+        </menu>
+    </item>
 
 </menu>

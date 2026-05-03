@@ -20,6 +20,7 @@
             android:id="@+id/snackIcon"
             android:layout_width="24dp"
             android:layout_height="24dp"
+            android:contentDescription="@string/snackicon"
             android:src="@android:drawable/ic_dialog_info"
             app:tint="#FFFFFF" />
 
@@ -29,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:text="Action Successful!"
+            android:text="@string/action_successful"
             android:textColor="#FFFFFF"
             android:textSize="14sp"
             android:fontFamily="sans-serif-medium" />

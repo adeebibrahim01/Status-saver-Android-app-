@@ -3,29 +3,44 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_bottom_sheet"
+    android:background="#082B26"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="24dp">
 
     <View
-        android:layout_width="40dp"
-        android:layout_height="4dp"
+        android:layout_width="50dp"
+        android:layout_height="5dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:background="#E0E0E0" />
+        android:layout_marginBottom="24dp"
+        android:alpha="0.2"
+        android:background="#FFFFFF" />
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-black"
-        android:text="Ultimate Troubleshooting Guide"
-        android:textColor="#333333"
-        android:textSize="20sp" />
+        android:gravity="center"
+        android:text="CORE ALGORITHM SYNC GUIDE"
+        android:textColor="#D4AF37"
+        android:textSize="20sp"
+        android:letterSpacing="0.05"
+        android:textAllCaps="true" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_marginTop="4dp"
+        android:alpha="0.6"
+        android:fontFamily="sans-serif-medium"
+        android:text="Follow these steps to authorize AI Neural Access"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="400dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:overScrollMode="never"
         android:scrollbars="none">
 
@@ -34,117 +49,118 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-bold"
-                android:text="Step 1: Android 11, 12, 13, 14 Users"
-                android:textColor="#2FB19C"
-                android:textSize="15sp" />
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="#1AFFFFFF"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#33D4AF37"
+                app:strokeWidth="1dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="NEURAL PATH: ANDROID 11 - 14"
+                        android:textColor="#D4AF37"
+                        android:textSize="13sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:alpha="0.8"
+                        android:text="Navigate to: Android > media > com.whatsapp > WhatsApp > Media > .Statuses"
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <TextView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Navigate to:\nAndroid > media > com.whatsapp > WhatsApp > Media > .Statuses"
-                android:textColor="#666666"
-                android:textSize="13sp" />
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="#1AFFFFFF"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#33D4AF37"
+                app:strokeWidth="1dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="LEGACY PATH: ANDROID 10"
+                        android:textColor="#D4AF37"
+                        android:textSize="13sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:alpha="0.8"
+                        android:text="Directly locate the 'WhatsApp > Media > .Statuses' directory in your root storage."
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <TextView
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardBackgroundColor="#26FF5252"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#FF5252"
+                app:strokeWidth="1dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="CRITICAL: HIDDEN DATA SYNC"
+                        android:textColor="#FF5252"
+                        android:textSize="13sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="If empty, tap the 3-dot Menu (Top Right) and select 'Show Hidden Files'. Without this, the AI cannot scan media."
+                        android:textColor="#FFFFFF"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:fontFamily="sans-serif-bold"
-                android:text="Step 2: Android 10 "
-                android:textColor="#2FB19C"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="If you don't see 'Android/media', look directly for:\nWhatsApp > Media > .Statuses"
-                android:textColor="#666666"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:fontFamily="sans-serif-bold"
-                android:text="Step 3: WhatsApp Business"
-                android:textColor="#2FB19C"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Look for:\nAndroid > media > com.whatsapp.w4b > WhatsApp Business > Media > .Statuses"
-                android:textColor="#666666"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:fontFamily="sans-serif-bold"
-                android:text="Step 4: Folder is Missing or Hidden?"
-                android:textColor="#E91E63"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Click the (⋮) menu in the top right and tap 'Show Hidden Files'. Without this, you cannot see the '.Statuses' folder."
-                android:textColor="#666666"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:fontFamily="sans-serif-bold"
-                android:text="Step 5: Folder is Empty?"
-                android:textColor="#FF9800"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="First, open WhatsApp and watch some statuses. If you haven't viewed any status in the last 24 hours, the folder will appear empty."
-                android:textColor="#666666"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:fontFamily="sans-serif-bold"
-                android:text="Step 6: Dual Apps / Parallel Space"
-                android:textColor="#2FB19C"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Search for a folder named 'Dual' or '999' or 'Parallel' in your main storage root."
-                android:textColor="#666666"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="#F0F9F8"
-                android:padding="12dp"
-                android:text="Important: After selecting the folder, tap 'USE THIS FOLDER' and then 'ALLOW'."
-                android:textColor="#075E54"
-                android:textStyle="bold"
-                android:textSize="13sp" />
+                app:cardBackgroundColor="#D4AF37"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="8dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:text="COMMAND: Select '.Statuses' folder and tap 'USE THIS FOLDER' to grant AI authorization."
+                    android:textColor="#000000"
+                    android:textSize="12sp" />
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </ScrollView>
@@ -152,12 +168,14 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnGotIt"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="16dp"
-        android:text="Everything is Clear!"
-        android:textAllCaps="false"
-        android:fontFamily="sans-serif-bold"
-        app:backgroundTint="#2FB19C"
-        app:cornerRadius="16dp" />
+        android:layout_height="60dp"
+        android:layout_marginTop="24dp"
+        android:text="I UNDERSTAND THE MISSION"
+        android:textColor="#000000"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif-black"
+        app:backgroundTint="#D4AF37"
+        app:cornerRadius="18dp"
+        app:elevation="10dp" />
 
 </LinearLayout>

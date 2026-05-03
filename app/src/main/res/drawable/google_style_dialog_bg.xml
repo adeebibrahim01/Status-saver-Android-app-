@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Google sheet jesa halka off-white color -->
+    <solid android:color="#F8F9FA"/>
+    <!-- Google k sheets k corners kafi round hoty hain (28dp is standard) -->
+    <corners android:radius="28dp"/>
+</shape>

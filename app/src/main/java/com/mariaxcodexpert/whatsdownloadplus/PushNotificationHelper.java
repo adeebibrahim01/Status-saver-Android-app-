@@ -6,69 +6,88 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.BitmapFactory;
+import android.media.AudioAttributes;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 public class PushNotificationHelper {
     private final Context context;
-    private static final String CHANNEL_ID = "status_expiry_channel";
+    // 🟢 Version change karne se settings refresh ho jati hain
+    private static final String CHANNEL_ID = "status_alerts_high_priority_v2";
 
     public PushNotificationHelper(Context context) {
         this.context = context;
-        createChannel();
+        createNotificationChannel();
     }
 
-    private void createChannel() {
-        // 🔥 Android 10 (API 29) mein Notification Channels lazmi hain.
-        // Hum "if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)" nikaal sakte hain agar minSDK 26+ ho.
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                "Status Expiry Alerts",
-                NotificationManager.IMPORTANCE_HIGH); // Heads-up notification ke liye High Importance
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // 🔴 Importance HIGH rakha hai taake Heads-up (pop-up) notification aaye
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Status Expiry Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
 
-        channel.setDescription("Alerts for WhatsApp status expiry");
-        channel.enableLights(true);
-        channel.setLightColor(Color.GREEN);
-        channel.enableVibration(true);
-        channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            channel.setDescription("Critical alerts for saving statuses before they expire.");
+            channel.enableLights(true);
+            channel.setLightColor(ContextCompat.getColor(context, R.color.primary_color));
+            channel.enableVibration(true);
+            channel.setShowBadge(true);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
 
-        NotificationManager nm = context.getSystemService(NotificationManager.class);
-        if (nm != null) {
-            nm.createNotificationChannel(channel);
+            // Sound set karna background reliability ke liye behtar hai
+            Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .build();
+            channel.setSound(defaultSoundUri, audioAttributes);
+
+            NotificationManager nm = context.getSystemService(NotificationManager.class);
+            if (nm != null) {
+                nm.createNotificationChannel(channel);
+                Log.d("NotifHelper", "✅ High Priority Channel Created");
+            }
         }
     }
 
     public void sendNotification(String title, String message, Intent intent, int id) {
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
 
-        // 🔥 CLEANUP: SDK 29+ par PendingIntent.FLAG_IMMUTABLE hamesha chahiye hota hai.
-        // Purana Marshmallow (M) wala check nikaal diya hai.
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
 
         PendingIntent pi = PendingIntent.getActivity(context, id, intent, flags);
 
-        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
+        // 🟢 Build Notification with MAX Priority
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.ic_notification) // Ensure this is a white silhouette icon
+                .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher))
                 .setContentTitle(title)
                 .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Expandable text
                 .setAutoCancel(true)
-                .setSound(defaultSoundUri)
-                .setVibrate(new long[]{0, 500, 200, 500}) // Standard vibration pattern
-                .setPriority(NotificationCompat.PRIORITY_MAX) // Heads-up display trigger karega
-                .setCategory(NotificationCompat.CATEGORY_EVENT) // Expiry alerts ke liye EVENT category behtar hai
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                .setPriority(NotificationCompat.PRIORITY_MAX) // 🔴 Max priority for background
+                .setCategory(NotificationCompat.CATEGORY_REMINDER) // OS knows it's a reminder
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentIntent(pi);
+                .setColor(ContextCompat.getColor(context, R.color.primary_color))
+                .setContentIntent(pi)
+                .setOnlyAlertOnce(false); // Baar-baar alert kar sake agar zaroori ho
 
-        if (nm != null) {
-            nm.notify(id, builder.build());
-            Log.d("PushNotificationHelper", "Modern High Priority Notification Sent. ID: " + id);
-        }
+        // 🔴 Extra Trick: Infinix/Tecno ke liye "FullScreenIntent" trigger (Optional but powerful)
+        // builder.setFullScreenIntent(pi, true);
+
+        Log.d("NotifHelper", "🚀 Firing notification for ID: " + id);
+        nm.notify(id, builder.build());
     }
 }

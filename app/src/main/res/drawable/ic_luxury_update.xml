@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- 1. Outer Soft Golden Glow -->
+    <path
+        android:pathData="M12,12m-10,0a10,10 0,1 1,20 0a10,10 0,1 1,-20 0"
+        android:strokeWidth="0.5"
+        android:strokeColor="#22D4AF37"/>
+
+    <!-- 2. Circular Update/Sync Path (Viral Content Refresh) -->
+    <path
+        android:pathData="M17.65,6.35C16.2,4.9 14.21,4 12,4c-4.42,0 -7.99,3.58 -7.99,8s3.57,8 7.99,8c3.73,0 6.84,-2.55 7.73,-6h-2.08c-0.82,2.33 -3.04,4 -5.65,4 -3.31,0 -6,-2.69 -6,-6s2.69,-6 6,-6c1.66,0 3.14,0.69 4.22,1.78L13,11h7V4l-2.35,2.35z"
+        android:fillColor="#D4AF37"/>
+
+    <!-- 3. Center Sparkle (Represents 4K Quality) -->
+    <path
+        android:pathData="M12,9L12.7,11.3L15,12L12.7,12.7L12,15L11.3,12.7L9,12L11.3,11.3L12,9Z"
+        android:fillColor="#FFD700"/>
+
+    <!-- 4. Luxury Accent Dot -->
+    <path
+        android:pathData="M19,19m-1.5,0a1.5,1.5 0,1 1,3 0a1.5,1.5 0,1 1,-3 0"
+        android:fillColor="#AA771C"/>
+
+</vector>

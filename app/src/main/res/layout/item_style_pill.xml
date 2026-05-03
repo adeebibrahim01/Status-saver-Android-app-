@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="12dp"
+    android:clipToPadding="false"
+    android:padding="4dp">
+
+    <LinearLayout
+        android:id="@+id/pillContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_style_pill_selector"
+        android:duplicateParentState="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="18dp">
+
+        <TextView
+            android:id="@+id/tvStyleName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.02"
+            android:text="Sharp"
+            android:textColor="@drawable/color_style_text_selector"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvAdTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_ad_badge"
+            android:fontFamily="sans-serif-black"
+            android:paddingHorizontal="5dp"
+            android:paddingVertical="1dp"
+            android:text="PRO"
+            android:textColor="#000000"
+            android:textSize="7sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</FrameLayout>

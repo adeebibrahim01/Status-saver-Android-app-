@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardContainer"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:layout_margin="5dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#F5F5F5"
+    app:strokeColor="#1A000000"
+    app:strokeWidth="1.2dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/imgThumb"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/thumbicon"
+            android:scaleType="centerCrop"
+            android:background="#F0F2F5" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/inner_soft_shadow" />
+
+        <ImageView
+            android:id="@+id/videoIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/videoicon"
+            android:padding="8dp"
+            android:elevation="6dp"
+            android:src="@drawable/ic_play"
+            android:visibility="gone"
+            app:tint="#E6BE8A" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:layout_gravity="top"
+            android:alpha="0.4"
+            android:background="@drawable/top_shine_light_gradient" />
+
+    </FrameLayout>
+
+</com.google.android.material.card.MaterialCardView>

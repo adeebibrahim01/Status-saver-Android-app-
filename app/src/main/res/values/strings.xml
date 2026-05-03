@@ -6,8 +6,6 @@
     <string name="nav_header_subtitle">mariaadeeb982@gmail.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
-
-
     <string name="menu_home">Home</string>
     <string name="menu_gallery">Status</string>
     <string name="Download">Download</string>
@@ -15,11 +13,11 @@
     <string name="permission_icon">Permission icon</string>
     <string name="storage_access">extra\n</string>
     <string name="notification_access">extra2\n</string>
-    <!-- WhatsApp folder guide -->
+
     <string name="whatsapp_folder_path_line1">Typical WhatsApp Media folder path:</string>
     <string name="whatsapp_folder_path_line2">Android/media/com.whatsapp/WhatsApp/Media/.Statuses</string>
 
-    <!-- WhatsApp hidden folder guide -->
+
     <string name="hidden_folder_guide_line1">If the .Statuses folder inside WhatsApp Media is not visible:</string>
     <string name="hidden_folder_guide_line2">1. Tap the 3-dot menu</string>
     <string name="hidden_folder_guide_line3">2. Enable Show hidden files</string>
@@ -27,7 +25,7 @@
     <string name="hidden_folder_guide_line5">4. Select Use this folder to grant proper permission.</string>
 
     <string name="privacy_title">Privacy Policy – Status Saver </string>
-    <string name="privacy_last_updated">Last Updated: March 29, 2026</string>
+    <string name="privacy_last_updated">Last Updated: April 06, 2026</string>
 
     <string name="privacy_section_1_heading">1. Data Privacy &amp; Collection</string>
     <string name="privacy_section_1">
@@ -93,8 +91,110 @@
         <b>5. Limitation of Liability:</b> \n
         In no event shall the developer be liable for any special, direct, indirect, consequential, or incidental damages or any damages whatsoever, whether in an action of contract, negligence or other tort, arising out of or in connection with the use of the Service or the contents of the Service.
     </string>
-    <!-- TODO: Remove or change this placeholder text -->
+
+
+    <string name="STATUS_ENGINE">Status Engine</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="accessibility_service_description"> Notification Accessibility Service </string>
     <string name="download_drawer">Download</string>
+    <string name="_0">0</string>
+    <string name="privacy_protected">PRIVACY PROTECTED</string>
+    <string name="statuses">Statuses</string>
+    <string name="downloads">Downloads</string>
+    <string name="lifetime">Lifetime</string>
+    <string name="available">Live</string>
+    <string name="today_s">Today\'s</string>
+    <string name="saved">Saved</string>
+    <string name="lock_secure">lock_secure</string>
+    <string name="active_session">LIVE</string>
+    <string name="since_2019">SINCE 2019</string>
+    <string name="v1_0_16">V1.0.16</string>
+    <string name="images">Images</string>
+    <string name="videos">Videos</string>
+    <string name="_saved">Saved</string>
+    <string name="recent_downloads">RECENT DOWNLOADS</string>
+    <string name="no_downloads_yet">No downloads yet</string>
+    <string name="fast_amp_secure_downloader"><![CDATA[Fast & Secure Downloader]]></string>
+    <string name="app_logo">App Logo</string>
+    <string name="float_btn">float btn</string>
+    <string name="logo">logo</string>
+    <string name="custom_video_trim">Custom Video Trim</string>
+    <string name="total_duration_0s">Total Duration: 0s</string>
+    <string name="start_sec">Start (sec)</string>
+    <string name="end_sec">End (sec)</string>
+    <string name="_30">30</string>
+    <string name="trim_amp_preview"><![CDATA[Trim & Preview]]></string>
+    <string name="media_details">Media Details</string>
+    <string name="type_image">Type: Image</string>
+    <string name="name_example_jpg">Name: example.jpg</string>
+    <string name="size_1024_kb">Size: 1024 KB</string>
+    <string name="resolution_1080_x_1920">Resolution: 1080 x 1920</string>
+    <string name="duration_0h_0m_0s">Duration: 0h 0m 0s</string>
+    <string name="close">Close</string>
+    <string name="saved_media_images_videos">Saved Media • Images • Videos</string>
+    <string name="no_downloads_available">No downloads available</string>
+    <string name="no_files_found">No files found</string>
+    <string name="media">Media</string>
+    <string name="overlay">overlay</string>
+    <string name="save">save</string>
+    <string name="share">Share</string>
+    <string name="crop">crop</string>
+    <string name="edit">Edit</string>
+    <string name="trim">trim</string>
+    <string name="info">Info</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="delete">Delete</string>
+    <string name="videoicon">videoicon</string>
+    <string name="refreshing">Refreshing…</string>
+    <string name="downloadicon">downloadicon</string>
+    <string name="downloadstatus">downloadstatus</string>
+    <string name="snackicon">snackicon</string>
+    <string name="action_successful">Action Successful!</string>
+    <string name="enjoying_the_app">Enjoying the app?</string>
+    <string name="your_review_helps_us_improve_it_only_takes_a_minute_to_support_us_on_the_play_store">Your review helps us improve. It only takes a minute to support us on the Play Store.</string>
+    <string name="rate_on_play_store">Rate on Play Store</string>
+    <string name="star_visual">star_visual</string>
+    <string name="ultimate_troubleshooting_guide">Ultimate Troubleshooting Guide</string>
+    <string name="step_1_android_11_12_13_14_users">Step 1: Android 11, 12, 13, 14 Users</string>
+    <string name="navigate_to_nandroid_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[Navigate to:\nAndroid > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
+    <string name="step_2_android_10">Step 2: Android 10</string>
+    <string name="if_you_don_t_see_android_media_look_directly_for_nwhatsapp_media_statuses"><![CDATA[If you don\'t see \'Android/media\', look directly for:\nWhatsApp > Media > .Statuses]]></string>
+    <string name="step_3_whatsapp_business">Step 3: WhatsApp Business</string>
+    <string name="look_for_nandroid_media_com_whatsapp_w4b_whatsapp_business_media_statuses"><![CDATA[Look for:\nAndroid > media > com.whatsapp.w4b > WhatsApp Business > Media > .Statuses]]></string>
+    <string name="step_4_folder_is_missing_or_hidden">Step 4: Folder is Missing or Hidden?</string>
+    <string name="click_the_menu_in_the_top_right_and_tap_show_hidden_files_without_this_you_cannot_see_the_statuses_folder">Click the (⋮) menu in the top right and tap \'Show Hidden Files\'. Without this, you cannot see the \'.Statuses\' folder.</string>
+    <string name="step_5_folder_is_empty">Step 5: Folder is Empty?</string>
+    <string name="first_open_whatsapp_and_watch_some_statuses_if_you_haven_t_viewed_any_status_in_the_last_24_hours_the_folder_will_appear_empty">First, open WhatsApp and watch some statuses. If you haven\'t viewed any status in the last 24 hours, the folder will appear empty.</string>
+    <string name="step_6_dual_apps_parallel_space">Step 6: Dual Apps / Parallel Space</string>
+    <string name="search_for_a_folder_named_dual_or_999_or_parallel_in_your_main_storage_root">Search for a folder named \'Dual\' or \'999\' or \'Parallel\' in your main storage root.</string>
+    <string name="important_after_selecting_the_folder_tap_use_this_folder_and_then_allow">Important: After selecting the folder, tap \'USE THIS FOLDER\' and then \'ALLOW\'.</string>
+    <string name="everything_is_clear">Everything is Clear!</string>
+    <string name="folder_security">folder security</string>
+    <string name="permissions_required">Permissions Required</string>
+    <string name="grant_access_to_save_your_favorite_status">Grant access to save your favorite status</string>
+    <string name="_1">1</string>
+    <string name="status_folder">Status Folder</string>
+    <string name="allow">Allow</string>
+    <string name="how_to_set_path_view_guide">How to set path? View Guide</string>
+    <string name="need_help_contact_us_at_nmariaadeeb982_gmail_com">Need help? Contact us at\nmariaadeeb982@gmail.com</string>
+    <string name="to_fetch_recent_status">To fetch recent status</string>
+    <string name="status_downloader">Status Downloader</string>
+    <string name="select_app">Select App</string>
+    <string name="choose_whatsapp_to_scan_media">Choose WhatsApp to scan media</string>
+    <string name="whatsapp_icon">WhatsApp icon</string>
+    <string name="whatsapp">WhatsApp</string>
+    <string name="official_messenger">Official Messenger</string>
+    <string name="thumbicon">thumbicon</string>
+    <string name="rate_app">Rate App</string>
+    <string name="send_feedback">Send Feedback</string>
+    <string name="share_app">Share App</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="stats">Stats</string>
+    <string name="explorer">Explorer</string>
+    <string name="history">History</string>
+    <string name="settings">Settings</string>
+    <string name="Dashboard">Dashboard</string>
+    <string name="_Downloads">Downloads</string>
+    <string name="_7days">Last 7 Days</string>
 </resources>

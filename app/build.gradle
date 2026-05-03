@@ -1,5 +1,12 @@
 plugins {
+    // 🔥 Standard method for modern projects
     alias(libs.plugins.android.application)
+
+    // 🔥 Google Services (Required for Firebase)
+    id 'com.google.gms.google-services'
+
+    // 🔥 Firebase Crashlytics
+    id 'com.google.firebase.crashlytics'
 }
 
 android {
@@ -10,8 +17,8 @@ android {
         applicationId "com.mariaxcodexpert.whatsdownloadplus"
         minSdk 29
         targetSdk 35
-        versionCode 17
-        versionName "1.0.17"
+        versionCode 24
+        versionName "1.0.24"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -31,6 +38,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        buildConfig = true
     }
 }
 dependencies {
@@ -43,13 +51,20 @@ dependencies {
     implementation libs.activity
     implementation libs.documentfile
     implementation libs.legacy.support.v4
+    implementation libs.room3.common.jvm
+    implementation libs.gridlayout
+    implementation libs.media
+    implementation libs.billing
+    testImplementation libs.ext.junit
+    testImplementation libs.runner
 
-    // --- Navigation Components (Version 2.7.7 for Stability) ---
+    // --- Navigation Components (Version 2.7.7) ---
     def nav_version = "2.7.7"
     implementation "androidx.navigation:navigation-fragment:$nav_version"
     implementation "androidx.navigation:navigation-ui:$nav_version"
+    androidTestImplementation "androidx.navigation:navigation-testing:$nav_version"
 
-    // --- Lifecycle Fix (Resolves version 2.3.1 vs 2.6.2 conflicts) ---
+    // --- Lifecycle (Stable Version) ---
     def lifecycle_version = "2.6.2"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
@@ -62,35 +77,58 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads-identifier:18.1.0'
     implementation "com.google.android.ump:user-messaging-platform:2.2.0"
 
-    // --- Room Database (Latest Stable) ---
+    // --- Room Database ---
     def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
 
-    // --- Media3 (Replacing old ExoPlayer for Video Trimming/Playback) ---
+    // --- Media3 (Video Playback & Editing) ---
     def media3_version = "1.2.1"
     implementation "androidx.media3:media3-exoplayer:$media3_version"
     implementation "androidx.media3:media3-ui:$media3_version"
     implementation "androidx.media3:media3-common:$media3_version"
     implementation "androidx.media3:media3-transformer:$media3_version"
     implementation "androidx.media3:media3-effect:$media3_version"
+    implementation "androidx.media3:media3-extractor:$media3_version"
+    implementation "androidx.media3:media3-datasource:$media3_version"
 
-    // --- Image Processing (Latest Versions) ---
+    // --- Image Processing ---
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
-    // Professional Cropper (Better than uCrop for modern apps)
     implementation("com.github.CanHub:Android-Image-Cropper:4.5.0")
+    implementation ("com.github.bumptech.glide:recyclerview-integration:4.16.0") {
+        transitive = false
+    }
 
     // --- Helpers & Utilities ---
-    implementation 'com.airbnb.android:lottie:6.3.0'
+    implementation 'com.airbnb.android:lottie:6.3.0' // 🔥 Kept only latest version
     implementation 'io.github.chrisbanes:PhotoView:2.3.0'
     implementation "com.google.android.play:app-update:2.1.0"
     implementation "com.google.android.play:review:2.0.1"
     implementation "androidx.work:work-runtime-ktx:2.9.0"
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     // --- Testing ---
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.espresso.contrib
+    androidTestImplementation libs.rules
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.3.0'
+
+    // --- Firebase & Crashlytics (UPDATED FOR PRODUCTION) ---
+    // BoM version 34.12.0 is highly stable for production
+    implementation platform('com.google.firebase:firebase-bom:34.12.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-crashlytics' // ✅ Added for Crash Tracking
+
+    // --- Miscellaneous ---
+    implementation 'androidx.concurrent:concurrent-futures:1.2.0'
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation "com.android.billingclient:billing:7.0.0"
+
+    implementation "com.google.firebase:firebase-database"
 }

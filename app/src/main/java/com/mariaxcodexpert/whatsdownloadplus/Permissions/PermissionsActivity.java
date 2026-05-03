@@ -15,7 +15,6 @@ import android.widget.CheckBox;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -24,8 +23,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
-
-import java.util.List;
 
 public class PermissionsActivity extends AppCompatActivity {
 
@@ -36,7 +33,7 @@ public class PermissionsActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private final int[] layouts = {R.layout.layout_select_app, R.layout.layout_permissions};
     private boolean hasNavigated = false;
-
+    private android.view.animation.Animation pulseAnim;
     // 1. Notification Permission Launcher (For Android 13+)
     private final ActivityResultLauncher<String> requestNotificationLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
@@ -77,7 +74,7 @@ public class PermissionsActivity extends AppCompatActivity {
                 if (isWhatsappSelected()) {
                     viewPager.setCurrentItem(1, true);
                 } else {
-                    SmartNotify.warning(v, "Please select WhatsApp first! ✅");
+                    SmartNotify.warning(v, "Please click the checkbox first to proceed. 🚀");
                 }
             } else {
                 startPermissionFlow();
@@ -89,6 +86,29 @@ public class PermissionsActivity extends AppCompatActivity {
         if (isAlreadyGranted()) {
             redirectToMain();
         }
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+
+                // Agar pehla page (R.layout.layout_select_app) load hua hai
+                if (position == 0) {
+                    // Thoda sa delay dete hain taake view render ho jaye
+                    viewPager.postDelayed(() -> {
+                        // ViewPager ke current fragment/view se checkbox dhondty hain
+                        View currentView = ((ViewGroup) viewPager.getChildAt(0)).getChildAt(0);
+                        if (currentView != null) {
+                            CheckBox cb = currentView.findViewById(R.id.selectWhatsappcheckbox);
+                            if (cb != null && !cb.isChecked()) {
+                                // Animation shuru karein
+                                pulseAnim = android.view.animation.AnimationUtils.loadAnimation(PermissionsActivity.this, R.anim.pulse);
+                                cb.startAnimation(pulseAnim);
+                            }
+                        }
+                    }, 200); // 200ms ka delay safe hai
+                }
+            }
+        });
     }
 
     private boolean isWhatsappSelected() {
@@ -133,9 +153,15 @@ public class PermissionsActivity extends AppCompatActivity {
     private void handleFolderSelection(Uri uri) {
         if (isValidWhatsAppFolder(uri)) {
             try {
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                // 🔥 UPDATE: READ aur WRITE dono flags lein taake access permanent ho jaye
+                final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+
+                getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
                 saveAndRedirect(uri);
             } catch (Exception e) {
+                e.printStackTrace();
                 SmartNotify.error(findViewById(android.R.id.content), "Permission error! Please grant access. ⚠️");
             }
         } else {
@@ -143,7 +169,6 @@ public class PermissionsActivity extends AppCompatActivity {
             openStatusFolderPicker();
         }
     }
-
     private boolean isValidWhatsAppFolder(Uri treeUri) {
         if (treeUri == null) return false;
         return Uri.decode(treeUri.toString()).toLowerCase().contains(".statuses");

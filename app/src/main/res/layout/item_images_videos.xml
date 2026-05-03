@@ -1,85 +1,133 @@
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="3dp"
-    app:strokeWidth="0dp"
-    app:cardPreventCornerOverlap="false"
-    app:cardUseCompatPadding="false">
+    android:padding="4dp"> <com.google.android.material.card.MaterialCardView
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:strokeColor="#D4AF37"
+    app:strokeWidth="1.2dp"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintDimensionRatio="1:1"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
 
-    <FrameLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_luxury_card_pearl">
 
         <ImageView
             android:id="@+id/imageThumb"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
+            android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:adjustViewBounds="false"
-            android:contentDescription="@string/app_name"/>
+            android:background="#F5F5F5" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/premium_thumb_overlay" />
 
         <TextView
             android:id="@+id/countdownTimer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:textColor="#00FF00"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="2dp"
-            android:layout_margin="8dp"
-            android:background="@drawable/timer_bg"
-            android:text="Refreshing…"
-            android:layout_gravity="top|start"/>
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_timer_luxury_v2"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:text="Refreshing"
+            android:textColor="#FFFFFF"
+            android:textSize="8sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.06"
+            android:elevation="4dp" />
 
         <ImageView
             android:id="@+id/videoIcon"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:visibility="gone"
-            android:padding="4dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_centerInParent="true"
             android:src="@drawable/ic_play"
-            android:layout_gravity="center"
-            app:tint="@android:color/white"/>
+            android:padding="9dp"
+            android:elevation="4dp"
+            android:visibility="gone"
+            android:scaleType="centerInside"
+            app:tint="#E6BE8A" />
+
+        <FrameLayout
+            android:id="@+id/actionContainer"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_action_gold_circle"
+            android:elevation="4dp">
+
+            <ImageView
+                android:id="@+id/downloadIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="9dp"
+                android:src="@drawable/ic_download"
+                app:tint="#D4AF37" />
+
+            <ImageView
+                android:id="@+id/downloadStatus"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="7dp"
+                android:src="@drawable/ic_check"
+                android:visibility="gone"
+                app:tint="#D4AF37" />
+        </FrameLayout>
 
         <ProgressBar
             android:id="@+id/downloadProgress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="4dp"
-            android:layout_gravity="bottom"
-            android:max="100"
-            android:visibility="gone"
-            android:progressDrawable="@drawable/progress_download"/>
+            android:layout_alignParentBottom="true"
+            android:progressDrawable="@drawable/custom_progress_gold"
+            android:visibility="gone" />
 
-        <FrameLayout
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="8dp"
-            android:background="@drawable/icon_bg">
+        <RelativeLayout
+            android:id="@+id/downloadOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#B3000000"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
 
-            <ImageView
-                android:id="@+id/downloadIcon"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="8dp"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_download"/>
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/neonProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                app:indicatorSize="40dp"
+                app:indicatorColor="#FFD700"
+                app:trackColor="#4DFFFFFF"
+                app:trackThickness="3dp" />
+            <TextView
+            android:id="@+id/progressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="0%"
+            android:textColor="#FFD700"
+            android:textSize="10sp"
+                android:fontFamily="sans-serif-black" />
 
-            <ImageView
-                android:id="@+id/downloadStatus"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone"
-                android:padding="8dp"
-                android:background="@android:color/transparent"
-                android:src="@drawable/ic_double_tick"/>
-        </FrameLayout>
-
-    </FrameLayout>
-
+        </RelativeLayout>
+    </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

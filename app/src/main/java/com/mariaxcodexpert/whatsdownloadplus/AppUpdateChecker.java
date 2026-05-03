@@ -20,6 +20,9 @@ public class AppUpdateChecker {
     private static final String TAG = "AppUpdateChecker";
     public static final int UPDATE_REQUEST_CODE = 1001;
 
+    // Yahan se aap testing on/off kar sakte hain
+    private final boolean isTesting = false;
+
     private final Activity activity;
     private final AppUpdateManager appUpdateManager;
 
@@ -28,14 +31,19 @@ public class AppUpdateChecker {
         this.appUpdateManager = AppUpdateManagerFactory.create(activity);
     }
 
-    // Check for updates (Safe & Silent)
     public void checkForUpdate() {
-        Task<AppUpdateInfo> task = appUpdateManager.getAppUpdateInfo();
+        // Agar testing true hai, to direct Play Store popup check karein
+        if (isTesting) {
+            Log.d(TAG, "Testing mode: Opening Play Store directly");
+            openPlayStore();
+            return;
+        }
 
+        // Production Logic
+        Task<AppUpdateInfo> task = appUpdateManager.getAppUpdateInfo();
         task.addOnSuccessListener(appUpdateInfo -> {
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
                     appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-
                 try {
                     appUpdateManager.startUpdateFlowForResult(
                             appUpdateInfo,
@@ -50,18 +58,19 @@ public class AppUpdateChecker {
         });
 
         task.addOnFailureListener(e -> {
-            if (e instanceof InstallException) {
-                InstallException ie = (InstallException) e;
+            if (e instanceof InstallException ie) {
                 if (ie.getErrorCode() == InstallErrorCode.ERROR_APP_NOT_OWNED) {
-                    return; // Sideloaded app, do nothing
+                    return;
                 }
             }
             Log.w(TAG, "Update check failed silently");
         });
     }
 
-    // ✅ Zaroori: Agar update process mein ho to usay resume karein
     public void onResume() {
+        // Resume logic testing mein ignore hogi
+        if (isTesting) return;
+
         appUpdateManager.getAppUpdateInfo().addOnSuccessListener(appUpdateInfo -> {
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
                 try {
@@ -78,11 +87,13 @@ public class AppUpdateChecker {
 
     private void openPlayStore() {
         try {
-            activity.startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=" + activity.getPackageName())));
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + activity.getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            activity.startActivity(intent);
         } catch (ActivityNotFoundException e) {
-            activity.startActivity(new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=" + activity.getPackageName())));
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + activity.getPackageName()));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            activity.startActivity(intent);
         }
     }
 
@@ -90,8 +101,6 @@ public class AppUpdateChecker {
         if (requestCode == UPDATE_REQUEST_CODE) {
             if (resultCode != Activity.RESULT_OK) {
                 Log.e(TAG, "Update flow failed! Result code: " + resultCode);
-                // Agar aap chahte hain k user update ke baghair app use na kare:
-                // checkForUpdate();
             }
         }
     }

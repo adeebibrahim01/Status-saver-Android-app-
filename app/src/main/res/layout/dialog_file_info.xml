@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    app:cardBackgroundColor="#0F0F0F"
+    app:cardCornerRadius="32dp"
+    app:cardElevation="25dp"
+    app:strokeColor="#26FFFFFF"
+    app:strokeWidth="1.2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp">
+
+        <FrameLayout
+            android:id="@+id/iconContainer"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_white_glow"
+                android:alpha="0.15"
+                android:backgroundTint="#25D366" />
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_info"
+                app:tint="#25D366"
+                android:background="@drawable/circle_bg_black_round"
+                android:backgroundTint="#1A25D366"
+                android:padding="14dp" />
+
+            <ProgressBar
+                android:id="@+id/infoProgressBar"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:indeterminateTint="#25D366"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="File Details 📄"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:fontFamily="sans-serif-black"
+            app:layout_constraintTop_toBottomOf="@id/iconContainer"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <LinearLayout
+            android:id="@+id/infoContentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Below are the technical details and storage paths for the selected status file."
+                android:textColor="#80FFFFFF"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="10dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_disclaimer_premium"
+                android:backgroundTint="#0AFFFFFF"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_file"
+                        app:tint="#4CAF50"/>
+                    <TextView
+                        android:id="@+id/infoName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Name: ---"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="monospace"
+                        android:textSize="13sp"
+                        android:textColor="#E0E0E0"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_video"
+                        app:tint="#9C27B0"/>
+                    <TextView
+                        android:id="@+id/infoType"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Type: ---"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="monospace"
+                        android:textSize="13sp"
+                        android:textColor="#E0E0E0"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_status"
+                        app:tint="#2196F3"/>
+                    <TextView
+                        android:id="@+id/infoStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:background="#1A2196F3"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="Status: ---"
+                        android:textSize="11sp"
+                        android:textColor="#2196F3"
+                        android:fontFamily="sans-serif-black"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_folder"
+                        app:tint="#FF9800"/>
+                    <TextView
+                        android:id="@+id/infoPath"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="WA: ---"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="monospace"
+                        android:textSize="10sp"
+                        android:textColor="#80FFFFFF"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutGallery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_gallery"
+                        app:tint="#E91E63"/>
+                    <TextView
+                        android:id="@+id/infoGalleryPath"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Gallery: ---"
+                        android:layout_marginStart="14dp"
+                        android:fontFamily="monospace"
+                        android:textSize="10sp"
+                        android:textColor="#E91E63"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/infoDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Added on: ---"
+                android:textColor="#50FFFFFF"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:gravity="center"
+                android:layout_marginTop="16dp"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="Dismiss"
+            android:textColor="#FFFFFF"
+            android:fontFamily="sans-serif-black"
+            app:cornerRadius="16dp"
+            android:textAllCaps="false"
+            app:backgroundTint="#1AFFFFFF"
+            app:strokeColor="#33FFFFFF"
+            app:strokeWidth="1dp"
+            app:layout_constraintTop_toBottomOf="@id/infoContentLayout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

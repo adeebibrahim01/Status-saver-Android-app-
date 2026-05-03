@@ -1,0 +1,26 @@
+name: Status Expiry Monitor
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Har 30 minute baad script chalayega
+  workflow_dispatch: # Taake aap manually b run kar sakain testing k liye
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Script
+        env:
+          FCM_KEY: ${{ secrets.FCM_KEY }} # Security k liye secret use ho raha hai
+        run: python notify.py

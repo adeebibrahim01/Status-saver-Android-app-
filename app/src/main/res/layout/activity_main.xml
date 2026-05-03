@@ -20,10 +20,12 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@color/whatsapp_bg"
+        android:background="#FFFFFF"
         android:fitsSystemWindows="true"
-        app:itemTextColor="@android:color/black"
-        app:itemIconTint="@android:color/black"
         app:headerLayout="@layout/nav_header_main"
-        app:menu="@menu/activity_main_drawer" />
+        app:menu="@menu/activity_main_drawer"
+        app:itemIconTint="@null"
+        app:itemTextColor="#424242"
+        app:subheaderColor="#D4AF37"
+        app:subheaderTextAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
 </androidx.drawerlayout.widget.DrawerLayout>

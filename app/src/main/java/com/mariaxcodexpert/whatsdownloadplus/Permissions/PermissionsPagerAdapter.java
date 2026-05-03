@@ -54,12 +54,13 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
         if (holder.whatsappCheckbox != null) {
             holder.whatsappCheckbox.setOnClickListener(v -> {
                 if (holder.whatsappCheckbox.isChecked()) {
+                    v.clearAnimation(); // Tick hote hi animation ruk jaye gi
                     // Smooth transition to next page after selection
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         if (viewPager != null) viewPager.setCurrentItem(1, true);
                     }, 400);
                 } else {
-                    SmartNotify.info(v, "WhatsApp selection is required to proceed! ✅");
+                    SmartNotify.warning(v, "Please click the checkbox first to proceed. 🚀");
                 }
             });
         }
@@ -71,9 +72,23 @@ public class PermissionsPagerAdapter extends RecyclerView.Adapter<PermissionsPag
             holder.btnGuide.setOnClickListener(v -> activity.showGuideBottomSheet());
         }
 
-        // Folder Picker Button (Calls the fixed SAF logic in PermissionsActivity)
+        // Folder Picker Button logic with Animation
         if (holder.statusFolderBtn != null) {
-            holder.statusFolderBtn.setOnClickListener(v -> activity.openStatusFolderPicker());
+
+            // 1. Pehle animation shuru karein (taake text blink/fade kare)
+            android.view.animation.Animation fadeAnim = android.view.animation.AnimationUtils.loadAnimation(context, R.anim.text_fade);
+            holder.statusFolderBtn.startAnimation(fadeAnim);
+
+            holder.statusFolderBtn.setOnClickListener(v -> {
+                // 2. Click hote hi animation stop kar dein
+                v.clearAnimation();
+
+                // 3. User ko aik positive "Founding Member" signal dain
+              //  SmartNotify.success(v, "AI Protocol Synchronizing... Please select the folder. 📁");
+
+                // 4. Folder Picker open karein
+                activity.openStatusFolderPicker();
+            });
         }
     }
 

@@ -1,77 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_feedback_dialog"
-    android:padding="24dp"
-    android:clipToPadding="false">
+    app:cardBackgroundColor="#FAFAFA"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="12dp"
+    app:cardUseCompatPadding="true">
 
-    <ImageView
-        android:id="@+id/ivClose"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:src="@drawable/ic_close_white"
-        android:contentDescription="Close"
-        android:background="@drawable/circle_red_bg"
-        android:padding="8dp"
-        android:elevation="4dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <ImageView
-        android:id="@+id/ivStarVisual"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:src="@drawable/ic_star_rating_premium"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/tvFeedbackTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Enjoying the app?"
-        android:textSize="22sp"
-        android:textColor="#222222"
-        android:fontFamily="sans-serif-black"
-        android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/ivStarVisual"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/tvFeedbackMessage"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Your review helps us improve. It only takes a minute to support us on the Play Store."
-        android:textSize="14sp"
-        android:textColor="#666666"
-        android:gravity="center"
-        android:lineSpacingExtra="3dp"
-        app:layout_constraintTop_toBottomOf="@id/tvFeedbackTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnGiveFeedback"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="24dp"
-        android:text="Rate on Play Store"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:fontFamily="sans-serif-medium"
-        android:textColor="#FFF"
-        android:backgroundTint="#4CAF50"
-        app:cornerRadius="12dp"
-        app:layout_constraintTop_toBottomOf="@id/tvFeedbackMessage"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_height="wrap_content"
+        android:paddingBottom="30dp"
+        android:background="#FAFAFA">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Top Section: Natural & Soft Visual -->
+        <FrameLayout
+            android:id="@+id/illustrationContainer"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:background="#F0F0F0"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <View
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_gravity="center"
+                android:alpha="0.05"
+                android:background="@drawable/gold_glow_ring" />
+
+            <ImageView
+                android:id="@+id/ivStarVisual"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_rate_sidebar"
+                app:tint="#D4AF37" />
+        </FrameLayout>
+
+        <!-- Close Button -->
+        <ImageView
+            android:id="@+id/ivClose"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="12dp"
+            android:padding="10dp"
+            android:alpha="0.4"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_close_white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#000000" />
+
+        <LinearLayout
+            android:id="@+id/contentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="32dp"
+            app:layout_constraintTop_toBottomOf="@id/illustrationContainer">
+
+            <TextView
+                android:id="@+id/tvFeedbackTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:gravity="center"
+                android:text="Enjoying the App?"
+                android:textColor="#212121"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/tvFeedbackMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:alpha="0.7"
+                android:gravity="center"
+                android:lineSpacingExtra="4dp"
+                android:text="We are working hard to make your experience better. A quick review would mean the world to us!"
+                android:textColor="#424242"
+                android:textSize="14sp" />
+
+            <!-- 🔥 UPDATED: Individual IDs for Review Gating Psychology -->
+            <LinearLayout
+                android:id="@+id/llStars"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal">
+
+                <ImageView android:id="@+id/star1" android:layout_width="38dp" android:layout_height="38dp" android:src="@drawable/ic_rate_sidebar" android:layout_margin="4dp" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#D4AF37"/>
+                <ImageView android:id="@+id/star2" android:layout_width="38dp" android:layout_height="38dp" android:src="@drawable/ic_rate_sidebar" android:layout_margin="4dp" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#D4AF37"/>
+                <ImageView android:id="@+id/star3" android:layout_width="38dp" android:layout_height="38dp" android:src="@drawable/ic_rate_sidebar" android:layout_margin="4dp" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#D4AF37"/>
+                <ImageView android:id="@+id/star4" android:layout_width="38dp" android:layout_height="38dp" android:src="@drawable/ic_rate_sidebar" android:layout_margin="4dp" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#D4AF37"/>
+                <ImageView android:id="@+id/star5" android:layout_width="38dp" android:layout_height="38dp" android:src="@drawable/ic_rate_sidebar" android:layout_margin="4dp" android:background="?attr/selectableItemBackgroundBorderless" app:tint="#D4AF37"/>
+
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGiveFeedback"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="28dp"
+                android:fontFamily="sans-serif-black"
+                android:text="TAP TO RATE"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:letterSpacing="0.05"
+                app:backgroundTint="#D4AF37"
+                app:cornerRadius="16dp"
+                app:elevation="4dp" />
+
+            <TextView
+                android:id="@+id/tvFooterNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:alpha="0.5"
+                android:text="It only takes 5 seconds"
+                android:textColor="#757575"
+                android:textSize="11sp"
+                android:fontFamily="sans-serif-medium" />
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

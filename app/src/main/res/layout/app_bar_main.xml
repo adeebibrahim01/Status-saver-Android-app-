@@ -16,31 +16,107 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@drawable/side_nav_bar"
-            app:popupTheme="@style/Theme.WhatsDownloadPlus.PopupOverlay" />
+            app:popupTheme="@style/Theme.WhatsDownloadPlus.PopupOverlay">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:animateLayoutChanges="true"
+                android:paddingEnd="8dp">
+
+                <LinearLayout
+                    android:id="@+id/icon_list_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <FrameLayout
+                        android:id="@+id/custom_notif_layout"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="10dp"
+                            android:src="@drawable/ic_notification_bar" />
+                        <View
+                            android:id="@+id/custom_notif_dot"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/tab_indicator_selector"
+                            android:visibility="gone" />
+                    </FrameLayout>
+
+                    <ImageView
+                        android:id="@+id/custom_whatsapp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="9dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Open WhatsApp"
+                        android:src="@drawable/ic_whatsapp_bar" />
+
+
+                    <ImageView
+                        android:id="@+id/custom_more_apps"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="9dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Our Apps"
+                        android:src="@drawable/ic_more_apps" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/btn_toggle_menu"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="10dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_arrow_back"
+                    android:rotation="0"
+                    app:tint="#FFFFFF" />
+
+            </LinearLayout>
+
+        </androidx.appcompat.widget.Toolbar>
 
     </com.google.android.material.appbar.AppBarLayout>
 
     <include layout="@layout/content_main" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_gravity="bottom|end"
-        android:layout_margin="20dp"
-        app:backgroundTint="@null"
-        android:background="@drawable/fab_gradient_bg"
-        app:srcCompat="@drawable/ic_gallery_saved"
-        app:tint="@android:color/white"
-        app:fabSize="normal"
-        app:elevation="12dp"
-        app:pressedTranslationZ="12dp"
-        app:borderWidth="0dp" />
-    <include layout="@layout/layout_refresh_glass"
-        android:id="@+id/refreshOverlay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
+        android:layout_margin="24dp"
+        app:cardCornerRadius="30dp"
+        app:cardBackgroundColor="#075E54"
+        app:cardElevation="15dp"
+        app:cardMaxElevation="20dp"
+        app:strokeColor="#D4AF37"
+        app:strokeWidth="2.5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:stateListAnimator="@animator/fab_press_elevation"
+        android:foreground="@drawable/bg_3d_button_overlay">
 
+        <ImageView
+            android:id="@+id/fab"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            app:srcCompat="@drawable/ic_status_discovery"
+            app:tint="#D4AF37"
+            android:scaleType="centerInside"
+            android:elevation="5dp" />
+    </com.google.android.material.card.MaterialCardView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

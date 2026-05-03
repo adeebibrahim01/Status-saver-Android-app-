@@ -1,10 +1,15 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    // Use Android Gradle Plugin version 8.6.1
+    // 🔥 Version 8.6.1 is better for your latest Android Studio
     id 'com.android.application' version '8.6.1' apply false
     id 'com.android.library' version '8.6.1' apply false
-}
 
+    // 🔥 Use the latest stable Google Services (compatible with AGP 8.6.1)
+    id 'com.google.gms.google-services' version '4.4.2' apply false
+
+    // 🔥 Firebase Crashlytics plugin
+    id 'com.google.firebase.crashlytics' version '3.0.2' apply false
+}
 // You can also add global repositories or configuration if needed
 task clean(type: Delete) {
     delete rootProject.buildDir

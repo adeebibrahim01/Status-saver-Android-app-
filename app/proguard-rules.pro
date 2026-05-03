@@ -22,3 +22,4 @@
 -keep class com.bumptech.glide.** { *; }
 -keep class com.yalantis.ucrop** { *; }
 -keep class com.google.android.gms.ads.** { *; }
+-keep class com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.** { *; }

@@ -1,141 +1,134 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 
-import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.ui.Download.FullScreenMediaActivity;
+import com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity;
+import com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoEntity;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Objects;
 
-public class RecentDownloadsAdapter extends RecyclerView.Adapter<RecentDownloadsAdapter.ViewHolder> {
+/**
+ * 🔥 DASHBOARD ADAPTER: Optimized to show ONLY downloaded gallery media.
+ * Logic is now simplified as Room handles the filtering.
+ */
+public class RecentDownloadsAdapter extends ListAdapter<Object, RecentDownloadsAdapter.ViewHolder> {
 
-    private final List<MediaItem> items = new ArrayList<>();
-    private final LinearLayout emptyMessage;
-
-    public RecentDownloadsAdapter(List<MediaItem> initialItems, @Nullable LinearLayout emptyMessage) {
-        if (initialItems != null) {
-            this.items.addAll(initialItems);
-        }
-        this.emptyMessage = emptyMessage;
-        setHasStableIds(true);
-        updateEmptyState();
+    public interface OnItemClickListener {
+        void onItemClick(Object item);
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView imgThumb, videoIcon;
+    private final OnItemClickListener listener;
 
-        ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            imgThumb = itemView.findViewById(R.id.imgThumb);
-            videoIcon = itemView.findViewById(R.id.videoIcon);
-        }
-    }
-
-    @Override
-    public long getItemId(int position) {
-        // Stable IDs using URI hash for better performance
-        return items.get(position).uri.toString().hashCode();
+    public RecentDownloadsAdapter(OnItemClickListener listener) {
+        super(new DiffCallback());
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.recent_download_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recent_download_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        MediaItem item = items.get(position);
-        if (item == null || item.uri == null) return;
+        Object item = getItem(position);
+        if (item == null) return;
 
-        // Thumbnail Loading (Glide handles content URIs perfectly)
+        String displayPath = null;
+        boolean isVideo = false;
+
+        // 🔥 Room already filtered these, so we just extract the path
+        if (item instanceof ImageEntity) {
+            ImageEntity image = (ImageEntity) item;
+            displayPath = image.gallery_path;
+            isVideo = false;
+        } else if (item instanceof VideoEntity) {
+            VideoEntity video = (VideoEntity) item;
+            displayPath = video.gallery_path;
+            isVideo = true;
+        }
+
+        // Safety check: Agar path null h to view khali rkhain (Room filter ki waja sa ye case aye ga nahi)
+        if (displayPath == null || displayPath.isEmpty()) {
+            holder.itemView.setVisibility(View.GONE);
+            return;
+        } else {
+            holder.itemView.setVisibility(View.VISIBLE);
+        }
+
+        // 🟢 PREMIUM GLIDE LOADING
         Glide.with(holder.imgThumb.getContext())
-                .load(item.uri)
-                .thumbnail(0.15f)
+                .load(displayPath) // Loads content:// uri or file path
+                .placeholder(R.drawable.shimmer_placeholder)
+                .error(R.drawable.placeholder_image)
+                .thumbnail(0.25f)
+                .transition(DrawableTransitionOptions.withCrossFade(250))
+                .format(DecodeFormat.PREFER_RGB_565) // Saves memory
                 .centerCrop()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.image_bg)
-                .error(R.drawable.ic_download)
                 .into(holder.imgThumb);
 
-        holder.videoIcon.setVisibility(item.isVideo ? View.VISIBLE : View.GONE);
+        // Video Play Icon Overlay
+        holder.videoIcon.setVisibility(isVideo ? View.VISIBLE : View.GONE);
 
+        // Click Handling
         holder.itemView.setOnClickListener(v -> {
-            Context ctx = v.getContext();
-
-            // 🔥 CLEANED: Direct URI handling (No FileProvider needed)
-            Intent intent = new Intent(ctx, FullScreenMediaActivity.class);
-            intent.putExtra(FullScreenMediaActivity.EXTRA_URI, item.uri.toString());
-            intent.putExtra(FullScreenMediaActivity.EXTRA_IS_VIDEO, item.isVideo);
-
-            // Important for MediaStore URIs
-            intent.setDataAndType(item.uri, item.isVideo ? "video/*" : "image/*");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-            if (!(ctx instanceof android.app.Activity)) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (listener != null) {
+                listener.onItemClick(item);
             }
-
-            ctx.startActivity(intent);
         });
     }
 
     @Override
-    public int getItemCount() {
-        return items.size();
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        // Clear memory when scrolling
+        Glide.with(holder.imgThumb.getContext()).clear(holder.imgThumb);
     }
 
-    public void updateData(List<MediaItem> newItems) {
-        if (newItems == null) {
-            items.clear();
-            notifyDataSetChanged();
-            updateEmptyState();
-            return;
+    public static class DiffCallback extends DiffUtil.ItemCallback<Object> {
+        @Override
+        public boolean areItemsTheSame(@NonNull Object oldItem, @NonNull Object newItem) {
+            if (oldItem instanceof ImageEntity && newItem instanceof ImageEntity) {
+                return Objects.equals(((ImageEntity) oldItem).fileName, ((ImageEntity) newItem).fileName);
+            }
+            if (oldItem instanceof VideoEntity && newItem instanceof VideoEntity) {
+                return Objects.equals(((VideoEntity) oldItem).fileName, ((VideoEntity) newItem).fileName);
+            }
+            return false;
         }
 
-        DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
-            @Override
-            public int getOldListSize() { return items.size(); }
-            @Override
-            public int getNewListSize() { return newItems.size(); }
-            @Override
-            public boolean areItemsTheSame(int oldPos, int newPos) {
-                return items.get(oldPos).uri.toString().equals(newItems.get(newPos).uri.toString());
-            }
-            @Override
-            public boolean areContentsTheSame(int oldPos, int newPos) {
-                return items.get(oldPos).uri.equals(newItems.get(newPos).uri);
-            }
-        });
-
-        items.clear();
-        items.addAll(newItems);
-        diffResult.dispatchUpdatesTo(this);
-        updateEmptyState();
+        @Override
+        public boolean areContentsTheSame(@NonNull Object oldItem, @NonNull Object newItem) {
+            return Objects.equals(oldItem, newItem);
+        }
     }
 
-    private void updateEmptyState() {
-        if (emptyMessage != null) {
-            emptyMessage.post(() -> {
-                emptyMessage.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
-            });
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public final ImageView imgThumb, videoIcon;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            imgThumb = itemView.findViewById(R.id.imgThumb);
+            videoIcon = itemView.findViewById(R.id.videoIcon);
+
+            // Performance enhancement for hardware-accelerated devices
+            imgThumb.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         }
     }
 }

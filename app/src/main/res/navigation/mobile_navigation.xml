@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Home.HomeFragment"
-        android:label="@string/app_name"
+        android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_home_to_gallery"
@@ -17,9 +17,10 @@
 
     <fragment
         android:id="@+id/nav_gallery"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImagesAndVideoFragment"
-        android:label="Gallery"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.gallery.GalleryFragment"
+        android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/fragment_imagesandvideo">
+
 
         <action
             android:id="@+id/action_gallery_to_preview"
@@ -29,19 +30,29 @@
 
     <activity
         android:id="@+id/imageVideoPreviewActivity"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.ImagesAndVideo.ImageVideoPreviewActivity"
-        android:label="Preview"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.preview.MediaPreviewActivity"
+        android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/image_video_preview_activity" />
     <fragment
         android:id="@+id/nav_download"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Download.DownloadFragment"
-        android:label="Downloads"
+        android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/fragment_download" />
 
     <fragment
         android:id="@+id/nav_privacy_policy"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Privacy_policy.PrivacyPolicyFragment"
-        android:label="Privacy Policy"
+        android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/fragment_privacy_policy" />
 
+    <fragment
+        android:id="@+id/nav_online_search"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Search.OnlineSearchFragment"
+        android:label="@string/STATUS_ENGINE"
+        tools:layout="@layout/fragment_online_search" />
+    <fragment
+        android:id="@+id/nav_premium"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.PremiumFragment"
+        android:label="Premium Access"
+        tools:layout="@layout/fragment_premium" />
 </navigation>

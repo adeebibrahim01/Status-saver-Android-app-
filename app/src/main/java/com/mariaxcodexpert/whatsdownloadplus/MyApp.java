@@ -1,53 +1,56 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.ProcessLifecycleOwner;
+import androidx.work.Configuration;
+import androidx.work.WorkManager;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-/**
- * Android 10+ Optimized Application Class.
- * Handled with Modern Lifecycle Observers for Ads and Visibility.
- */
-public class MyApp extends Application implements DefaultLifecycleObserver {
+public class MyApp extends Application implements DefaultLifecycleObserver, Configuration.Provider {
+    private static final String TAG = "WhatsDownload_MyApp";
 
-    private static final String TAG = "MyApp_StatusSaver";
-    private static boolean isInForeground = false;
+    private final ExecutorService backgroundExecutor = Executors.newFixedThreadPool(
+            Math.max(2, Runtime.getRuntime().availableProcessors())
+    );
 
     @Override
     public void onCreate() {
         super.onCreate();
-
-        // App ki lifecycle track karne ke liye (Ads ke liye zaroori hai)
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
 
-        // AdManager ko start-up par initialize karna
-        AdManager.init(this);
+        backgroundExecutor.execute(() -> {
+            try {
+                // WorkManager ko refresh karna taake background jobs active rahein
+                WorkManager.getInstance(this);
 
-        Log.d(TAG, "Application Started - MariaXCodeExpert");
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    AdManager.init(this);
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Init Error: " + e.getMessage());
+            }
+        });
+    }
+
+    @NonNull
+    @Override
+    public Configuration getWorkManagerConfiguration() {
+        // Standard configuration bina kisi extra complication ke
+        return new Configuration.Builder()
+                .setMinimumLoggingLevel(Log.INFO)
+                .build();
     }
 
     @Override
-    public void onStart(@NonNull LifecycleOwner owner) {
-        isInForeground = true;
-        Log.d(TAG, "App Status: FOREGROUND");
-
-        // Background se wapas aane par Ad load karna taake user ko delay na mile
-        if (AdManager.canRequestAds() && !AdManager.isAdLoaded()) {
-            AdManager.preloadAd(this);
-        }
-    }
+    public void onStart(@NonNull LifecycleOwner owner) { Log.d(TAG, "App: FOREGROUND"); }
 
     @Override
-    public void onStop(@NonNull LifecycleOwner owner) {
-        isInForeground = false;
-        Log.d(TAG, "App Status: BACKGROUND");
-    }
-
-    public static boolean isAppInForeground() {
-        return isInForeground;
-    }
+    public void onStop(@NonNull LifecycleOwner owner) { Log.d(TAG, "App: BACKGROUND"); }
 }

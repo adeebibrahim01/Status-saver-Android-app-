@@ -1,0 +1,17 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+
+    <!-- Right Section: Main Panel (Solid Gold) -->
+    <path
+        android:fillColor="#424242"
+        android:pathData="M3,13h8V3H3V13z M3,21h8v-6H3V21z M13,21h8V11h-8V21z M13,3v6h8V3H13z"/>
+
+    <!-- Subtle Insight Detail: Ek box ko thora different shape di hai for "Growth" look -->
+    <path
+        android:fillColor="#424242"
+        android:pathData="M15,15h4v2h-4z"/>
+
+</vector>

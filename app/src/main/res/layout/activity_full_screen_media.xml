@@ -1,125 +1,186 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/fullScreenContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    android:fitsSystemWindows="false">
+    android:background="#0A0A0A">
 
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/adView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+    <FrameLayout
+        android:id="@+id/adContainer"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
         android:layout_marginTop="35dp"
-        app:adSize="BANNER"
-        app:adUnitId="ca-app-pub-9822767396000072/9452084887"
+        android:background="#121212"
+        android:elevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-    <FrameLayout
-        android:id="@+id/mediaContainer"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/adView">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.github.chrisbanes.photoview.PhotoView
-            android:id="@+id/fullImage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter"
-            android:visibility="visible" />
-
-        <androidx.media3.ui.PlayerView
-            android:id="@+id/fullPlayerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            app:resize_mode="fit"
-            app:use_controller="false" />
-
-        <View
-            android:id="@+id/topScrim"
-            android:layout_width="match_parent"
-            android:layout_height="140dp"
-            android:layout_gravity="top"
-            android:background="@drawable/item_scrim_gradient_top" />
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-9822767396000072/9452084887" />
     </FrameLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/closeButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="70dp"
-        android:layout_marginEnd="16dp"
-        android:insetLeft="0dp"
-        android:insetTop="0dp"
-        android:insetRight="0dp"
-        android:insetBottom="0dp"
-        android:padding="0dp"
-        app:backgroundTint="@color/whatsapp_green"
-        app:icon="@drawable/ic_close"
-        app:iconGravity="textStart"
-        app:iconPadding="0dp"
-        app:iconSize="24dp"
-        app:iconTint="@color/red"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/mediaViewPager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomActions"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/adContainer" />
+
+    <FrameLayout
+        android:id="@+id/closeButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/circle_bg_black_round"
+        android:clickable="true"
+        android:elevation="15dp"
+        android:focusable="true"
+        android:outlineProvider="background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/mediaViewPager">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_close"
+            app:tint="#D4AF37" />
+    </FrameLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/deleteOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E6000000"
+        android:clickable="true"
+        android:elevation="100dp"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/deleteProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="false"
+            app:indicatorColor="#FF5252"
+            app:indicatorSize="90dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:trackColor="#26FF5252"
+            app:trackCornerRadius="10dp"
+            app:trackThickness="8dp" />
+
+        <TextView
+            android:id="@+id/tvDeletePercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:text="0%"
+            android:textColor="#FF5252"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@+id/deleteProgress"
+            app:layout_constraintEnd_toEndOf="@+id/deleteProgress"
+            app:layout_constraintStart_toStartOf="@+id/deleteProgress"
+            app:layout_constraintTop_toTopOf="@+id/deleteProgress" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.2"
+            android:text="PURGING SYSTEM..."
+            android:textColor="#D4AF37"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/deleteProgress" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:id="@+id/bottomActions"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
-        android:background="@drawable/bg_floating_action_capsule"
-        android:elevation="8dp"
+        android:background="@drawable/premium_action_bg"
+        android:clipToPadding="false"
+        android:elevation="20dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="8dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="48dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/repostActionButton"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            app:icon="@drawable/ic_repost"
-            app:iconTint="@color/white" />
+        <LinearLayout
+            android:id="@+id/cardRepost"
+            style="@style/PremiumNavTab"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <FrameLayout
+                style="@style/PremiumIconFrame"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_icon_glass">
+                <ImageView
+                    android:id="@+id/repostActionButton"
+                    style="@style/PremiumIconStyle"
+                    android:src="@drawable/ic_repost"
+                    app:tint="#D4AF37" />
+            </FrameLayout>
+            <TextView style="@style/PremiumNavLabel" android:text="REPOST" android:textColor="#A6A6A6" />
+        </LinearLayout>
 
-        <View
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:layout_marginHorizontal="8dp"
-            android:background="#4DFFFFFF" />
+        <LinearLayout
+            android:id="@+id/cardShareFull"
+            style="@style/PremiumNavTab"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <FrameLayout
+                style="@style/PremiumIconFrame"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_icon_glass">
+                <ImageView
+                    android:id="@+id/shareActionButton"
+                    style="@style/PremiumIconStyle"
+                    android:src="@drawable/ic_share"
+                    app:tint="#D4AF37" />
+            </FrameLayout>
+            <TextView style="@style/PremiumNavLabel" android:text="SHARE" android:textColor="#A6A6A6" />
+        </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/shareActionButton"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            app:icon="@drawable/ic_share"
-            app:iconTint="#E0FFFFFF" />
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="24dp"
-            android:layout_marginHorizontal="8dp"
-            android:background="#4DFFFFFF" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/deleteActionButton"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            app:icon="@drawable/ic_delete"
-            app:iconTint="@color/red" />
-
+        <LinearLayout
+            android:id="@+id/cardDelete"
+            style="@style/PremiumNavTab"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <FrameLayout
+                style="@style/PremiumIconFrame"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_icon_glass_red">
+                <ImageView
+                    android:id="@+id/deleteActionButton"
+                    style="@style/PremiumIconStyle"
+                    android:src="@drawable/ic_delete"
+                    app:tint="#FF5252" />
+            </FrameLayout>
+            <TextView style="@style/PremiumNavLabel" android:text="DELETE" android:textColor="#FF5252" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
