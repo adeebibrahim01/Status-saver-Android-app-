@@ -3,26 +3,27 @@ name: Status Expiry Monitor
 on:
   schedule:
     - cron: '*/30 * * * *' # Har 30 minute baad script automatically chalegi
-  workflow_dispatch: # Taake aap Actions tab se manually bhi run kar sakain
+  workflow_dispatch: # Actions tab se manually run karne ke liye
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        # Version v4 use karein jo Node.js 24 support karta hai
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        # Version v5 use karein jo Node.js 24 support karta hai
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install dependencies
-        # Ab humein Firebase Admin SDK chahiye jo notify.py mein use ho rahi hai
         run: pip install firebase-admin
 
       - name: Run Script
         env:
-          # GitHub Secrets se Service Account JSON utha kar script ko dena
+          # GitHub Secrets se Service Account JSON
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: python notify.py
