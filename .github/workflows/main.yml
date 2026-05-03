@@ -2,19 +2,17 @@ name: Status Expiry Monitor
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Har 30 minute baad script automatically chalegi
-  workflow_dispatch: # Actions tab se manually run karne ke liye
+    - cron: '*/30 * * * *' # Har 30 minute baad chalega
+  workflow_dispatch: # Manual run ke liye
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        # Version v4 use karein jo Node.js 24 support karta hai
         uses: actions/checkout@v4
 
       - name: Set up Python
-        # Version v5 use karein jo Node.js 24 support karta hai
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -24,6 +22,8 @@ jobs:
 
       - name: Run Script
         env:
-          # GitHub Secrets se Service Account JSON
+          # Yahan lazmi check karein ke Secret ka naam GitHub settings mein 
+          # 'FIREBASE_SERVICE_ACCOUNT' hi rakha hai aapne.
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          # Agar aap ne 'FCM_KEY' ke naam se banaya hai, toh upar wala naam badal dein.
         run: python notify.py
