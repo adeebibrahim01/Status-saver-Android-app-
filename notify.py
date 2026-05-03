@@ -1,6 +1,7 @@
 import os
 import json
 import time
+from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, db, messaging
 
@@ -36,9 +37,9 @@ def run_notifier():
             android=messaging.AndroidConfig(
                 priority='high',
                 notification=messaging.AndroidNotification(
-                    channel_id='status_alerts_channel', # Lazmi: App mein ye channel ID hona chahiye
+                    channel_id='status_alerts_channel',
                     icon='stock_ticker_update',
-                    color='#FFD700' # Golden color for OmarSamy Creations
+                    color='#FFD700'
                 ),
             ),
             data={
@@ -64,42 +65,55 @@ def run_notifier():
             print("ℹ️ No alerts found in database.")
             return
 
-        # Current time in milliseconds
-        current_time = int(time.time() * 1000)
+        current_time_ms = int(time.time() * 1000)
         one_hour_ms = 3600000 
         notification_count = 0
 
-        # Loop through users (tokens)
         for token, statuses in data.items():
             if not isinstance(statuses, dict):
                 continue
                 
-            # Loop through each status for that user
             for s_id, s_info in statuses.items():
-                expiry = s_info.get('expiryTime', 0)
-                
-                # Check agar expiry number hai (Standard Practice)
-                if not isinstance(expiry, (int, float)):
-                    continue 
+                expiry_raw = s_info.get('expiryTime', 0)
+                expiry_ms = 0
+
+                # 🔥 Text Date ko Number (ms) mein convert karne ka logic
+                if isinstance(expiry_raw, str):
+                    try:
+                        # Format match: "04 May 2026 2:25:56 AM"
+                        # Note: %-I handle karta hai single digit hour (2) ko
+                        dt = datetime.strptime(expiry_raw, "%d %b %Y %I:%M:%S %p")
+                        expiry_ms = int(dt.timestamp() * 1000)
+                    except Exception as parse_error:
+                        # Agar format mein thoda boht farq ho (e.g. 02 instead of 2)
+                        try:
+                            dt = datetime.strptime(expiry_raw, "%d %b %Y %H:%M:%S")
+                            expiry_ms = int(dt.timestamp() * 1000)
+                        except:
+                            print(f"⚠️ Date format error for {s_id}: {expiry_raw}")
+                            continue
+                else:
+                    expiry_ms = expiry_raw
 
                 already_notified = s_info.get('notified', False)
-                time_left = expiry - current_time
+                time_left = expiry_ms - current_time_ms
 
-                # CASE 1: 1 ghante se kam bacha hai aur notification abhi tak nahi bheji
+                # DEBUG: Check karne k liye k kitna time bacha h
+                # print(f"Status {s_id}: {time_left/60000:.2f} mins remaining.")
+
+                # CASE 1: Notification logic
                 if 0 < time_left <= one_hour_ms and not already_notified:
                     success = send_notification(token, s_id)
                     if success:
-                        # Database mein 'notified' flag update karein
                         ref.child(token).child(s_id).update({'notified': True})
                         notification_count += 1
                 
-                # CASE 2: Status expire ho chuka hai (Cleanup)
+                # CASE 2: Cleanup logic
                 elif time_left < 0:
-                    # Python SDK mein delete() use hota hai, remove() nahi
                     ref.child(token).child(s_id).delete()
-                    print(f"🗑️ Removed expired status from DB: {s_id}")
+                    print(f"🗑️ Removed expired status: {s_id}")
 
-        print(f"✅ Process finished. Total notifications sent in this run: {notification_count}")
+        print(f"✅ Process finished. Total notifications sent: {notification_count}")
 
     except Exception as e:
         print(f"❌ Database Error: {e}")
