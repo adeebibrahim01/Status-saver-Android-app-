@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import credentials, db, messaging
 
@@ -9,7 +9,7 @@ def run_notifier():
     try:
         service_account_env = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
         if not service_account_env:
-            print("❌ Error: Secret FIREBASE_SERVICE_ACCOUNT missing.")
+            print("❌ Error: Secret missing.")
             return
 
         service_account_info = json.loads(service_account_env)
@@ -54,10 +54,12 @@ def run_notifier():
         data = ref.get()
 
         if not data:
-            print("ℹ️ No alerts in database.")
+            print("ℹ️ No alerts found.")
             return
 
-        current_time_ms = int(time.time() * 1000)
+        # Current Time (Pakistan Time ke mutabiq adjust kiya)
+        # GitHub Actions UTC use karta h, Pakistan UTC+5 h.
+        current_time_ms = int((time.time() + (5 * 3600)) * 1000)
         one_hour_ms = 3600000 
         notification_count = 0
 
@@ -65,17 +67,17 @@ def run_notifier():
             if not isinstance(statuses, dict): continue
             
             for s_id, s_info in statuses.items():
-                expiry_raw = s_info.get('expiryTime', 0)
+                expiry_raw = s_info.get('expiryTime', '')
                 expiry_ms = 0
 
-                # 🔥 Matching Android Format: "04 May 2026 02:25:56 AM"
                 if isinstance(expiry_raw, str):
                     try:
-                        # Strip spaces and parse
+                        # Parsing "04 May 2026 03:03:12 AM"
                         dt = datetime.strptime(expiry_raw.strip(), "%d %b %Y %I:%M:%S %p")
+                        # Is time ko milliseconds mein convert kiya
                         expiry_ms = int(dt.timestamp() * 1000)
-                    except:
-                        print(f"⚠️ Format Mismatch: {expiry_raw}")
+                    except Exception as e:
+                        print(f"⚠️ Date Parse Error: {e}")
                         continue
                 else:
                     expiry_ms = expiry_raw
@@ -83,19 +85,20 @@ def run_notifier():
                 already_notified = s_info.get('notified', False)
                 time_left = expiry_ms - current_time_ms
 
-                # Notification logic
+                # DEBUG: Ye line aapko GitHub log mein sahi time dikhaye gi
+                print(f"🔍 Status {s_id}: Time Left = {time_left/60000:.2f} minutes")
+
                 if 0 < time_left <= one_hour_ms and not already_notified:
                     if send_notification(token, s_id):
                         ref.child(token).child(s_id).update({'notified': True})
                         notification_count += 1
-                        print(f"🚀 Sent to Status ID: {s_id}")
+                        print(f"🚀 Notification Sent for {s_id}")
                 
-                # Cleanup
                 elif time_left < 0:
                     ref.child(token).child(s_id).delete()
-                    print(f"🗑️ Cleaned up expired ID: {s_id}")
+                    print(f"🗑️ Expired & Deleted: {s_id}")
 
-        print(f"✅ Run Complete. Sent: {notification_count}")
+        print(f"✅ Process finished. Sent: {notification_count}")
 
     except Exception as e:
         print(f"❌ Database Error: {e}")
