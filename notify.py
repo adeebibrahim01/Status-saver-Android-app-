@@ -36,9 +36,9 @@ def run_notifier():
             android=messaging.AndroidConfig(
                 priority='high',
                 notification=messaging.AndroidNotification(
-                    channel_id='status_alerts_channel', 
+                    channel_id='status_alerts_channel', # Lazmi: App mein ye channel ID hona chahiye
                     icon='stock_ticker_update',
-                    color='#FFD700' # Golden color for Premium feel
+                    color='#FFD700' # Golden color for OmarSamy Creations
                 ),
             ),
             data={
@@ -49,7 +49,7 @@ def run_notifier():
         )
         try:
             response = messaging.send(message)
-            print(f'🚀 Notification sent for Status {status_id}: {response}')
+            print(f'🚀 Successfully sent notification for Status {status_id}: {response}')
             return True
         except Exception as e:
             print(f'❌ FCM Error for {status_id}: {e}')
@@ -64,34 +64,42 @@ def run_notifier():
             print("ℹ️ No alerts found in database.")
             return
 
+        # Current time in milliseconds
         current_time = int(time.time() * 1000)
         one_hour_ms = 3600000 
         notification_count = 0
 
+        # Loop through users (tokens)
         for token, statuses in data.items():
+            if not isinstance(statuses, dict):
+                continue
+                
+            # Loop through each status for that user
             for s_id, s_info in statuses.items():
-                # Handling safe retrieval of expiryTime
                 expiry = s_info.get('expiryTime', 0)
+                
+                # Check agar expiry number hai (Standard Practice)
                 if not isinstance(expiry, (int, float)):
-                    continue # Skip if date is saved as String text
+                    continue 
 
                 already_notified = s_info.get('notified', False)
                 time_left = expiry - current_time
 
-                # CASE 1: 1 ghante se kam bacha hai aur pehle notification nahi bheji
+                # CASE 1: 1 ghante se kam bacha hai aur notification abhi tak nahi bheji
                 if 0 < time_left <= one_hour_ms and not already_notified:
                     success = send_notification(token, s_id)
                     if success:
-                        # Database mein 'notified' true kar dein taake dobara na jaye
+                        # Database mein 'notified' flag update karein
                         ref.child(token).child(s_id).update({'notified': True})
                         notification_count += 1
                 
                 # CASE 2: Status expire ho chuka hai (Cleanup)
                 elif time_left < 0:
-                    ref.child(token).child(s_id).remove()
-                    print(f"🗑️ Removed expired status: {s_id}")
+                    # Python SDK mein delete() use hota hai, remove() nahi
+                    ref.child(token).child(s_id).delete()
+                    print(f"🗑️ Removed expired status from DB: {s_id}")
 
-        print(f"✅ Process completed. Notifications sent in this run: {notification_count}")
+        print(f"✅ Process finished. Total notifications sent in this run: {notification_count}")
 
     except Exception as e:
         print(f"❌ Database Error: {e}")
