@@ -23,18 +23,18 @@ def run_notifier():
                 'databaseURL': f'https://{project_id}-default-rtdb.firebaseio.com/',
                 'projectId': project_id
             })
-        print(f"✅ Firebase Ready (UTC Universal Mode): {project_id}")
+        print(f"✅ Firebase Ready (Universal UTC Mode): {project_id}")
 
     except Exception as e:
         print(f"❌ Init Error: {e}")
         return
 
     def send_notification(token, status_id):
-        # Notification Payload
+        # Professional Notification Payload
         message = messaging.Message(
             notification=messaging.Notification(
                 title='Status Expiring Soon! ⏳',
-                body='Your viewed status will be gone soon. Save it now!',
+                body='One of your viewed statuses is about to expire. Save it now!',
             ),
             android=messaging.AndroidConfig(
                 priority='high',
@@ -62,44 +62,48 @@ def run_notifier():
             print("ℹ️ Empty DB. No actions needed.")
             return
 
-        # ✅ WORLDWIDE GENERIC: Current UTC Time (Seconds to Milliseconds)
-        # time.time() hamesha UTC return karta hai
+        # ✅ World Wide Generic UTC Time
         now_ms = int(time.time() * 1000)
         one_hour_ms = 3600000 
         sent_count = 0
 
-        for token, statuses in data.items():
-            if not isinstance(statuses, dict): continue
+        # Naya Structure: device_id -> status_id -> details
+        for device_id, statuses in data.items():
+            if not isinstance(statuses, dict):
+                continue
             
             for s_id, s_info in statuses.items():
                 expiry_str = s_info.get('expiryTime', '')
-                if not expiry_str: continue
+                token = s_info.get('token')
+                
+                if not expiry_str or not token:
+                    continue
 
                 try:
-                    # ✅ Parsing string and forcing UTC interpretation
+                    # Parsing UTC string from Android
                     dt = datetime.strptime(expiry_str.strip(), "%d %b %Y %I:%M:%S %p")
                     dt = dt.replace(tzinfo=timezone.utc) 
                     expiry_ms = int(dt.timestamp() * 1000)
                 except Exception as parse_error:
-                    print(f"⚠️ Date Parse Error for {s_id}: {parse_error}")
+                    print(f"⚠️ Parse Error for {s_id}: {parse_error}")
                     continue
 
                 already_notified = s_info.get('notified', False)
                 time_diff = expiry_ms - now_ms
                 
-                # Log for transparency
-                print(f"🔍 Checking {s_id}: {time_diff/60000:.2f} mins remaining (Global UTC)")
+                print(f"🔍 Checking Device [{device_id}] Status [{s_id}]: {time_diff/60000:.2f} mins left")
 
-                # Notification logic (within 60 mins and not yet notified)
+                # 1. Notification Logic
                 if 0 < time_diff <= one_hour_ms and not already_notified:
                     if send_notification(token, s_id):
-                        ref.child(token).child(s_id).update({'notified': True})
+                        # Device ID aur Status ID dono use kar k update karna h
+                        ref.child(device_id).child(s_id).update({'notified': True})
                         sent_count += 1
                 
-                # Cleanup logic (if time has passed)
+                # 2. Cleanup Logic
                 elif time_diff < 0:
-                    ref.child(token).child(s_id).delete()
-                    print(f"🗑️ Cleaned/Deleted Expired: {s_id}")
+                    ref.child(device_id).child(s_id).delete()
+                    print(f"🗑️ Cleaned Expired: {s_id} from Device: {device_id}")
 
         print(f"✅ Final Processed Count: {sent_count}")
 
