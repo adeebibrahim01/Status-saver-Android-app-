@@ -2,28 +2,34 @@ name: AI Trend Hunter
 
 on:
   schedule:
-    - cron: '0 */4 * * *' # Ye har 4 ghante baad khud chalegi
-  workflow_dispatch:      # Is se aap manually bhi run kar sakte hain
+    - cron: '0 */4 * * *' # Har 4 ghante baad khud chalege
+  workflow_dispatch:      # Manually run karne ke liye
 
 jobs:
   update-trends:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Latest version use karein
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10' # 3.9 se behtar hai, warnings khatam ho jayengi
 
       - name: Install Libraries
-        run: pip install requests firebase-admin
-
-      - name: Create Firebase Config
-        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service_account.json
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests firebase-admin
 
       - name: Run Trend Script
         env:
+          # Dono secrets yahan env mein pass karna zaroori hai
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: python trend_hunter.py
+
+      # Optional: Agar aapne script mein koi file save karni ho toh
+      - name: Keep Workflow Alive
+        run: echo "Trend update cycle completed at $(date)"
