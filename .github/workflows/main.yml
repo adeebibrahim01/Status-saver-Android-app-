@@ -2,25 +2,28 @@ name: Status Expiry Monitor
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Har 30 minute baad script chalayega
-  workflow_dispatch: # Taake aap manually b run kar sakain testing k liye
+    - cron: '*/30 * * * *' # Har 30 minute baad chalega
+  workflow_dispatch: # Manual run ke liye
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install firebase-admin
 
       - name: Run Script
         env:
-          FCM_KEY: ${{ secrets.FCM_KEY }} # Security k liye secret use ho raha hai
+          # Yahan lazmi check karein ke Secret ka naam GitHub settings mein 
+          # 'FIREBASE_SERVICE_ACCOUNT' hi rakha hai aapne.
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          # Agar aap ne 'FCM_KEY' ke naam se banaya hai, toh upar wala naam badal dein.
         run: python notify.py
