@@ -1,12 +1,13 @@
 import requests
 import firebase_admin
 from firebase_admin import credentials, db
-from pytrends.request import TrendReq
+import xml.etree.ElementTree as ET
 import os
 import json
 import time
 import logging
 import random
+import urllib.parse
 
 # Logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -15,27 +16,24 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 FIREBASE_DB_URL = "https://status-saver-92d48-default-rtdb.firebaseio.com"
 
-# Country mapping for PyTrends
-GEO_MAP = {
-    "US": "united_states",
-    "IN": "india",
-    "PK": "pakistan",
-    "GB": "united_kingdom",
-    "BR": "brazil",
-    "ID": "indonesia",
-    "AE": "united_arab_emirates",
-    "SA": "saudi_arabia"
+# Google News mapping for stability (Country & Language code)
+NEWS_GEO_MAP = {
+    "US": "ceid=US:en",
+    "IN": "ceid=IN:en",
+    "PK": "ceid=PK:en",
+    "GB": "ceid=GB:en",
+    "BR": "ceid=BR:pt-419",
+    "ID": "ceid=ID:id",
+    "AE": "ceid=AE:en",
+    "SA": "ceid=SA:ar"
 }
 
 def initialize_firebase():
-    """Firebase initialization with environment secret safety check"""
     try:
         if not firebase_admin._apps:
             service_account_env = os.getenv("FIREBASE_SERVICE_ACCOUNT")
             if not service_account_env:
-                logging.error("FIREBASE_SERVICE_ACCOUNT secret is missing!")
                 return False
-            
             service_account_info = json.loads(service_account_env)
             cred = credentials.Certificate(service_account_info)
             firebase_admin.initialize_app(cred, {'databaseURL': FIREBASE_DB_URL})
@@ -45,29 +43,43 @@ def initialize_firebase():
         logging.error(f"Firebase Init Error: {e}")
         return False
 
-def get_trends_stable(country_name):
-    """Fetches trending searches using PyTrends with reliable headers"""
+def get_trending_from_news(ceid_param):
+    """Google News se trending headlines nikalne ka stable tareeqa"""
+    # Google News RSS is much more reliable than Trends RSS
+    url = f"https://news.google.com/rss?{ceid_param}"
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+    }
+
     try:
-        # hl='en-US' for English results, tz=360 for timezone offset
-        pytrends = TrendReq(hl='en-US', tz=360, timeout=(10,25))
-        df = pytrends.trending_searches(pn=country_name)
-        keywords = df[0].tolist()
-        
-        logging.info(f"Fetched {len(keywords)} trends for {country_name}")
-        return keywords[:12]
+        response = requests.get(url, headers=headers, timeout=20)
+        if response.status_code == 200:
+            root = ET.fromstring(response.content)
+            keywords = []
+            for item in root.findall('.//item')[:15]: # Pehli 15 headlines
+                title = item.find('title').text
+                if title:
+                    # Headline se short keyword nikalna (Pexels ke liye)
+                    clean_kw = title.split('-')[0].strip() # News source ka naam hatana
+                    short_kw = " ".join(clean_kw.split()[:3]) # Pehle 3 words uthana
+                    keywords.append(short_kw)
+            
+            logging.info(f"Fetched {len(keywords)} trends from News.")
+            return list(set(keywords)) # Duplicates khatam karna
+        else:
+            logging.error(f"News Error {response.status_code}")
+            return []
     except Exception as e:
-        logging.error(f"PyTrends Error for {country_name}: {e}")
+        logging.error(f"News Fetch Error: {e}")
         return []
 
 def fetch_pexels_media(keyword):
-    """Fetches a high-quality vertical image from Pexels API"""
-    if not PEXELS_API_KEY:
-        logging.error("PEXELS_API_KEY is missing!")
-        return None
+    if not PEXELS_API_KEY: return None
     
-    # Refining query for status/wallpaper style
-    query = f"{keyword} wallpaper portrait"
-    url = f"https://api.pexels.com/v1/search?query={query}&orientation=portrait&per_page=1"
+    # Keyword ko URL friendly banana
+    encoded_kw = urllib.parse.quote(keyword)
+    url = f"https://api.pexels.com/v1/search?query={encoded_kw}+aesthetic&orientation=portrait&per_page=1"
     headers = {"Authorization": PEXELS_API_KEY}
 
     try:
@@ -82,54 +94,39 @@ def fetch_pexels_media(keyword):
                     "mediaUrl": photo['src']['original'],
                     "mediaType": "image"
                 }
-        else:
-            logging.warning(f"Pexels API returned status {response.status_code} for {keyword}")
     except Exception as e:
-        logging.error(f"Pexels Request Error: {e}")
+        logging.error(f"Pexels Error: {e}")
     return None
 
-def update_global_database():
-    """Main execution logic to update Firebase nodes by country"""
-    if not initialize_firebase():
-        return
+def main():
+    if not initialize_firebase(): return
 
-    all_global_items = []
+    global_data = []
 
-    for code, full_name in GEO_MAP.items():
-        logging.info(f"--- Processing: {full_name} ---")
-        trends = get_trends_stable(full_name)
+    for code, ceid in NEWS_GEO_MAP.items():
+        logging.info(f"--- Country: {code} ---")
+        trends = get_trending_from_news(ceid)
         
-        if not trends:
-            continue
+        if not trends: continue
 
-        country_media_list = []
+        country_list = []
         for kw in trends:
-            if len(country_media_list) >= 6:
-                break
+            if len(country_list) >= 6: break
             
-            media_item = fetch_pexels_media(kw)
-            if media_item:
-                country_media_list.append(media_item)
-                # Build global list as fallback
-                if len(all_global_items) < 30:
-                    all_global_items.append(media_item)
-                time.sleep(1.5) # Protect Pexels rate limits
+            item = fetch_pexels_media(kw)
+            if item:
+                country_list.append(item)
+                global_data.append(item)
+                time.sleep(1)
 
-        if country_media_list:
-            try:
-                db.reference(f'/trending_status/{code}').set(country_media_list)
-                logging.info(f"Firebase node '{code}' updated.")
-            except Exception as e:
-                logging.error(f"Firebase Update Error for {code}: {e}")
+        if country_list:
+            db.reference(f'/trending_status/{code}').set(country_list)
+            logging.info(f"Updated {code} in Firebase.")
 
-    # Update GLOBAL fallback node
-    if all_global_items:
-        try:
-            random.shuffle(all_global_items)
-            db.reference('/trending_status/GLOBAL').set(all_global_items)
-            logging.info("GLOBAL fallback node updated successfully.")
-        except Exception as e:
-            logging.error(f"Global Fallback Error: {e}")
+    if global_data:
+        random.shuffle(global_data)
+        db.reference('/trending_status/GLOBAL').set(global_data[:25])
+        logging.info("GLOBAL update done.")
 
 if __name__ == "__main__":
-    update_global_database()
+    main()
