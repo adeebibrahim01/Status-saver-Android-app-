@@ -14,6 +14,8 @@ import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import android.util.Log;
+import android.widget.Toast;
+
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.*;
 import com.mariaxcodexpert.whatsdownloadplus.AdManager;
@@ -36,6 +38,7 @@ public class HomeFragment extends Fragment {
 
         // 🔥 IS LINE KO AISE LIKHEIN (Bina // ke)
         //throw new RuntimeException("Test Crash - Status Saver App");
+
 
          return binding.getRoot(); // Ye line execute nahi hogi kyunki upar crash ho jayega
     }
@@ -76,10 +79,15 @@ public class HomeFragment extends Fragment {
 
             navHandler.postDelayed(() -> isNavigating = false, 1000);
         });
-//        binding.tvTotalStats.setOnClickListener(v -> {
-//            Intent intent = new Intent(getActivity(), StatsActivity.class);
-//            startActivity(intent);
-//        });
+
+        binding.tvTestTrending.setOnClickListener(v -> {
+            try {
+                // Navigation controller ka sahi tareeka
+                NavHostFragment.findNavController(this).navigate(R.id.action_home_to_trending);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
         binding.rvRecentDownloads.setAdapter(adapter);
 

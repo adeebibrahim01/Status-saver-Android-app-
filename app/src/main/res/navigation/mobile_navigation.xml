@@ -13,26 +13,35 @@
         <action
             android:id="@+id/action_home_to_gallery"
             app:destination="@id/nav_gallery" />
+        <!-- Action for Trending -->
+        <action
+            android:id="@+id/action_home_to_trending"
+            app:destination="@id/nav_trending" />
     </fragment>
+
+    <!-- AI Trend Hunter Fragment Registration -->
+    <fragment
+        android:id="@+id/nav_trending"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.trending.TrendingFragment"
+        android:label="AI Trend Hunter"
+        tools:layout="@layout/fragment_trending" />
 
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.gallery.GalleryFragment"
         android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/fragment_imagesandvideo">
-
-
         <action
             android:id="@+id/action_gallery_to_preview"
             app:destination="@id/imageVideoPreviewActivity" />
     </fragment>
-
 
     <activity
         android:id="@+id/imageVideoPreviewActivity"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.preview.MediaPreviewActivity"
         android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/image_video_preview_activity" />
+
     <fragment
         android:id="@+id/nav_download"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Download.DownloadFragment"
@@ -50,6 +59,7 @@
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Search.OnlineSearchFragment"
         android:label="@string/STATUS_ENGINE"
         tools:layout="@layout/fragment_online_search" />
+
     <fragment
         android:id="@+id/nav_premium"
         android:name="com.mariaxcodexpert.whatsdownloadplus.PremiumFragment"
