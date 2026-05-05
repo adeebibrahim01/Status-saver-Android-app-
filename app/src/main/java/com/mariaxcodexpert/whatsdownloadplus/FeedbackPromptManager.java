@@ -129,8 +129,8 @@ public class FeedbackPromptManager {
         } else {
             // 🛑 Negative/Average Review: Filter kar lo (Analytics mein track ho chuka hai)
             String msg = (Locale.getDefault().getLanguage().equals("ur"))
-                    ? "Feedback dene ka shukriya!"
-                    : "Thank you for your feedback!";
+                    ? "Rating dene ka shukriya!"
+                    : "Thank you for your rating!";
             Toast.makeText(activity, msg, Toast.LENGTH_LONG).show();
 
             prefs.edit().putBoolean(KEY_FEEDBACK_GIVEN, true).apply();

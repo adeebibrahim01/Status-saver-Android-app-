@@ -6,10 +6,14 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+
 import com.google.android.gms.tasks.Task;
 import com.google.android.play.core.appupdate.AppUpdateInfo;
 import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.appupdate.AppUpdateOptions;
 import com.google.android.play.core.install.InstallException;
 import com.google.android.play.core.install.model.AppUpdateType;
 import com.google.android.play.core.install.model.InstallErrorCode;
@@ -18,42 +22,31 @@ import com.google.android.play.core.install.model.UpdateAvailability;
 public class AppUpdateChecker {
 
     private static final String TAG = "AppUpdateChecker";
-    public static final int UPDATE_REQUEST_CODE = 1001;
-
-    // Yahan se aap testing on/off kar sakte hain
     private final boolean isTesting = false;
 
     private final Activity activity;
     private final AppUpdateManager appUpdateManager;
+    private final ActivityResultLauncher<IntentSenderRequest> updateLauncher;
 
-    public AppUpdateChecker(Activity activity) {
+    // Constructor mein launcher lazmi pass karein
+    public AppUpdateChecker(Activity activity, ActivityResultLauncher<IntentSenderRequest> updateLauncher) {
         this.activity = activity;
         this.appUpdateManager = AppUpdateManagerFactory.create(activity);
+        this.updateLauncher = updateLauncher;
     }
 
     public void checkForUpdate() {
-        // Agar testing true hai, to direct Play Store popup check karein
         if (isTesting) {
             Log.d(TAG, "Testing mode: Opening Play Store directly");
             openPlayStore();
             return;
         }
 
-        // Production Logic
         Task<AppUpdateInfo> task = appUpdateManager.getAppUpdateInfo();
         task.addOnSuccessListener(appUpdateInfo -> {
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
                     appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-                try {
-                    appUpdateManager.startUpdateFlowForResult(
-                            appUpdateInfo,
-                            AppUpdateType.IMMEDIATE,
-                            activity,
-                            UPDATE_REQUEST_CODE
-                    );
-                } catch (Exception e) {
-                    openPlayStore();
-                }
+                startUpdate(appUpdateInfo);
             }
         });
 
@@ -67,20 +60,27 @@ public class AppUpdateChecker {
         });
     }
 
+    private void startUpdate(AppUpdateInfo appUpdateInfo) {
+        try {
+            // Modern Way: Using AppUpdateOptions and Launcher
+            appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    updateLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+            );
+        } catch (Exception e) {
+            Log.e(TAG, "Update flow failed", e);
+            openPlayStore();
+        }
+    }
+
     public void onResume() {
-        // Resume logic testing mein ignore hogi
         if (isTesting) return;
 
         appUpdateManager.getAppUpdateInfo().addOnSuccessListener(appUpdateInfo -> {
+            // Agar update pehle se chal rahi hai (InProgress), toh usay foran dikhao
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                try {
-                    appUpdateManager.startUpdateFlowForResult(
-                            appUpdateInfo,
-                            AppUpdateType.IMMEDIATE,
-                            activity,
-                            UPDATE_REQUEST_CODE
-                    );
-                } catch (Exception ignored) {}
+                startUpdate(appUpdateInfo);
             }
         });
     }
@@ -94,14 +94,6 @@ public class AppUpdateChecker {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + activity.getPackageName()));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             activity.startActivity(intent);
-        }
-    }
-
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == UPDATE_REQUEST_CODE) {
-            if (resultCode != Activity.RESULT_OK) {
-                Log.e(TAG, "Update flow failed! Result code: " + resultCode);
-            }
         }
     }
 }

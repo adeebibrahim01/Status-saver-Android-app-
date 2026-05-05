@@ -21,6 +21,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -72,8 +75,9 @@ public class MainActivity extends AppCompatActivity {
         permissionManager = new PermissionManager(this, binding);
         navHelper = new NavigationHelper(this, binding);
         feedbackManager = new FeedbackPromptManager(this);
-        appUpdateChecker = new AppUpdateChecker(this);
-
+        // 6. App Update System (Modern Launcher Approach)
+        appUpdateChecker = new AppUpdateChecker(this, updateLauncher);
+        appUpdateChecker.checkForUpdate();
         setupNavigation();
         setupToolbarActions();
         setupFAB();
@@ -377,11 +381,14 @@ public class MainActivity extends AppCompatActivity {
             appUpdateChecker.onResume();
         }
     }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (appUpdateChecker != null) appUpdateChecker.onActivityResult(requestCode, resultCode, data);
-    }
+    // Top par variables ke saath define karein
+    private final ActivityResultLauncher<IntentSenderRequest> updateLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(),
+                    result -> {
+                        if (result.getResultCode() != RESULT_OK) {
+                            Log.e("AppUpdate", "Update flow failed or cancelled: " + result.getResultCode());
+                        }
+                    });
 
     @Override
     public boolean onSupportNavigateUp() {
@@ -391,6 +398,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         binding = null;
-        // feedbackManager.stop() ki line hata dein agar error de rahi hai
     }
 }

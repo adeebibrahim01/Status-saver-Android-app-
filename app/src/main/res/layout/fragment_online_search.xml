@@ -27,8 +27,9 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_video_library"
-                app:tint="#D4AF37" />
+                android:src="@drawable/ic_video_library_dashboard"
+                app:tint="#D4AF37"
+                />
         </FrameLayout>
 
         <LinearLayout
@@ -76,8 +77,9 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_photo_library"
-                app:tint="#D4AF37" />
+                android:src="@drawable/ic_photo_library_dashboard"
+                app:tint="#D4AF37"
+                />
         </FrameLayout>
 
         <View

@@ -2,97 +2,170 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Search;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+
+import java.util.*;
 
 public class UserPsychologyManager {
-    private static final String PREF_NAME = "UserPsychology";
+
+    private static final String PREF_NAME = "Global_AI_Brain_V3";
+    private static final String TIME_PREFIX = "_time_";
+    private static final String LINK_PREFIX = "_link_"; // co-occurrence
+
     private SharedPreferences prefs;
-
-    // 🔥 LUXURY DEFAULT TAGS: Ye keywords Pexels se premium cinematic results late hain
-    private static final String[] LUXURY_DEFAULTS = {
-            "Aesthetic Dark 4k",
-            "Cinematic Luxury Life",
-            "Deep Ocean Aesthetic",
-            "Minimalist Architecture",
-            "Supercar Neon Night",
-            "Dreamy Sunset 8k",
-            "Abstract Golden Glow",
-            "Premium Coffee Mood",
-            "Urban Street Style",
-            "Nature Landscape Cinematic"
-    };
-
-    private static final Set<String> STOP_WORDS = new HashSet<String>() {{
-        add("how"); add("to"); add("best"); add("top"); add("the"); add("for");
-        add("and"); add("with"); add("video"); add("status"); add("download");
-    }};
+    private Context context;
 
     public UserPsychologyManager(Context context) {
-        prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        this.context = context;
+        this.prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
+    // 🌍 GLOBAL TRENDS
+    private static final Map<String, String[]> GLOBAL_PULSE = new HashMap<String, String[]>() {{
+        put("PK", new String[]{"Sufi Art", "Urdu Poetry", "Truck Art", "Northern Pakistan", "Coke Studio"});
+        put("DEFAULT", new String[]{"Cyberpunk", "Nature", "Abstract", "Space", "Minimal"});
+    }};
+
+    // 🕒 TIME MOOD
+    private String getTimeMood() {
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        if (hour < 6) return "Night";
+        if (hour < 12) return "Morning";
+        if (hour < 18) return "Day";
+        return "Evening";
+    }
+
+    // 🌐 SAFE COUNTRY
+    private String getCountry() {
+        try {
+            String c = Locale.getDefault().getCountry();
+            return c.isEmpty() ? "DEFAULT" : c;
+        } catch (Exception e) {
+            return "DEFAULT";
+        }
+    }
+
+    // 🔗 TRACK SEARCH WITH RELATIONSHIP (CO-OCCURRENCE)
     public void trackSearch(String query) {
-        if (query == null || query.isEmpty()) return;
-        String[] words = query.toLowerCase().trim().split("\\s+");
+        if (query == null || query.length() < 3) return;
+
+        String[] words = query.toLowerCase().split("\\s+");
         SharedPreferences.Editor editor = prefs.edit();
+        long now = System.currentTimeMillis();
+
         for (String word : words) {
-            if (word.length() > 2 && !STOP_WORDS.contains(word)) {
-                int currentCount = prefs.getInt(word, 0);
-                if (currentCount < 50) {
-                    editor.putInt(word, currentCount + 1);
+            if (word.length() < 3) continue;
+
+            // frequency
+            editor.putInt(word, prefs.getInt(word, 0) + 1);
+            editor.putLong(TIME_PREFIX + word, now);
+
+            // co-occurrence learning
+            for (String other : words) {
+                if (!word.equals(other) && other.length() > 2) {
+                    String key = LINK_PREFIX + word + "_" + other;
+                    editor.putInt(key, prefs.getInt(key, 0) + 1);
                 }
             }
         }
         editor.apply();
     }
 
-    public List<String> getTopInterests(int limit) {
-        Map<String, ?> allEntries = prefs.getAll();
-        List<Map.Entry<String, Integer>> sortedInterests = new ArrayList<>();
-        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
-            if (entry.getValue() instanceof Integer) {
-                sortedInterests.add(new java.util.AbstractMap.SimpleEntry<>(entry.getKey(), (Integer) entry.getValue()));
+    // 🧠 SIMILARITY ENGINE (Pseudo Embedding)
+    private List<String> getSimilarWords(String baseWord) {
+        Map<String, ?> all = prefs.getAll();
+        Map<String, Integer> similarityMap = new HashMap<>();
+
+        for (String key : all.keySet()) {
+            if (key.startsWith(LINK_PREFIX + baseWord + "_")) {
+                String other = key.replace(LINK_PREFIX + baseWord + "_", "");
+                int score = prefs.getInt(key, 0);
+                similarityMap.put(other, score);
             }
         }
-        Collections.sort(sortedInterests, (e1, e2) -> e2.getValue().compareTo(e1.getValue()));
-        List<String> topTags = new ArrayList<>();
-        int actualLimit = Math.min(sortedInterests.size(), limit);
-        for (int i = 0; i < actualLimit; i++) {
-            topTags.add(sortedInterests.get(i).getKey());
-        }
-        return topTags;
-    }
 
-    /**
-     * 🔥 ADVANCED LUXURY LOGIC:
-     * User ko screen kholte hi "Premium" feel karwane k liye mixed query return kerta h.
-     */
-    public String getMixedRecommendedQuery(String[] fallbackTags) {
-        List<String> topInterests = getTopInterests(3);
-        Random random = new Random();
+        List<Map.Entry<String, Integer>> list = new ArrayList<>(similarityMap.entrySet());
+        list.sort((a, b) -> b.getValue() - a.getValue());
 
-        // 1. Agar user new h, to Luxury Defaults ma se pick krain
-        if (topInterests.isEmpty()) {
-            return LUXURY_DEFAULTS[random.nextInt(LUXURY_DEFAULTS.length)];
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < Math.min(3, list.size()); i++) {
+            result.add(list.get(i).getKey());
         }
 
-        // 2. ✧ SMART MIXING ✧
-        // User k top interest ko "Luxury Modifiers" k sath mix krain taake result 4k aye
-        String baseInterest = topInterests.get(0);
-        String[] modifiers = {"4k Aesthetic", "Cinematic", "High Resolution", "Dark Moody", "Abstract"};
-        String modifier = modifiers[random.nextInt(modifiers.length)];
-
-        // Agar user ka interest "Car" h, to query banegi "Car 4k Aesthetic" -> Jo k stunning dikhega.
-        return baseInterest + " " + modifier;
+        return result;
     }
 
-    public void clearPsychology() {
+    // 🧠 BEST KEYWORD (Recency + Frequency)
+    private String getBestKeyword() {
+        Map<String, ?> all = prefs.getAll();
+        long now = System.currentTimeMillis();
+
+        double bestScore = 0;
+        String best = null;
+
+        for (String key : all.keySet()) {
+            if (key.startsWith("_")) continue;
+
+            int freq = prefs.getInt(key, 0);
+            long time = prefs.getLong(TIME_PREFIX + key, now);
+
+            double hours = (now - time) / (1000.0 * 60 * 60);
+            double recency = 1 / (1 + hours);
+
+            double score = freq * 0.6 + recency * 4;
+
+            if (score > bestScore) {
+                bestScore = score;
+                best = key;
+            }
+        }
+
+        return best;
+    }
+
+    // 🧠 AUTO CATEGORY LEARNING
+    private String buildCategory(String word) {
+        List<String> similar = getSimilarWords(word);
+
+        if (similar.isEmpty()) return word;
+
+        // combine similar words → dynamic category
+        StringBuilder sb = new StringBuilder();
+        sb.append(word);
+
+        for (String s : similar) {
+            sb.append(" ").append(s);
+        }
+
+        return sb.toString();
+    }
+
+    // 🤖 FINAL AI PREDICTION
+    public String getAIPredictedQuery() {
+        String keyword = getBestKeyword();
+        String mood = getTimeMood();
+        String country = getCountry();
+
+        String[] trends = GLOBAL_PULSE.getOrDefault(country, GLOBAL_PULSE.get("DEFAULT"));
+        String trend = trends[new Random().nextInt(trends.length)];
+
+        if (keyword == null) {
+            return trend + " " + mood;
+        }
+
+        String smartCluster = buildCategory(keyword);
+
+        double r = Math.random();
+
+        if (r < 0.55) {
+            return smartCluster + " " + mood;
+        } else if (r < 0.85) {
+            return smartCluster + " " + trend;
+        } else {
+            return trend + " " + mood;
+        }
+    }
+
+    public void clear() {
         prefs.edit().clear().apply();
     }
 }

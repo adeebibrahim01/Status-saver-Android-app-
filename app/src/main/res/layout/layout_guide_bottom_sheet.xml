@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-black"
         android:gravity="center"
-        android:text="CORE ALGORITHM SYNC GUIDE"
+        android:text="STATUS FOLDER SETUP GUIDE"
         android:textColor="#D4AF37"
         android:textSize="20sp"
         android:letterSpacing="0.05"
@@ -33,7 +33,7 @@
         android:layout_marginTop="4dp"
         android:alpha="0.6"
         android:fontFamily="sans-serif-medium"
-        android:text="Follow these steps to authorize AI Neural Access"
+        android:text="Follow these simple steps to see statuses"
         android:textColor="#FFFFFF"
         android:textSize="11sp" />
 
@@ -67,7 +67,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="NEURAL PATH: ANDROID 11 - 14"
+                        android:text="FOR NEW ANDROID (11 - 14)"
                         android:textColor="#D4AF37"
                         android:textSize="13sp" />
                     <TextView
@@ -75,7 +75,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:alpha="0.8"
-                        android:text="Navigate to: Android > media > com.whatsapp > WhatsApp > Media > .Statuses"
+                        android:text="Go to: Android > media > com.whatsapp > WhatsApp > Media > .Statuses"
                         android:textColor="#FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -99,7 +99,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="LEGACY PATH: ANDROID 10"
+                        android:text="FOR OLD ANDROID (10 &amp; BELOW)"
                         android:textColor="#D4AF37"
                         android:textSize="13sp" />
                     <TextView
@@ -107,7 +107,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:alpha="0.8"
-                        android:text="Directly locate the 'WhatsApp > Media > .Statuses' directory in your root storage."
+                        android:text="Look for: WhatsApp > Media > .Statuses folder in your internal storage."
                         android:textColor="#FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -131,14 +131,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="CRITICAL: HIDDEN DATA SYNC"
+                        android:text="IMPORTANT: IF FOLDER IS EMPTY"
                         android:textColor="#FF5252"
                         android:textSize="13sp" />
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="If empty, tap the 3-dot Menu (Top Right) and select 'Show Hidden Files'. Without this, the AI cannot scan media."
+                        android:text="Tap the 3 dots (Top Right) and choose 'Show Hidden Files'. This is required to find the status folder."
                         android:textColor="#FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -157,7 +157,7 @@
                     android:padding="16dp"
                     android:fontFamily="sans-serif-black"
                     android:gravity="center"
-                    android:text="COMMAND: Select '.Statuses' folder and tap 'USE THIS FOLDER' to grant AI authorization."
+                    android:text="Select '.Statuses' folder and click 'USE THIS FOLDER' button at the bottom."
                     android:textColor="#000000"
                     android:textSize="12sp" />
             </com.google.android.material.card.MaterialCardView>
@@ -170,7 +170,7 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginTop="24dp"
-        android:text="I UNDERSTAND THE MISSION"
+        android:text="I UNDERSTAND"
         android:textColor="#000000"
         android:textSize="15sp"
         android:fontFamily="sans-serif-black"

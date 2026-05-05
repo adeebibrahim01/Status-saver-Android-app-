@@ -26,6 +26,7 @@ gridlayout = "1.1.0"
 runner = "1.7.0"
 media = "1.0.0"
 billing = "8.3.0"
+transportBackendCct = "3.1.9"
 
 
 [libraries]
@@ -55,6 +56,7 @@ gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref =
 runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 media = { group = "androidx.media", name = "media", version.ref = "media" }
 billing = { group = "com.android.billingclient", name = "billing", version.ref = "billing" }
+transport-backend-cct = { group = "com.google.android.datatransport", name = "transport-backend-cct", version.ref = "transportBackendCct" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -71,7 +71,6 @@ public class MediaPreviewActivity extends AppCompatActivity {
     private String fileName;
     private GalleryViewModel viewModel;
     private ViewPager2 viewPagerMedia;
-
     private View loaderContainer;
     private ProgressBar circleProgress;
     private TextView tvPercent, tvLabel;
@@ -366,6 +365,56 @@ public class MediaPreviewActivity extends AppCompatActivity {
         });
     }
 
+    private void syncUIMetadata(@NonNull Object item) {
+        currentMediaItem = item;
+        isVideo = item instanceof VideoEntity;
+
+        mediaUri = Uri.parse(isVideo ? ((VideoEntity)item).getUri() : ((ImageEntity)item).getUri());
+        fileName = isVideo ? ((VideoEntity)item).fileName : ((ImageEntity)item).fileName;
+
+        // Initial status purane object se
+        isDownloadedCurrent = isVideo ? ((VideoEntity)item).isDownloaded : ((ImageEntity)item).isDownloaded;
+
+        // 🔥 FIREBASE REALTIME SYNC (Add/Update Entry)
+        // Sirf local WhatsApp status sync krain, online/pexels nahi
+        if (!isDownloadedCurrent && mediaUri != null && !mediaUri.toString().startsWith("http")) {
+            int statusId = Math.abs(fileName.hashCode());
+            long expiryTime = (item instanceof ImageEntity) ?
+                    ((ImageEntity) item).expiryTime :
+                    ((VideoEntity) item).expiryTime;
+
+            com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.handleFirebaseSync(
+                    getApplicationContext(),
+                    statusId,
+                    expiryTime,
+                    false // Viewed: Add or Update entry with notified=false
+            );
+        }
+
+        // 🔥 ALTERNATE: Existing methods use karte hue
+        executor.execute(() -> {
+            boolean freshStatus = false;
+            if (isVideo) {
+                VideoEntity freshVid = videoDao.getVideoByFileName(fileName);
+                if (freshVid != null) freshStatus = freshVid.isDownloaded;
+            } else {
+                ImageEntity freshImg = imageDao.getImageByFileName(fileName);
+                if (freshImg != null) freshStatus = freshImg.isDownloaded;
+            }
+
+            if (freshStatus != isDownloadedCurrent) {
+                final boolean statusToUpdate = freshStatus;
+                runOnUiThread(() -> {
+                    isDownloadedCurrent = statusToUpdate;
+                    if (currentMediaItem instanceof ImageEntity) ((ImageEntity) currentMediaItem).isDownloaded = statusToUpdate;
+                    else if (currentMediaItem instanceof VideoEntity) ((VideoEntity) currentMediaItem).isDownloaded = statusToUpdate;
+                    updateUIState();
+                });
+            }
+        });
+
+        updateUIState();
+    }
     private void finalizeDownload(Uri u) {
         runOnUiThread(() -> {
             ValueAnimator finalAnim = ValueAnimator.ofInt(lastProgress, 100);
@@ -380,6 +429,18 @@ public class MediaPreviewActivity extends AppCompatActivity {
                 public void onAnimationEnd(Animator animation) {
                     if (tvLabel != null) tvLabel.setText("Status Successfully Saved!");
 
+                    // 🔥 FIREBASE REALTIME SYNC (Remove on Download)
+                    // Download hote hi Firebase se entry delete krain
+                    if (mediaUri != null && !mediaUri.toString().startsWith("http")) {
+                        int statusId = Math.abs(fileName.hashCode());
+                        com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.handleFirebaseSync(
+                                getApplicationContext(),
+                                statusId,
+                                0,    // Expiry delete k waqt 0 bhej skty hain
+                                true  // isDeleted = true, Firebase se entry remove kery ga
+                        );
+                    }
+
                     // Database aur UI Sync logic
                     executor.execute(() -> {
                         String galleryPath = u.toString();
@@ -387,35 +448,28 @@ public class MediaPreviewActivity extends AppCompatActivity {
 
                         if (currentMediaItem instanceof ImageEntity) {
                             ImageEntity img = (ImageEntity) currentMediaItem;
-                            img.isDownloaded = true; // 🔥 Object update for UI
+                            img.isDownloaded = true;
                             img.gallery_path = galleryPath;
                             img.downloadTime = currentTime;
-
-                            imageDao.insertImage(img); // DB update
-
-                            // ViewModel ko notify krain take Gallery screen update ho
+                            imageDao.insertImage(img);
                             runOnUiThread(() -> {
                                 if (viewModel != null) viewModel.markImageDownloaded(img, galleryPath);
                             });
 
                         } else if (currentMediaItem instanceof VideoEntity) {
                             VideoEntity vid = (VideoEntity) currentMediaItem;
-                            vid.isDownloaded = true; // 🔥 Object update for UI
+                            vid.isDownloaded = true;
                             vid.gallery_path = galleryPath;
                             vid.downloadTime = currentTime;
-
-                            videoDao.insertVideo(vid); // DB update
-
-                            // ViewModel ko notify krain
+                            videoDao.insertVideo(vid);
                             runOnUiThread(() -> {
                                 if (viewModel != null) viewModel.markVideoDownloaded(vid, galleryPath);
                             });
                         }
 
-                        // Foran icon badalne k liye runOnUiThread use krain
                         runOnUiThread(() -> {
                             isDownloadedCurrent = true;
-                            updateUIState(); // 🔥 Ab ye icon change kar dega
+                            updateUIState();
                         });
                     });
 
@@ -431,46 +485,6 @@ public class MediaPreviewActivity extends AppCompatActivity {
             });
             finalAnim.start();
         });
-    }
-
-    private void syncUIMetadata(@NonNull Object item) {
-        currentMediaItem = item;
-        isVideo = item instanceof VideoEntity;
-
-        mediaUri = Uri.parse(isVideo ? ((VideoEntity)item).getUri() : ((ImageEntity)item).getUri());
-        fileName = isVideo ? ((VideoEntity)item).fileName : ((ImageEntity)item).fileName;
-
-        // Initial status purane object se
-        isDownloadedCurrent = isVideo ? ((VideoEntity)item).isDownloaded : ((ImageEntity)item).isDownloaded;
-
-        // 🔥 ALTERNATE: Existing methods use karte hue
-        executor.execute(() -> {
-            boolean freshStatus = false;
-            if (isVideo) {
-                // VideoDao mein bhi getImageByFileName jaisa method hoga
-                VideoEntity freshVid = videoDao.getVideoByFileName(fileName);
-                if (freshVid != null) freshStatus = freshVid.isDownloaded;
-            } else {
-                // Aapke ImageDao mein ye method maujood h
-                ImageEntity freshImg = imageDao.getImageByFileName(fileName);
-                if (freshImg != null) freshStatus = freshImg.isDownloaded;
-            }
-
-            if (freshStatus != isDownloadedCurrent) {
-                final boolean statusToUpdate = freshStatus;
-                runOnUiThread(() -> {
-                    isDownloadedCurrent = statusToUpdate;
-
-                    // Current object ko update krain taake sync rahy
-                    if (currentMediaItem instanceof ImageEntity) ((ImageEntity) currentMediaItem).isDownloaded = statusToUpdate;
-                    else if (currentMediaItem instanceof VideoEntity) ((VideoEntity) currentMediaItem).isDownloaded = statusToUpdate;
-
-                    updateUIState();
-                });
-            }
-        });
-
-        updateUIState();
     }
     private void updateUIState() {
         if (btnSaveIcon == null || btnDownloadStatus == null) return;

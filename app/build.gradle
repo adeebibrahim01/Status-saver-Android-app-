@@ -1,11 +1,6 @@
 plugins {
-    // 🔥 Standard method for modern projects
     alias(libs.plugins.android.application)
-
-    // 🔥 Google Services (Required for Firebase)
     id 'com.google.gms.google-services'
-
-    // 🔥 Firebase Crashlytics
     id 'com.google.firebase.crashlytics'
 }
 
@@ -21,6 +16,12 @@ android {
         versionName "1.0.24"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // 🔥 FIX: Pehle property read karo, phir extra quotes remove karke clean string banao
+        def rawKey = project.findProperty('API_KEY') ?: ""
+        def cleanKey = rawKey.toString().replace("\"", "") // Double quotes saaf kero
+
+        buildConfigField "String", "API_KEY", "\"$cleanKey\""
     }
 
     buildTypes {
@@ -28,6 +29,28 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            // 🔥 FIX: Host name empty error khatam karne ke liye mapping upload disable karein
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+
+            // API KEY Logic (Release)
+            def rawKey = project.findProperty('API_KEY') ?: ""
+            def cleanKey = rawKey.toString().replace("\"", "")
+            buildConfigField "String", "API_KEY", "\"$cleanKey\""
+        }
+
+        debug {
+            // 🔥 Debug mein Crashlytics band rakhen taake build fast ho
+            firebaseCrashlytics {
+                mappingFileUploadEnabled false
+            }
+
+            // API KEY Logic (Debug)
+            def rawKey = project.findProperty('API_KEY') ?: ""
+            def cleanKey = rawKey.toString().replace("\"", "")
+            buildConfigField "String", "API_KEY", "\"$cleanKey\""
         }
     }
 
@@ -38,7 +61,7 @@ android {
 
     buildFeatures {
         viewBinding true
-        buildConfig = true
+        buildConfig true
     }
 }
 dependencies {
@@ -55,6 +78,7 @@ dependencies {
     implementation libs.gridlayout
     implementation libs.media
     implementation libs.billing
+    implementation libs.transport.backend.cct
     testImplementation libs.ext.junit
     testImplementation libs.runner
 

@@ -46,8 +46,9 @@
                 android:layout_gravity="center"
                 android:padding="8dp"
                 android:rotation="-15"
-                android:src="@drawable/ic_video_library"
-                app:tint="#D4AF37" />
+                android:src="@drawable/ic_video_library_dashboard"
+                app:tint="#D4AF37"
+              />
 
         </FrameLayout>
 
@@ -106,8 +107,9 @@
                 android:layout_gravity="center"
                 android:padding="8dp"
                 android:rotation="15"
-                android:src="@drawable/ic_photo_library"
-                app:tint="#D4AF37" />
+                android:src="@drawable/ic_photo_library_dashboard"
+                app:tint="#D4AF37"
+               />
 
         </FrameLayout>
 
