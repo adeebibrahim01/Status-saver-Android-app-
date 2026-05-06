@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ultra_luxury_bg">
+    android:background="#ECE5DD">
 
 
     <com.google.android.material.appbar.AppBarLayout
@@ -131,6 +131,7 @@
         android:layout_height="0dp"
         android:paddingHorizontal="12dp"
         android:paddingTop="10dp"
+        android:layout_marginBottom="60dp"
         android:clipToPadding="false"
         android:layoutAnimation="@anim/layout_animation_fall_down"
         app:layout_constraintBottom_toBottomOf="parent"

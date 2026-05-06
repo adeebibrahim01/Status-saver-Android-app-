@@ -29,6 +29,16 @@ public class MediaStatusUtils {
     }
 
     /**
+     * 🔥 NEW PUBLIC METHOD: Direct database mein record save karne ke liye (Trending Fragment ke liye)
+     */
+    public static void saveToDatabase(Context ctx, Uri savedUri, String name, boolean isVid) {
+        executor.execute(() -> {
+            // Trending items ke liye hum savedUri ko hi source aur path dono consider karte hain
+            syncToSpecificTable(ctx, savedUri.toString(), savedUri.toString(), name, isVid);
+        });
+    }
+
+    /**
      * Professional Save Logic: Gallery mein save karta hai aur Content Uri ko DB mein store karta hai.
      */
     public static void saveToGallery(Context context, Uri source, Bitmap bmp, String name, boolean isVid, int quality, SaveCallback cb) {
@@ -93,6 +103,7 @@ public class MediaStatusUtils {
             });
         });
     }
+
     /**
      * Database sync logic: 7 din ki expiry aur isDownloaded status ke sath record save karta hai.
      */
@@ -189,6 +200,7 @@ public class MediaStatusUtils {
             ctx.startActivity(Intent.createChooser(i, "Share via"));
         }
     }
+
     public static void repostMedia(Context ctx, Uri uri, boolean isVid) {
         if (uri.toString().startsWith("http")) {
             Toast.makeText(ctx, "Preparing for Repost... ✧", Toast.LENGTH_SHORT).show();
@@ -256,6 +268,7 @@ public class MediaStatusUtils {
             ctx.startActivity(Intent.createChooser(i, "Repost via"));
         }
     }
+
     private static void notifyUser(Context ctx, String name) {
         new PushNotificationHelper(ctx).sendNotification("Status Saver", "Status successfully saved!",
                 new Intent(Intent.ACTION_VIEW).setType("image/*"), name.hashCode());

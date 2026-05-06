@@ -29,6 +29,11 @@ public class BillingManager implements PurchasesUpdatedListener {
         void onBillingError(int errorCode, String technicalMessage);
     }
 
+    // 🔥 Ye line add karein
+    public interface PriceFetchCallback {
+        void onPriceFetched(String price);
+    }
+
     public interface PurchaseDetailCallback {
         void onDetailsFound(String type, Purchase purchase);
     }
@@ -150,29 +155,59 @@ public class BillingManager implements PurchasesUpdatedListener {
 
         billingClient.queryProductDetailsAsync(params, (billingResult, productDetailsResult) -> {
             List<ProductDetails> productDetailsList = productDetailsResult.getProductDetailsList();
+
             if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && productDetailsList != null && !productDetailsList.isEmpty()) {
 
                 ProductDetails productDetails = productDetailsList.get(0);
                 BillingFlowParams.ProductDetailsParams.Builder productParamsBuilder =
                         BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(productDetails);
 
-                // For Subscriptions: Get the latest offer token
-                if (type.equals(BillingClient.ProductType.SUBS) && productDetails.getSubscriptionOfferDetails() != null) {
-                    productParamsBuilder.setOfferToken(productDetails.getSubscriptionOfferDetails().get(0).getOfferToken());
+                // ✨ CRITICAL UPDATE FOR SUBSCRIPTIONS (MONTHLY PLAN)
+                if (type.equals(BillingClient.ProductType.SUBS)) {
+                    List<ProductDetails.SubscriptionOfferDetails> offerDetailsList = productDetails.getSubscriptionOfferDetails();
+
+                    if (offerDetailsList != null && !offerDetailsList.isEmpty()) {
+                        String selectedOfferToken = null;
+
+                        // Sabse pehle Base Plan wala token dhoondein (Jo testing ke liye lazmi hai)
+                        for (ProductDetails.SubscriptionOfferDetails offer : offerDetailsList) {
+                            // Testing instruments aksar pehle valid offer token par trigger hote hain
+                            selectedOfferToken = offer.getOfferToken();
+                            if (selectedOfferToken != null) break;
+                        }
+
+                        if (selectedOfferToken != null) {
+                            productParamsBuilder.setOfferToken(selectedOfferToken);
+                        } else {
+                            Log.e(TAG, "No valid Offer Token found for subscription: " + productId);
+                        }
+                    } else {
+                        Log.e(TAG, "Subscription offer details are empty in Play Console for: " + productId);
+                    }
                 }
 
                 BillingFlowParams flowParams = BillingFlowParams.newBuilder()
                         .setProductDetailsParamsList(List.of(productParamsBuilder.build()))
                         .build();
 
-                activity.runOnUiThread(() -> billingClient.launchBillingFlow(activity, flowParams));
+                // Launching the UI on the main thread
+                activity.runOnUiThread(() -> {
+                    BillingResult result = billingClient.launchBillingFlow(activity, flowParams);
+                    if (result.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                        Log.e(TAG, "Launch Flow Error: " + result.getDebugMessage());
+                    }
+                });
+
             } else {
-                Log.e(TAG, "Product Query Error: " + billingResult.getDebugMessage());
-                activity.runOnUiThread(() -> Toast.makeText(activity, "Service temporarily busy.", Toast.LENGTH_LONG).show());
+                String errorMsg = billingResult.getDebugMessage();
+                Log.e(TAG, "Product Query Error: " + errorMsg);
+                activity.runOnUiThread(() ->
+                        Toast.makeText(activity, "Play Store is currently busy with many requests. Please try again shortly.", Toast.LENGTH_LONG).show()
+
+                );
             }
         });
     }
-
     @Override
     public void onPurchasesUpdated(@NonNull BillingResult billingResult, List<Purchase> purchases) {
         int responseCode = billingResult.getResponseCode();
@@ -209,6 +244,51 @@ public class BillingManager implements PurchasesUpdatedListener {
         }
     }
 
+    public void fetchProductPrices(String productId, String type, PriceFetchCallback priceCallback) {
+        if (!billingClient.isReady()) return;
+
+        QueryProductDetailsParams params = QueryProductDetailsParams.newBuilder()
+                .setProductList(List.of(QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(productId)
+                        .setProductType(type)
+                        .build()))
+                .build();
+
+        // Callback parameters: billingResult aur productDetailsResult
+        billingClient.queryProductDetailsAsync(params, (billingResult, productDetailsResult) -> {
+
+            // 🔥 FIX: Pehle list nikaalein, kyunki 'isEmpty' result object par nahi chalta
+            List<ProductDetails> productDetailsList = productDetailsResult.getProductDetailsList();
+
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK
+                    && productDetailsList != null
+                    && !productDetailsList.isEmpty()) {
+
+                ProductDetails details = productDetailsList.get(0);
+                String formattedPrice = "";
+
+                if (type.equals(BillingClient.ProductType.SUBS)) {
+                    // Subscription (Monthly)
+                    if (details.getSubscriptionOfferDetails() != null && !details.getSubscriptionOfferDetails().isEmpty()) {
+                        formattedPrice = details.getSubscriptionOfferDetails().get(0)
+                                .getPricingPhases().getPricingPhaseList().get(0).getFormattedPrice();
+                    }
+                } else {
+                    // One-time (Lifetime)
+                    if (details.getOneTimePurchaseOfferDetails() != null) {
+                        formattedPrice = details.getOneTimePurchaseOfferDetails().getFormattedPrice();
+                    }
+                }
+
+                final String finalPrice = formattedPrice;
+                activity.runOnUiThread(() -> {
+                    if (!finalPrice.isEmpty()) {
+                        priceCallback.onPriceFetched(finalPrice);
+                    }
+                });
+            }
+        });
+    }
     private void activatePremium() {
         activity.runOnUiThread(() -> {
             SharedPreferences prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

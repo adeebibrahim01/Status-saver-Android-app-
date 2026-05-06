@@ -33,7 +33,7 @@ public class AdManager {
     // 🔥 PREMIUM STATUS FLAG
     public static boolean isPremiumUser = false;
 
-    private static final boolean TESTING = false;
+    private static final boolean TESTING = true;
 
     private static final String TEST_INTERSTITIAL = "ca-app-pub-3940256099942544/1033173712";
     private static final String REAL_INTERSTITIAL = "ca-app-pub-9822767396000072/9444114867";

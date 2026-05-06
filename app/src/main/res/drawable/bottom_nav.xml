@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Step 1: Bottom Layer (Ye Stroke ka kaam karegi) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#99FFFFFF" /> <!-- Golden Stroke Color -->
+            <corners android:radius="2dp" />
+        </shape>
+    </item>
+
+    <!-- Step 2: Top Layer (Main Background) -->
+    <!-- 'top="1.5dp"' dene se niche wali layer sirf top se nazar aayegi -->
+    <item android:top="1.5dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#ECE5DD" /> <!-- Aapka Same Background Color -->
+            />
+        </shape>
+    </item>
+
+</layer-list>

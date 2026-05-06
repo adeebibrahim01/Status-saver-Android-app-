@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Outer Glow/Shadow Effect (Optional but looks premium) -->
+    <path
+        android:fillColor="#D4AF37"
+        android:alpha="0.2"
+        android:pathData="M16,6l2.29,2.29l-4.88,4.88l-4,-4L2,16.59L3.41,18l6,-6l4,4l6.3,-6.29L22,12V6H16Z" />
+
+    <!-- Main Trending Arrow Path -->
+    <path
+        android:fillColor="#424242"
+        android:pathData="M16,6l2.29,2.29l-4.88,4.88l-4,-4L2,16.59L3.41,18l6,-6l4,4l6.3,-6.29L22,12V6H16Z" />
+
+    <!-- Dot for a 'Live' or 'Viral' feel -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M21,7m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+</vector>

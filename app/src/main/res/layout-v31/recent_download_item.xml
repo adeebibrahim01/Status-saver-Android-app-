@@ -3,53 +3,48 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardContainer"
-    android:layout_width="100dp"
-    android:layout_height="100dp"
-    android:layout_margin="5dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="18dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="#F5F5F5"
-    app:strokeColor="#1A000000"
-    app:strokeWidth="1.2dp">
+    app:cardElevation="3dp"
+    app:strokeWidth="0dp">
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="110dp">
 
+        <!-- Image -->
         <ImageView
             android:id="@+id/imgThumb"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:contentDescription="@string/thumbicon"
             android:scaleType="centerCrop"
-            android:background="#F0F2F5" />
+            android:background="@color/browser_actions_bg_color" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/inner_soft_shadow" />
-
-        <ImageView
-            android:id="@+id/videoIcon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/videoicon"
-            android:padding="8dp"
-            android:elevation="6dp"
-            android:src="@drawable/ic_play"
-            android:visibility="gone"
-            app:tint="#E6BE8A" />
-
+        <!-- Subtle Gradient Overlay -->
         <View
             android:layout_width="match_parent"
             android:layout_height="35dp"
-            android:layout_gravity="top"
-            android:alpha="0.4"
-            android:background="@drawable/top_shine_light_gradient" />
+            android:layout_gravity="bottom"
+            android:background="@drawable/item_overlay_gradient" />
+
+        <!-- Video Indicator (Moved to Bottom Left) -->
+        <ImageView
+            android:id="@+id/videoIcon"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="bottom|start"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_circle_glass"
+            android:padding="5dp"
+            android:src="@drawable/ic_wa_videos"
+            android:visibility="gone"
+            app:tint="#D4AF37"
+             />
 
     </FrameLayout>
 

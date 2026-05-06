@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background color (White as per image) -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- The Black Outline (Stroke) -->
+    <stroke
+        android:width="1.5dp"
+        android:color="#000000" />
+
+    <!-- Full Rounded Corners (Pill Shape) -->
+    <!-- Radius ko bohat zyada rakha jata hai taake ye side se perfect curve ho -->
+    <corners android:radius="100dp" />
+</shape>

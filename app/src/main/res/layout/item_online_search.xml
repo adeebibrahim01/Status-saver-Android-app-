@@ -35,18 +35,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/premium_thumb_overlay" />
+            <!-- ... baki code wahi rahega ... -->
 
             <ImageView
                 android:id="@+id/videoIcon"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_centerInParent="true"
-                android:src="@drawable/ic_play"
-                android:padding="9dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_margin="8dp"
+                android:src="@drawable/ic_wa_videos"
                 android:elevation="4dp"
                 android:visibility="gone"
                 android:scaleType="centerInside"
-                app:tint="#E6BE8A" />
+                app:tint="#D4AF37"
+                 />
+
+            <!-- ... actionContainer aur baki code niche wahi rahega ... -->
 
             <FrameLayout
                 android:id="@+id/actionContainer"

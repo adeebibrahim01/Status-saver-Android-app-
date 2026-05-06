@@ -65,7 +65,6 @@
                         android:contentDescription="Open WhatsApp"
                         android:src="@drawable/ic_whatsapp_bar" />
 
-
                     <ImageView
                         android:id="@+id/custom_more_apps"
                         android:layout_width="40dp"
@@ -85,38 +84,42 @@
                     android:src="@drawable/ic_arrow_back"
                     android:rotation="0"
                     app:tint="#FFFFFF" />
-
             </LinearLayout>
-
         </androidx.appcompat.widget.Toolbar>
-
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_main" />
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        app:cardCornerRadius="30dp"
-        app:cardBackgroundColor="#075E54"
-        app:cardElevation="15dp"
-        app:cardMaxElevation="20dp"
-        app:strokeColor="#D4AF37"
-        app:strokeWidth="2.5dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:stateListAnimator="@animator/fab_press_elevation"
-        android:foreground="@drawable/bg_3d_button_overlay">
+    <!-- Main Content Container -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <ImageView
-            android:id="@+id/fab"
+        <!-- FIX 1: Content frame ko match_parent kardo aur elevation check kero -->
+        <include
+            android:id="@+id/content_frame"
+            layout="@layout/content_main"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="16dp"
-            app:srcCompat="@drawable/ic_status_discovery"
-            app:tint="#D4AF37"
-            android:scaleType="centerInside"
-            android:elevation="5dp" />
-    </com.google.android.material.card.MaterialCardView>
+            android:layout_height="match_parent" />
+
+        <!-- FIX 2: Bottom Navigation ko layout ke upar rakhne ke liye background transparent kerna -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:background="@drawable/bottom_nav"
+            app:elevation="0dp"
+            app:itemIconSize="26dp"
+            app:itemIconTint="@color/nav_item_color"
+            app:itemTextColor="@color/nav_item_color"
+            app:itemTextAppearanceActive="@style/BottomNavText.Small"
+            app:itemTextAppearanceInactive="@style/BottomNavText.Small"
+            app:labelVisibilityMode="labeled"
+            app:itemRippleColor="@android:color/transparent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:menu="@menu/bottom_nav_menu" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

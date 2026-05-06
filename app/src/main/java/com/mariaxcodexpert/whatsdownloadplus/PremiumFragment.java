@@ -20,6 +20,8 @@ import androidx.fragment.app.Fragment;
 
 import com.android.billingclient.api.BillingClient;
 
+import java.util.Objects;
+
 /**
  * 🚀 GOD LEVEL PREMIUM FRAGMENT (Secure & User-Friendly)
  */
@@ -31,6 +33,10 @@ public class PremiumFragment extends Fragment {
     private View cardMonthly, cardLifetime;
     private AlertDialog progressDialog;
     private boolean isUserInitiatedPurchase = false;
+    private TextView PriceMonthly;
+    private TextView PriceLifetime;
+    private static final String PREF_MONTHLY_PRICE = "pref_monthly_price";
+    private static final String PREF_LIFETIME_PRICE = "pref_lifetime_price";
 
     @Nullable
     @Override
@@ -41,9 +47,11 @@ public class PremiumFragment extends Fragment {
         tvStatusLifetime = view.findViewById(R.id.tvStatusLifetime);
         cardMonthly = view.findViewById(R.id.cardMonthly);
         cardLifetime = view.findViewById(R.id.cardLifetime);
-
+        PriceMonthly = view.findViewById(R.id.tvPriceMonthly);
+        PriceLifetime =view.findViewById(R.id.tvPriceLifetime);
         initBilling();
         setupClicks(view);
+
 
         return view;
     }
@@ -72,9 +80,56 @@ public class PremiumFragment extends Fragment {
                 handleUserVisibleErrors(errorCode);
             }
         });
+
+        // 1. Connection start karein
         billingManager.startConnection();
+
+        // 2. 🔥 Prices Load Karein (Connection ready hone ka thora wait karna behtar hai)
+        // IDs wahi rakhein jo aapne Play Console aur handlePurchase mein use ki hain
+        new Handler(Looper.getMainLooper()).postDelayed(this::loadPrices, 1200);
     }
 
+    /**
+     * Play Console se local currency (PKR, INR, USD etc) fetch karke UI update karta hai
+     */
+    private void loadPrices() {
+        if (billingManager == null || !isAdded()) return;
+
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+
+        // 1. Professional Placeholders (Khali string se behtar hai)
+        // Agar pehli baar hai toh "..." dikhao, warna saved price
+        String savedMonthly = prefs.getString(PREF_MONTHLY_PRICE, "Loading...");
+        String savedLifetime = prefs.getString(PREF_LIFETIME_PRICE, "Loading...");
+
+        if (PriceMonthly != null) PriceMonthly.setText(savedMonthly);
+        if (PriceLifetime != null) PriceLifetime.setText(savedLifetime);
+
+        // 2. Background Fetch with Smooth Transition
+        // Monthly
+        billingManager.fetchProductPrices("premium_monthly", BillingClient.ProductType.SUBS, price -> {
+            if (isAdded() && PriceMonthly != null && !price.equals(savedMonthly)) {
+                // Glitch se bachne ke liye halka sa fade animation
+                PriceMonthly.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                    PriceMonthly.setText(price);
+                    PriceMonthly.animate().alpha(1f).setDuration(200).start();
+                    prefs.edit().putString(PREF_MONTHLY_PRICE, price).apply();
+                }).start();
+            }
+        });
+
+        // Lifetime
+        billingManager.fetchProductPrices("premium_lifetime", BillingClient.ProductType.INAPP, price -> {
+            if (isAdded() && PriceLifetime != null && !price.equals(savedLifetime)) {
+                // Smooth transition for Lifetime price
+                PriceLifetime.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                    PriceLifetime.setText(price);
+                    PriceLifetime.animate().alpha(1f).setDuration(200).start();
+                    prefs.edit().putString(PREF_LIFETIME_PRICE, price).apply();
+                }).start();
+            }
+        });
+    }
     private void handleUserVisibleErrors(int errorCode) {
         if (!isAdded()) return;
 
@@ -203,9 +258,7 @@ public class PremiumFragment extends Fragment {
     }
 
     private void setupClicks(View view) {
-        view.findViewById(R.id.btnClose).setOnClickListener(v -> {
-            if (getActivity() != null) getActivity().onBackPressed();
-        });
+
 
         cardMonthly.setOnClickListener(v -> {
             v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);

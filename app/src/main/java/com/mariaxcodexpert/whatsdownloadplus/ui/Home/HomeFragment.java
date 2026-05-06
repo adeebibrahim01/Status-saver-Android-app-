@@ -36,10 +36,6 @@ public class HomeFragment extends Fragment {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         viewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
 
-        // 🔥 IS LINE KO AISE LIKHEIN (Bina // ke)
-        //throw new RuntimeException("Test Crash - Status Saver App");
-
-
          return binding.getRoot(); // Ye line execute nahi hogi kyunki upar crash ho jayega
     }
     @Override
@@ -50,7 +46,19 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupUI() {
-        binding.rvRecentDownloads.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        // 1. Recent Downloads Section (3-Column Vertical Grid)
+        // Vertical grid ke liye humein orientation dene ki zaroorat nahi hoti, ye default vertical hota hai
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 3);
+        binding.homeRecentLayout.rvRecentDownloads.setLayoutManager(gridLayoutManager);
+
+        // FIX: Row by row (1 2 3, then 4 5 6) dikhane ke liye aur scrolling smooth karne ke liye
+        binding.homeRecentLayout.rvRecentDownloads.setHasFixedSize(true);
+        binding.homeRecentLayout.rvRecentDownloads.setNestedScrollingEnabled(false);
+
+        // Spacing aur Padding fix (Left, Top, Right, Bottom)
+        int padding = (int) (8 * getResources().getDisplayMetrics().density); // 8dp padding
+        binding.homeRecentLayout.rvRecentDownloads.setPadding(padding, padding, padding, padding);
+        binding.homeRecentLayout.rvRecentDownloads.setClipToPadding(false);
 
         adapter = new RecentDownloadsAdapter(item -> {
             if (isNavigating || !isAdded()) return;
@@ -80,66 +88,51 @@ public class HomeFragment extends Fragment {
             navHandler.postDelayed(() -> isNavigating = false, 1000);
         });
 
-        binding.tvTestTrending.setOnClickListener(v -> {
-            try {
-                // Navigation controller ka sahi tareeka
-                NavHostFragment.findNavController(this).navigate(R.id.action_home_to_trending);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        binding.homeRecentLayout.rvRecentDownloads.setAdapter(adapter);
 
-        binding.rvRecentDownloads.setAdapter(adapter);
-
-        if (binding.rvRecentDownloads.getItemAnimator() instanceof SimpleItemAnimator) {
-            ((SimpleItemAnimator) Objects.requireNonNull(binding.rvRecentDownloads.getItemAnimator()))
+        // Performance: Item update hone par jhatke (blink) na mare
+        if (binding.homeRecentLayout.rvRecentDownloads.getItemAnimator() instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) Objects.requireNonNull(binding.homeRecentLayout.rvRecentDownloads.getItemAnimator()))
                     .setSupportsChangeAnimations(false);
         }
-        // 🔥 Dashboard Icons Animation
+
+        // 3. 🔥 Dashboard Icons Animation
         Animation floatingAnim = AnimationUtils.loadAnimation(getContext(), R.anim.dashboard_icon_anim);
-        binding.ivImagesIcon.startAnimation(floatingAnim);
+        if (binding.ivImagesIcon != null) binding.ivImagesIcon.startAnimation(floatingAnim);
+        if (binding.ivdashboardIcon != null) binding.ivdashboardIcon.startAnimation(floatingAnim);
 
-      //  Animation floatingAnimunique = AnimationUtils.loadAnimation(getContext(), R.anim.dashboard_icon_unique_anim);
-        binding.ivdashboardIcon.startAnimation(floatingAnim);
-// Example: "Premium Discovery" text par animation
-   //     proTypewriter(binding.headerTitle, "Status Saver");
-
-        // Apne ImageView ki ID check karke yahan likhen
-        binding.btnImages.setOnClickListener(v -> safeAction(v, () -> navigateToGallery(false)));
-        binding.btnVideos.setOnClickListener(v -> safeAction(v, () -> navigateToGallery(true)));
-        binding.btnSaved.setOnClickListener(v -> safeAction(v, () -> {
+        // 4. Main Menu Buttons
+        binding.homeMenuLayout.btnImages.setOnClickListener(v -> safeAction(v, () -> navigateToGallery(false)));
+        binding.homeMenuLayout.btnVideos.setOnClickListener(v -> safeAction(v, () -> navigateToGallery(true)));
+        binding.homeMenuLayout.btnSaved.setOnClickListener(v -> safeAction(v, () -> {
             try {
                 NavHostFragment.findNavController(this).navigate(R.id.nav_download);
             } catch (Exception e) { e.printStackTrace(); }
         }));
 
+        binding.homeMenuLayout.btnViral.setOnClickListener(v -> safeAction(v, () -> {
+            try {
+                NavHostFragment.findNavController(this).navigate(R.id.action_home_to_trending);
+            } catch (Exception e) { e.printStackTrace(); }
+        }));
+
+        binding.homeMenuLayout.btnSearch.setOnClickListener(v -> safeAction(v, () -> {
+            try {
+                NavHostFragment.findNavController(this).navigate(R.id.nav_online_search);
+            } catch (Exception e) { e.printStackTrace(); }
+        }));
+
+        binding.homeMenuLayout.btnComingSoon.setOnClickListener(v -> {
+            android.widget.Toast.makeText(getContext(), "Stay tuned! Coming soon.", android.widget.Toast.LENGTH_SHORT).show();
+        });
+
+        // 5. Version Info
         try {
             binding.projectVersion.setText(com.mariaxcodexpert.whatsdownloadplus.VersionHelper.getAppVersion(requireContext()));
         } catch (Exception e) {
-            binding.projectVersion.setText("v1.0.0");
+            binding.projectVersion.setText("v1.0.16");
         }
     }
-    private void proTypewriter(TextView tv, String fullText) {
-        Handler handler = new Handler();
-        final int[] index = {0};
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (index[0] <= fullText.length()) {
-                    // Har character k sath cursor add kerna
-                    String displayedText = fullText.substring(0, index[0]) + (index[0] % 2 == 0 ? "|" : " ");
-                    tv.setText(displayedText);
-                    index[0]++;
-                    handler.postDelayed(this, 120); // Speed control
-                } else {
-                    // Typing khatam hone k baad cursor hata dena
-                    tv.setText(fullText);
-                }
-            }
-        }, 120);
-    }
-
     private void openMedia(ArrayList<java.io.Serializable> list, int position) {
         if (getContext() == null) return;
         Intent intent = new Intent(getContext(), FullScreenMediaActivity.class);
@@ -201,9 +194,8 @@ public class HomeFragment extends Fragment {
 
         // UI visibility handle karna
         boolean empty = combined.isEmpty();
-        binding.rvRecentDownloads.setVisibility(empty ? View.GONE : View.VISIBLE);
-        binding.tvRecentDownloadsEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
-
+        binding.homeRecentLayout.rvRecentDownloads.setVisibility(empty ? View.GONE : View.VISIBLE);
+        binding.homeRecentLayout.tvRecentDownloadsEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
         // ListAdapter ko data pass karna (New instance bhejni chahiye hamesha)
         if (!empty) {
             adapter.submitList(new ArrayList<>(combined));

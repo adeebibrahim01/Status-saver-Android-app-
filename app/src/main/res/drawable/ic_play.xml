@@ -1,21 +1,16 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="64dp"
-    android:height="64dp"
-    android:viewportWidth="64"
-    android:viewportHeight="64">
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
 
-    <!-- Outer circle background -->
+    <!-- Glassmorphism Circle: Soft Translucent Background -->
     <path
-        android:fillColor="#66000000"
-        android:pathData="M32,0
-                          A32,32 0 1,1 31.999,0
-                          Z" />
+        android:fillColor="#80000000"
+        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2z" />
 
-    <!-- Play triangle -->
+    <!-- Play Icon: Rounded edges for premium look -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M26,20
-                          L46,32
-                          L26,44
-                          Z" />
+        android:pathData="M9.5,16.5V7.5c0,-0.57 0.62,-0.93 1.12,-0.64l7.5,4.5c0.5,0.29 0.5,1 0,1.29l-7.5,4.5c-0.5,0.29 -1.12,-0.07 -1.12,-0.64z" />
 </vector>

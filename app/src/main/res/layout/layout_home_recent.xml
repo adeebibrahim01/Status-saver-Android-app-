@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp"
+   >
+
+    <LinearLayout
+        android:id="@+id/recentDownloadsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/whatsapp_top_transparent1"
+        android:orientation="vertical"
+        android:paddingBottom="12dp">
+        <!-- Header Section: Advance UI Concept -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            android:paddingBottom="12dp">
+
+            <TextView
+                android:id="@+id/tvRecentDownloadsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:text="RECENT DOWNLOADS"
+                android:textAllCaps="true"
+                android:textColor="#1A1A1A"
+                android:textSize="14sp"
+                android:letterSpacing="0.15"
+                android:alpha="0.85"
+                android:includeFontPadding="false" />
+
+            <!-- Advance Accent: Updated Gradient Capsule Line -->
+            <View
+                android:layout_width="100dp"
+                android:layout_height="3dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/gold_line_gradient"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvRecentDownloadsTitle" />      </LinearLayout>
+
+        <!-- Grid Container -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecentDownloads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="8dp"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            app:spanCount="3"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
+
+        <!-- Empty State (Bahir rakha hai taake padding masla na kare) -->
+        <LinearLayout
+            android:id="@+id/tvRecentDownloadsEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:alpha="0.2"
+                android:src="@drawable/ic_wa_download"
+                app:tint="#424242" />
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>

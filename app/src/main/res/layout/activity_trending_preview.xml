@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ultra_luxury_bg">
+
+    <!-- Full Screen ViewPager2 -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal" />
+
+    <!-- Top UI Overlay -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:paddingHorizontal="16dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:background="@drawable/bg_premium_glass_chip"
+            android:src="@drawable/ic_back_arrow"
+            android:padding="12dp"
+            android:elevation="10dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            app:tint="#D4AF37" />
+
+        <!-- Title Container -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_toEndOf="@+id/btnBack"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_premium_glass_chip"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:elevation="10dp"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/tvTrendTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="✧ TRENDING NOW ✧"
+                android:textColor="#FFD700"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:gravity="center" />
+
+            <View
+                android:layout_width="35dp"
+                android:layout_height="2.5dp"
+                android:layout_marginTop="4dp"
+                android:background="#D4AF37" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Floating Bottom Bar Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingBottom="20dp"> <!-- Padding thoda kam kiya -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="Swipe for More"
+            android:textColor="#80D4AF37"
+            android:textSize="9sp"
+            android:letterSpacing="0.3"
+            android:textAllCaps="true" />
+
+        <!-- Main Button Card with Margin -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/bottomNavBar"
+            android:layout_width="280dp"
+            android:layout_height="65dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            app:cardCornerRadius="32dp"
+            app:cardBackgroundColor="#CC1A1A1A"
+            app:strokeColor="#40D4AF37"
+            app:strokeWidth="1dp"
+            app:cardElevation="20dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <RelativeLayout
+                android:id="@+id/btnSetStatus"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+
+                android:paddingHorizontal="20dp">
+
+                <ImageView
+                    android:id="@+id/iconAction"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentStart="true"
+                    android:src="@drawable/ic_download"
+                    app:tint="#D4AF37" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="SET AS STATUS"
+                    android:textColor="#D4AF37"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05" />
+
+                <View
+                    android:layout_width="4dp"
+                    android:layout_height="4dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/bg_action_gold_circle"
+                    android:backgroundTint="#D4AF37" />
+
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/pbPreviewLoader"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_centerInParent="true"
+        android:indeterminateTint="#D4AF37"
+        android:visibility="gone" />
+
+</RelativeLayout>
