@@ -55,11 +55,11 @@ def get_trending_from_news(ceid_param):
             root = ET.fromstring(response.content)
             keywords = []
             # Har country se 20 potential keywords uthayen
-            for item in root.findall('.//item')[:20]:
+            for item in root.findall('.//item')[:20]: 
                 title = item.find('title').text
                 if title:
-                    clean_kw = title.split('-')[0].strip()
-                    short_kw = " ".join(clean_kw.split()[:3])
+                    clean_kw = title.split('-')[0].strip() 
+                    short_kw = " ".join(clean_kw.split()[:3]) 
                     keywords.append(short_kw)
             return list(set(keywords))
         return []
@@ -100,12 +100,12 @@ def main():
     for code, ceid in NEWS_GEO_MAP.items():
         logging.info(f"Checking Trends for: {code}")
         trends = get_trending_from_news(ceid)
-
+        
         country_items = []
         for kw in trends:
             # Har country se max 10 items lenge taake koi ek mulk dominate na kare
-            if len(country_items) >= 10: break
-
+            if len(country_items) >= 10: break 
+            
             item = fetch_pexels_media(kw)
             if item:
                 country_items.append(item)
@@ -120,19 +120,19 @@ def main():
     if all_media_pool:
         # Duniya bhar ke trends ko mix karein
         random.shuffle(all_media_pool)
-
+        
         # Ab top 48 pick karein jo poori dunya ka mix hoga
-        final_global_data = all_media_pool[:48]
-
+        final_global_data = all_media_pool[:48] 
+        
         db.reference('/trending_status/GLOBAL').set(final_global_data)
-
+        
         # Update Metadata
         db.reference('/trending_status/metadata').set({
             "last_updated": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
             "total_items": len(final_global_data),
             "source_count": len(NEWS_GEO_MAP)
         })
-
+        
         logging.info(f"Global feed updated with {len(final_global_data)} mixed world items.")
 
 if __name__ == "__main__":
