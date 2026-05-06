@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/floatingMenuCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="18dp"
+    android:layout_marginTop="12dp"
+    app:cardBackgroundColor="@android:color/transparent"
+    app:cardCornerRadius="32dp"
+    app:cardElevation="0dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/whatsapp_top_transparent"
+        android:padding="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- FIRST ROW -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <!-- Button: Images -->
+                <LinearLayout
+                    android:id="@+id/btnImages"
+                    style="@style/MenuButtonStyle"
+                    android:layout_weight="1">
+                    <ImageView
+                        style="@style/MenuIconStyle"
+                        android:background="@drawable/bg_icon_circle_green"
+                        android:src="@drawable/ic_wa_images" />
+                    <TextView
+                        style="@style/MenuTextStyle"
+                        android:text="@string/images" />
+                </LinearLayout>
+
+                <View style="@style/VerticalDividerStyle" />
+
+                <!-- Button: Videos -->
+                <LinearLayout
+                    android:id="@+id/btnVideos"
+                    style="@style/MenuButtonStyle"
+                    android:layout_weight="1">
+                    <ImageView
+                        style="@style/MenuIconStyle"
+                        android:background="@drawable/bg_icon_circle_blue"
+                        android:src="@drawable/ic_wa_videos" />
+                    <TextView
+                        style="@style/MenuTextStyle"
+                        android:text="@string/videos" />
+                </LinearLayout>
+
+                <View style="@style/VerticalDividerStyle" />
+
+                <!-- Button: Saved -->
+                <LinearLayout
+                    android:id="@+id/btnSaved"
+                    style="@style/MenuButtonStyle"
+                    android:layout_weight="1">
+                    <ImageView
+                        style="@style/MenuIconStyle"
+                        android:background="@drawable/bg_icon_circle_orange"
+                        android:src="@drawable/ic_wa_download" />
+                    <TextView
+                        style="@style/MenuTextStyle"
+                        android:text="@string/_saved" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Horizontal Divider (Professional Gradient) -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="20dp"
+                android:background="@drawable/divider_horizontal_light" />
+
+            <!-- SECOND ROW -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <!-- Button: Viral -->
+                <LinearLayout
+                    android:id="@+id/btnViral"
+                    style="@style/MenuButtonStyle"
+                    android:layout_weight="1">
+                    <ImageView
+                        style="@style/MenuIconStyle"
+                        android:background="@drawable/bg_icon_circle_blue"
+                        android:src="@drawable/ic_trending_up" />
+                    <TextView
+                        style="@style/MenuTextStyle"
+                        android:text="VIRAL" />
+                </LinearLayout>
+
+                <View style="@style/VerticalDividerStyle" />
+
+                <!-- Button: Search -->
+                <LinearLayout
+                    android:id="@+id/btnSearch"
+                    style="@style/MenuButtonStyle"
+                    android:layout_weight="1">
+                    <ImageView
+                        style="@style/MenuIconStyle"
+                        android:background="@drawable/bg_icon_circle_blue"
+                        android:src="@drawable/ic_search" />
+                    <TextView
+                        style="@style/MenuTextStyle"
+                        android:text="SEARCH" />
+                </LinearLayout>
+
+                <View style="@style/VerticalDividerStyle" />
+
+                <!-- Button: Coming Soon -->
+                <LinearLayout
+                    android:id="@+id/btnComingSoon"
+                    style="@style/MenuButtonStyle"
+                    android:alpha="0.6"
+                    android:layout_weight="1">
+                    <ImageView
+                        style="@style/MenuIconStyle"
+                        android:background="@drawable/bg_icon_circle_blue"
+                        android:src="@drawable/ic_lock_secure" />
+                    <TextView
+                        style="@style/MenuTextStyle"
+                        android:text="SOON" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</androidx.cardview.widget.CardView>
