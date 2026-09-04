@@ -69,7 +69,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:gravity="center"
-                android:text="Enjoying the App?"
+                android:text="@string/enjoying_the_app"
                 android:textColor="#212121"
                 android:textSize="22sp" />
 
@@ -81,7 +81,7 @@
                 android:alpha="0.7"
                 android:gravity="center"
                 android:lineSpacingExtra="4dp"
-                android:text="We are working hard to make your experience better. A quick review would mean the world to us!"
+                android:text="@string/we_are_working_hard_to_make_your_experience_better_a_quick_review_would_mean_the_world_to_us"
                 android:textColor="#424242"
                 android:textSize="14sp" />
 
@@ -107,7 +107,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="28dp"
                 android:fontFamily="sans-serif-black"
-                android:text="TAP TO RATE"
+                android:text="@string/tap_to_rate"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
                 android:letterSpacing="0.05"
@@ -121,7 +121,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:alpha="0.5"
-                android:text="It only takes 5 seconds"
+                android:text="@string/it_only_takes_5_seconds"
                 android:textColor="#757575"
                 android:textSize="11sp"
                 android:fontFamily="sans-serif-medium" />

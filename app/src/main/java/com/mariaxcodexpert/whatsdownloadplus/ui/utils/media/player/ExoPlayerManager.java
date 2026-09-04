@@ -13,7 +13,6 @@ import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import com.mariaxcodexpert.whatsdownloadplus.ui.preview.PreviewPagerAdapter;
-import com.mariaxcodexpert.whatsdownloadplus.utils.player.VideoCacheManager;
 
 import java.util.Objects;
 
@@ -21,16 +20,12 @@ import java.util.Objects;
 public class ExoPlayerManager {
     private static final String TAG = "EXO_DEBUG";
 
-    /**
-     * Creates a pre-configured ExoPlayer instance with Optimized Buffer for Status Videos.
-     */
     public static ExoPlayer createPlayer(Context context) {
         CacheDataSource.Factory cacheFactory = new CacheDataSource.Factory()
                 .setCache(Objects.requireNonNull(VideoCacheManager.getCache(context)))
                 .setUpstreamDataSourceFactory(new DefaultDataSource.Factory(context))
                 .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
 
-        // Optimized for small WhatsApp status files to start instantly
         DefaultLoadControl loadControl = new DefaultLoadControl.Builder()
                 .setBufferDurationsMs(500, 2000, 500, 500)
                 .build();
@@ -41,9 +36,7 @@ public class ExoPlayerManager {
                 .build();
     }
 
-    /**
-     * Configures listeners and handles UI state transitions.
-     */
+
     public static void setupPlayerWithListeners(ExoPlayer player, int pos, PreviewPagerAdapter.ViewHolder h, Runnable onReady) {
         if (player == null || h == null) return;
 
@@ -62,7 +55,6 @@ public class ExoPlayerManager {
 
             @Override
             public void onRenderedFirstFrame() {
-                // Ensure UI transition happens exactly when pixels are visible
                 if (onReady != null) onReady.run();
                 Log.d(TAG, "🎥 First Frame Rendered at: " + pos);
             }
@@ -75,9 +67,6 @@ public class ExoPlayerManager {
         });
     }
 
-    /**
-     * Safely releases player resources.
-     */
     public static void releasePlayer(ExoPlayer p) {
         if (p != null) {
             p.stop();

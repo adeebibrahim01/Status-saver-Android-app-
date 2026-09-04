@@ -7,36 +7,53 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.*;
+
+import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.*;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.*;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.Dashboard.DashboardDao;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.HomeDashboardEntity;
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * 🔥 HOME VIEWMODEL: Focuses on "Recently Downloaded" media.
- * Logic: Filters for isDownloaded = 1 and ensures files exist on disk.
- */
 public class HomeViewModel extends AndroidViewModel {
+
+    public static class HomeUiState {
+        public final List<Object> combinedList;
+        public final HomeDashboardEntity stats;
+        public final boolean isSyncing;
+
+        public HomeUiState(List<Object> combinedList, HomeDashboardEntity stats, boolean isSyncing) {
+            this.combinedList = (combinedList != null) ? combinedList : new ArrayList<>();
+            this.stats = stats;
+            this.isSyncing = isSyncing;
+        }
+
+        public boolean isSameAs(HomeUiState other) {
+            if (other == null) return false;
+            if (this.isSyncing != other.isSyncing) return false;
+
+            if (this.stats != null && other.stats != null) {
+                if (this.stats.todayCount != other.stats.todayCount ||
+                        this.stats.totalCount != other.stats.totalCount ||
+                        this.stats.activeStatuses != other.stats.activeStatuses) return false;
+            } else if (this.stats != other.stats) return false;
+
+            return this.combinedList.size() == other.combinedList.size();
+        }
+    }
+
     private final ImageDao imageDao;
     private final VideoDao videoDao;
     private final DashboardDao dashboardDao;
     private final ExecutorService executor = AppDatabase.databaseWriteExecutor;
+    private final AtomicBoolean isSyncingFlag = new AtomicBoolean(false);
 
-    public final LiveData<HomeDashboardEntity> dashboardStats;
-
-    private final MutableLiveData<List<ImageEntity>> _recentImages = new MutableLiveData<>();
-    public final LiveData<List<ImageEntity>> recentImages = _recentImages;
-
-    private final MutableLiveData<List<VideoEntity>> _recentVideos = new MutableLiveData<>();
-    public final LiveData<List<VideoEntity>> recentVideos = _recentVideos;
-
-    private final MutableLiveData<Boolean> _isSyncing = new MutableLiveData<>(false);
-    public LiveData<Boolean> isSyncing() { return _isSyncing; }
+    private final MutableLiveData<HomeUiState> _uiState = new MutableLiveData<>();
+    public LiveData<HomeUiState> uiState = _uiState;
 
     public HomeViewModel(@NonNull Application app) {
         super(app);
@@ -44,112 +61,116 @@ public class HomeViewModel extends AndroidViewModel {
         imageDao = db.imageDao();
         videoDao = db.videoDao();
         dashboardDao = db.dashboardDao();
-        dashboardStats = dashboardDao.getDashboardStatsLive();
-
-        refreshDashboardData();
-    }
-
-    public void refreshDashboardData() {
-        if (Boolean.TRUE.equals(_isSyncing.getValue())) return;
-        _isSyncing.postValue(true);
 
         executor.execute(() -> {
             try {
-                long currentTime = System.currentTimeMillis();
-                long twentyFourHoursAgo = currentTime - 86400000L;
-                long sevenDaysAgo = currentTime - (7 * 86400000L);
-                long startOfToday = getStartOfDay();
-
-                // 🔴 STEP 1: Database Maintenance
-                imageDao.deleteOldRecords(sevenDaysAgo);
-                videoDao.deleteOldRecords(sevenDaysAgo);
-
-                Context ctx = getApplication();
-                String uriStr = ctx.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                        .getString("statusFolderUri", null);
-
-                // 🔥 STEP 2: WhatsApp Folder Scan (Independent of Dashboard Display)
-                HashSet<String> whatsappDiskFiles = new HashSet<>();
-                if (uriStr != null) {
-                    Uri folderUri = Uri.parse(uriStr);
-                    DocumentFile folder = DocumentFile.fromTreeUri(ctx, folderUri);
-                    if (folder != null && folder.exists()) {
-                        DocumentFile[] folderFiles = folder.listFiles();
-                        if (folderFiles != null) {
-                            for (DocumentFile f : folderFiles) {
-                                String name = f.getName();
-                                if (name != null && !name.startsWith(".") && !name.equalsIgnoreCase(".nomedia")) {
-                                    whatsappDiskFiles.add(name);
-                                }
-                            }
-                        }
-                    }
-                }
-                List<String> activeWhatsAppList = new ArrayList<>(whatsappDiskFiles);
-
-                // 🔥 STEP 3: Ghost Cleanup (Only for unsaved WhatsApp statuses)
-                if (activeWhatsAppList.isEmpty()) {
-                    imageDao.clearAllUnsavedImages();
-                    videoDao.clearAllUnsavedVideos();
-                } else {
-                    imageDao.deleteGhostImages(activeWhatsAppList);
-                    videoDao.deleteGhostVideos(activeWhatsAppList);
-                }
-
-                // STEP 4: Discovery (New WhatsApp Statuses)
-                // Discovery logic stays here to populate new items for the "WhatsApp" tab stats
-                // ... (Discovery logic remains same as your original)
-
-                // 🔥 STEP 5: RECENTLY DOWNLOADED (The Critical Fix)
-                // Hum activeDiskList ka filter HATA RAHE HAIN.
-                // Kyunki Online Search se download ki hui images WhatsApp folder mein nahi hoti.
-
-                // Ye methods ab simple "WHERE isDownloaded = 1" use karein ge
-                List<ImageEntity> savedImages = imageDao.getOnlyDownloadedImagesSync();
-                List<VideoEntity> savedVideos = videoDao.getOnlyDownloadedVideosSync();
-
-                _recentImages.postValue(savedImages);
-                _recentVideos.postValue(savedVideos);
-
-                // Update Dashboard Stats
-                int currentActiveCount = whatsappDiskFiles.size(); // WhatsApp active statuses count
-                int calculatedTotal = dashboardDao.getTotalDownloadedCount();
-                int calculatedToday = imageDao.getTodayCountSync(startOfToday) + videoDao.getTodayCountSync(startOfToday);
-                updateDashboardTable(calculatedTotal, calculatedToday, currentActiveCount);
-
+                HomeUiState initialState = new HomeUiState(getCombinedMediaSync(), dashboardDao.getDashboardStatsSync(), false);
+                _uiState.postValue(initialState);
+                refreshDashboardData();
             } catch (Exception e) {
-                Log.e("HOME_VM_ERROR", "Refresh Failed: " + e.getMessage());
-            } finally {
-                _isSyncing.postValue(false);
+                Log.e("HomeVM", "Initial Load Error", e);
             }
         });
     }
 
-    private void updateDashboardTable(int total, int today, int active) {
-        String dateStr = getJoinedDate();
-        HomeDashboardEntity s = new HomeDashboardEntity(1, today, total, active, dateStr);
-        dashboardDao.insertStats(s);
+    public void refreshDashboardData() {
+        if (!isSyncingFlag.compareAndSet(false, true)) return;
+
+        executor.execute(() -> {
+            try {
+                Context context = getApplication();
+                Set<String> diskFiles = new HashSet<>();
+
+                String uriStr = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+                        .getString("statusFolderUri", null);
+
+                if (uriStr != null) {
+                    try {
+                        DocumentFile folder = DocumentFile.fromTreeUri(context, Uri.parse(uriStr));
+                        if (folder != null && folder.exists()) {
+                            DocumentFile[] files = folder.listFiles();
+                            if (files != null) {
+                                for (DocumentFile f : files) {
+                                    String name = f.getName();
+                                    if (name != null && !name.startsWith(".") && !name.equals(".nomedia")) {
+                                        diskFiles.add(name);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception folderEx) {
+                        Log.e("HomeVM", "Folder Scan Failed", folderEx);
+                    }
+                }
+
+                DatabaseCleaner.performSilentCleanup(context, imageDao, videoDao, new ArrayList<>(diskFiles));
+
+                List<Object> combined = getCombinedMediaSync();
+
+                Calendar cal = Calendar.getInstance();
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                cal.set(Calendar.MILLISECOND, 0);
+                long dayStart = cal.getTimeInMillis();
+
+                int total = dashboardDao.getTotalDownloadedCount();
+                int today = imageDao.getTodayCountSync(dayStart) + videoDao.getTodayCountSync(dayStart);
+
+                HomeDashboardEntity newStats = new HomeDashboardEntity(1, today, total, diskFiles.size(), getJoinedDate());
+
+                HomeUiState newState = new HomeUiState(combined, newStats, false);
+                HomeUiState currentState = _uiState.getValue();
+
+                if (currentState == null || !newState.isSameAs(currentState)) {
+                    _uiState.postValue(newState);
+                } else {
+                    _uiState.postValue(new HomeUiState(currentState.combinedList, currentState.stats, false));
+                }
+
+                dashboardDao.insertStats(newStats);
+
+            } catch (Exception e) {
+                Log.e("HomeVM", "Refresh Final Error", e);
+            } finally {
+                isSyncingFlag.set(false);
+            }
+        });
     }
 
-    private long getStartOfDay() {
-        Calendar c = Calendar.getInstance();
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        c.set(Calendar.MILLISECOND, 0);
-        return c.getTimeInMillis();
+    private List<Object> getCombinedMediaSync() {
+        List<Object> combined = new ArrayList<>();
+        try {
+            List<ImageEntity> img = imageDao.getOnlyDownloadedImagesSync();
+            List<VideoEntity> vid = videoDao.getOnlyDownloadedVideosSync();
+
+            if (img != null) combined.addAll(img);
+            if (vid != null) combined.addAll(vid);
+
+            if (combined.size() > 1) {
+                Collections.sort(combined, (o1, o2) -> Long.compare(getTs(o2), getTs(o1)));
+            }
+        } catch (Exception e) {
+            Log.e("HomeVM", "Combined Sort Error", e);
+        }
+        return combined;
+    }
+
+    private long getTs(Object o) {
+        if (o instanceof ImageEntity) return ((ImageEntity) o).lastModified;
+        if (o instanceof VideoEntity) return ((VideoEntity) o).lastModified;
+        return 0L;
     }
 
     private String getJoinedDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.US);
         try {
-            long time = getApplication().getPackageManager().getPackageInfo(getApplication().getPackageName(), 0).firstInstallTime;
-            return "Since " + new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(new Date(time));
+            Context ctx = getApplication();
+            long time = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).firstInstallTime;
+            return ctx.getString(R.string.joined_since_date, sdf.format(new Date(time)));
         } catch (Exception e) {
-            return "Since " + new SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(new Date());
+            Context ctx = getApplication();
+            return ctx.getString(R.string.joined_since_date, sdf.format(new Date()));
         }
-    }
-
-    public void resetSyncPhase() {
-        _isSyncing.setValue(false);
     }
 }

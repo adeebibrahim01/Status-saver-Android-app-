@@ -10,7 +10,8 @@ import android.widget.Toast;
 
 import androidx.annotation.OptIn;
 import androidx.media3.common.util.UnstableApi;
-import com.mariaxcodexpert.whatsdownloadplus.PushNotificationHelper;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.PushNotificationHelper;
+import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoEntity;
@@ -28,19 +29,11 @@ public class MediaStatusUtils {
         void onSaveResult(Boolean success, Uri savedUri);
     }
 
-    /**
-     * 🔥 NEW PUBLIC METHOD: Direct database mein record save karne ke liye (Trending Fragment ke liye)
-     */
     public static void saveToDatabase(Context ctx, Uri savedUri, String name, boolean isVid) {
         executor.execute(() -> {
-            // Trending items ke liye hum savedUri ko hi source aur path dono consider karte hain
             syncToSpecificTable(ctx, savedUri.toString(), savedUri.toString(), name, isVid);
         });
     }
-
-    /**
-     * Professional Save Logic: Gallery mein save karta hai aur Content Uri ko DB mein store karta hai.
-     */
     public static void saveToGallery(Context context, Uri source, Bitmap bmp, String name, boolean isVid, int quality, SaveCallback cb) {
         executor.execute(() -> {
             boolean success = false;
@@ -51,8 +44,6 @@ public class MediaStatusUtils {
                 ContentValues v = new ContentValues();
                 v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
                 v.put(MediaStore.MediaColumns.MIME_TYPE, isVid ? "video/mp4" : "image/jpeg");
-
-                // Android 10+ scoped storage path configuration
                 String path = (isVid ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES) + "/" + SAVE_FOLDER;
                 v.put(MediaStore.MediaColumns.RELATIVE_PATH, path);
                 v.put(MediaStore.MediaColumns.IS_PENDING, 1);
@@ -76,13 +67,11 @@ public class MediaStatusUtils {
                         }
                     }
 
-                    // IS_PENDING ko 0 kerna zaroori hai taake file gallery mein visible ho
                     v.clear();
                     v.put(MediaStore.MediaColumns.IS_PENDING, 0);
                     resolver.update(savedUri, v, null, null);
 
                     if (success) {
-                        // 🔥 FIX: Physical path ke bajaye Content Uri String save kar rahe hain (Best for Android 11+)
                         String uriString = savedUri.toString();
                         syncToSpecificTable(context, source.toString(), uriString, name, isVid);
                     }
@@ -93,26 +82,20 @@ public class MediaStatusUtils {
 
             final boolean finalSuccess = success;
             final Uri finalUri = savedUri;
-
-            // UI Thread par result return karna
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (finalSuccess) {
-                    notifyUser(context, name); // User ko "Saved to Gallery" ka toast/notification dena
+                    notifyUser(context, name);
                 }
                 cb.onSaveResult(finalSuccess, finalUri);
             });
         });
     }
 
-    /**
-     * Database sync logic: 7 din ki expiry aur isDownloaded status ke sath record save karta hai.
-     */
     private static void syncToSpecificTable(Context ctx, String src, String savedUriPath, String name, boolean isVid) {
         try {
             AppDatabase db = AppDatabase.getInstance(ctx);
             long now = System.currentTimeMillis();
 
-            // 7 din ki expiry calculation
             long sevenDaysInMs = 7L * 24 * 60 * 60 * 1000;
             long expiryAt = now + sevenDaysInMs;
 
@@ -120,7 +103,7 @@ public class MediaStatusUtils {
                 VideoEntity video = new VideoEntity(
                         name,
                         src,
-                        savedUriPath, // Database mein content://... save hoga
+                        savedUriPath,
                         now,
                         true,
                         expiryAt
@@ -132,7 +115,7 @@ public class MediaStatusUtils {
                 ImageEntity image = new ImageEntity(
                         name,
                         src,
-                        savedUriPath, // Database mein content://... save hoga
+                        savedUriPath,
                         now,
                         true,
                         expiryAt
@@ -147,107 +130,104 @@ public class MediaStatusUtils {
     }
 
     public static void shareMedia(Context ctx, Uri uri, boolean isVid) {
+        if (ctx == null || uri == null) return;
+
         if (uri.toString().startsWith("http")) {
-            Toast.makeText(ctx, "Preparing media... ✧", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ctx, ctx.getString(R.string.toast_preparing_media), Toast.LENGTH_SHORT).show();
+            final Context appCtx = ctx.getApplicationContext();
+            String downloadUrl = uri.toString();
 
             new Thread(() -> {
                 try {
-                    // 1. Glide se asFile fetch karein
-                    java.io.File originalFile = com.bumptech.glide.Glide.with(ctx)
-                            .asFile()
-                            .load(uri.toString())
-                            .submit()
-                            .get();
+                    String extension = isVid ? ".mp4" : ".jpg";
+                    java.io.File shareFile = new java.io.File(appCtx.getCacheDir(), "share_temp" + extension);
 
-                    if (originalFile != null && originalFile.exists()) {
-                        // 2. 🔥 Extension Fix: Bin file ko JPG/MP4 mein convert (copy) karein
-                        String extension = isVid ? ".mp4" : ".jpg";
-                        java.io.File shareFile = new java.io.File(ctx.getCacheDir(), "share_temp" + extension);
+                    okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+                    okhttp3.Request request = new okhttp3.Request.Builder().url(downloadUrl).build();
 
-                        // File copy logic
-                        try (java.io.FileInputStream in = new java.io.FileInputStream(originalFile);
-                             java.io.FileOutputStream out = new java.io.FileOutputStream(shareFile)) {
-                            byte[] buffer = new byte[1024];
-                            int length;
-                            while ((length = in.read(buffer)) > 0) {
-                                out.write(buffer, 0, length);
-                            }
+                    try (okhttp3.Response response = client.newCall(request).execute()) {
+                        if (!response.isSuccessful() || response.body() == null) throw new Exception("Download failed");
+
+                        try (okio.BufferedSink sink = okio.Okio.buffer(okio.Okio.sink(shareFile));
+                             okio.BufferedSource source = response.body().source()) {
+                            sink.writeAll(source);
+                            sink.flush();
                         }
+                    }
 
-                        // 3. Nayi extension wali file ka URI banayein
+                    if (shareFile.exists()) {
                         Uri contentUri = androidx.core.content.FileProvider.getUriForFile(
-                                ctx, ctx.getPackageName() + ".fileprovider", shareFile);
-
+                                appCtx, appCtx.getPackageName() + ".fileprovider", shareFile);
                         new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                             Intent i = new Intent(Intent.ACTION_SEND)
                                     .setType(isVid ? "video/*" : "image/*")
                                     .putExtra(Intent.EXTRA_STREAM, contentUri)
                                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                            ctx.startActivity(Intent.createChooser(i, "Share via"));
+                            ctx.startActivity(Intent.createChooser(i, ctx.getString(R.string.chooser_title_share_via)));
                         });
                     }
                 } catch (Exception e) {
+                    android.util.Log.e("SHARE_ERROR", "Failed to share: " + e.getMessage());
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() ->
-                            Toast.makeText(ctx, "Share failed", Toast.LENGTH_SHORT).show());
+                            Toast.makeText(appCtx, appCtx.getString(R.string.error_share_failed), Toast.LENGTH_SHORT).show()
+                    );
                 }
             }).start();
         } else {
-            // Local files (already have extensions)
             Intent i = new Intent(Intent.ACTION_SEND)
                     .setType(isVid ? "video/*" : "image/*")
                     .putExtra(Intent.EXTRA_STREAM, uri)
                     .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            ctx.startActivity(Intent.createChooser(i, "Share via"));
-        }
+            ctx.startActivity(Intent.createChooser(i, ctx.getString(R.string.chooser_title_share_via)));
+                 }
     }
 
     public static void repostMedia(Context ctx, Uri uri, boolean isVid) {
+        if (ctx == null || uri == null) return;
+
         if (uri.toString().startsWith("http")) {
-            Toast.makeText(ctx, "Preparing for Repost... ✧", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ctx, ctx.getString(R.string.toast_preparing_repost), Toast.LENGTH_SHORT).show();
+            final Context appCtx = ctx.getApplicationContext();
+            String downloadUrl = uri.toString();
 
             new Thread(() -> {
                 try {
-                    // 1. Glide se asFile fetch karein
-                    java.io.File originalFile = com.bumptech.glide.Glide.with(ctx)
-                            .asFile()
-                            .load(uri.toString())
-                            .submit()
-                            .get();
+                    String extension = isVid ? ".mp4" : ".jpg";
+                    java.io.File repostFile = new java.io.File(appCtx.getCacheDir(), "repost_temp" + extension);
 
-                    if (originalFile != null && originalFile.exists()) {
-                        // 2. Extension Fix (Same as share)
-                        String extension = isVid ? ".mp4" : ".jpg";
-                        java.io.File repostFile = new java.io.File(ctx.getCacheDir(), "repost_temp" + extension);
+                    okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+                    okhttp3.Request request = new okhttp3.Request.Builder().url(downloadUrl).build();
 
-                        try (java.io.FileInputStream in = new java.io.FileInputStream(originalFile);
-                             java.io.FileOutputStream out = new java.io.FileOutputStream(repostFile)) {
-                            byte[] buffer = new byte[1024];
-                            int length;
-                            while ((length = in.read(buffer)) > 0) {
-                                out.write(buffer, 0, length);
-                            }
+                    try (okhttp3.Response response = client.newCall(request).execute()) {
+                        if (!response.isSuccessful() || response.body() == null) throw new Exception("Download failed");
+
+                        try (okio.BufferedSink sink = okio.Okio.buffer(okio.Okio.sink(repostFile));
+                             okio.BufferedSource source = response.body().source()) {
+                            sink.writeAll(source);
+                            sink.flush();
                         }
+                    }
 
+                    if (repostFile.exists()) {
                         Uri contentUri = androidx.core.content.FileProvider.getUriForFile(
-                                ctx, ctx.getPackageName() + ".fileprovider", repostFile);
+                                appCtx, appCtx.getPackageName() + ".fileprovider", repostFile);
 
-                        // 3. Direct WhatsApp Repost Intent
                         new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                             executeRepost(ctx, contentUri, isVid);
                         });
                     }
                 } catch (Exception e) {
+                    android.util.Log.e("REPOST_ERROR", "Failed to prepare repost: " + e.getMessage());
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() ->
-                            Toast.makeText(ctx, "Repost failed", Toast.LENGTH_SHORT).show());
+                            Toast.makeText(appCtx, appCtx.getString(R.string.error_repost_failed), Toast.LENGTH_SHORT).show()
+                    );
                 }
             }).start();
         } else {
-            // Local files ke liye direct call
             executeRepost(ctx, uri, isVid);
         }
     }
 
-    // 🔥 Helper function jo direct WhatsApp target karta h
     private static void executeRepost(Context ctx, Uri uri, boolean isVid) {
         try {
             Intent i = new Intent(Intent.ACTION_SEND);
@@ -255,22 +235,24 @@ public class MediaStatusUtils {
             i.putExtra(Intent.EXTRA_STREAM, uri);
             i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-            // 🔥 Direct WhatsApp target (Primary focus)
             i.setPackage("com.whatsapp");
 
             ctx.startActivity(i);
         } catch (Exception e) {
-            // Agar WhatsApp install nahi h to normal share dikha do
             Intent i = new Intent(Intent.ACTION_SEND);
             i.setType(isVid ? "video/*" : "image/*");
             i.putExtra(Intent.EXTRA_STREAM, uri);
             i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            ctx.startActivity(Intent.createChooser(i, "Repost via"));
+            ctx.startActivity(Intent.createChooser(i, ctx.getString(R.string.chooser_title_repost_via)));
         }
     }
 
     private static void notifyUser(Context ctx, String name) {
-        new PushNotificationHelper(ctx).sendNotification("Status Saver", "Status successfully saved!",
-                new Intent(Intent.ACTION_VIEW).setType("image/*"), name.hashCode());
+        new PushNotificationHelper(ctx).sendNotification(
+                ctx.getString(R.string.notification_title_status_saver),
+                ctx.getString(R.string.notification_desc_saved_success),
+                new Intent(Intent.ACTION_VIEW).setType("image/*"),
+                name.hashCode()
+        );
     }
 }

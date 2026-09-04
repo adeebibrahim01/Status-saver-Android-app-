@@ -1,45 +1,45 @@
 package com.mariaxcodexpert.whatsdownloadplus;
 
-import android.app.Dialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.WindowCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
-import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.google.firebase.messaging.FirebaseMessaging;
+import com.mariaxcodexpert.whatsdownloadplus.Ads.AdManager;
+import com.mariaxcodexpert.whatsdownloadplus.Ads.ConsentFormManager;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.AppUpdateChecker;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.WhatsNewDialog;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.ActivityMainBinding;
-import com.mariaxcodexpert.whatsdownloadplus.utils.NavigationHelper;
-import com.mariaxcodexpert.whatsdownloadplus.utils.PermissionManager;
-import com.mariaxcodexpert.whatsdownloadplus.utils.UiUtils;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Profile.ProfileSetupActivity;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Profile.ProfileViewModel;
+import com.mariaxcodexpert.whatsdownloadplus.ui.Subscription.BillingManager;
+import com.mariaxcodexpert.whatsdownloadplus.ui.language.LanguageManager;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.NavigationHelper;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.PermissionManager;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.UiUtils;
 
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
@@ -47,46 +47,86 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private PermissionManager permissionManager;
     private NavigationHelper navHelper;
-    private FeedbackPromptManager feedbackManager;
-    private AppUpdateChecker appUpdateChecker;
-    private static final String TAG = "MainActivity_Log";
     private BillingManager billingManager;
+
+    public static String cachedPhoto = "";
+    private ProfileViewModel profileViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.Theme_WhatsDownloadPlus);
+        LanguageManager.initAppLanguage(this);
         super.onCreate(savedInstanceState);
 
+        //-----------------------------------------------------------------
+        new Thread(() -> {
+            boolean isProfileSetupDone = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                    .getBoolean("is_profile_setup_done", false);
+
+            com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase db =
+                    com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase.getInstance(this);
+
+            boolean userExistsInDb = db.profileDao().isUserExists();
+
+            if (!isProfileSetupDone || !userExistsInDb) {
+                runOnUiThread(() -> {
+                    Intent intent = new Intent(MainActivity.this, ProfileSetupActivity.class);
+                    startActivity(intent);
+                    finish();
+                });
+            }
+        }).start();
+
+//----------------------------------------------------------------------------
+
+
+
+//----------------------------------------------------------------------------
+        //        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+//            if (!isFinishing()) {
+//                WhatsNewDialog.display(this, BuildConfig.VERSION_CODE);
+//                new AppUpdateChecker(this, updateLauncher).checkForUpdate();
+//                handleNotificationIntent(getIntent());
+//            }
+//        }, 10000);
+        
+// ----------------------------------------------------------------------------
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         setSupportActionBar(binding.appBarMain.toolbar);
+
 
         permissionManager = new PermissionManager(this, binding);
         navHelper = new NavigationHelper(this, binding);
-        feedbackManager = new FeedbackPromptManager(this);
         billingManager = new BillingManager(this, null);
 
+        if (!AdManager.isPremiumUser) {
+            com.google.android.gms.ads.MobileAds.initialize(this, initializationStatus -> {});
+
+            ConsentFormManager.init(this);
+            ConsentFormManager.getInstance().requestConsentForm(() -> {
+                com.unity3d.ads.metadata.MetaData gdprMetaData = new com.unity3d.ads.metadata.MetaData(this);
+                gdprMetaData.set("gdpr.consent", true);
+                gdprMetaData.commit();
+
+                if (ConsentFormManager.getInstance().canRequestAds()) {
+                    AdManager.init(this);
+                } else {
+                    Log.d("AdFlow", "Consent not granted or restricted.");
+                }
+            });
+        } else {
+            AdManager.releaseAllAds();
+        }
+
+        profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
         setupNavigation();
         setupToolbarActions();
 
-        WhatsNewDialog.display(this, BuildConfig.VERSION_CODE);
-        appUpdateChecker = new AppUpdateChecker(this, updateLauncher);
-        appUpdateChecker.checkForUpdate();
 
-        checkAndRequestNotificationPermission();
-        fetchFirebaseToken();
-        handleNotificationIntent(getIntent());
-
-        Looper.myQueue().addIdleHandler(() -> {
-            if (!isFinishing() && !isDestroyed()) {
-                initSecondaryServices();
-            }
-            return false;
-        });
     }
 
     private void setupNavigation() {
@@ -96,114 +136,124 @@ public class MainActivity extends AppCompatActivity {
         if (navHost != null) {
             navController = navHost.getNavController();
 
+
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+
             appBarConfiguration = new AppBarConfiguration.Builder(
                     R.id.nav_home, R.id.nav_gallery, R.id.nav_download, R.id.nav_privacy_policy
             ).setOpenableLayout(binding.drawerLayout).build();
 
             NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-            // 🔥 FIX: Bottom Navigation Force Click Handler
-            if (binding.appBarMain.bottomNavigation != null) {
-                // Pehle default setup karein
-                NavigationUI.setupWithNavController(binding.appBarMain.bottomNavigation, navController);
-
-                // Ab Dashboard (Home) click ko force handle karein
-                binding.appBarMain.bottomNavigation.setOnItemSelectedListener(item -> {
-                    int id = item.getItemId();
-
-                    if (id == R.id.nav_home) {
-                        // Agar hum pehle se Dashboard par nahi hain, to wapas jayein aur stack clear karein
-                        if (navController.getCurrentDestination() != null &&
-                                navController.getCurrentDestination().getId() != R.id.nav_home) {
-
-                            navController.navigate(R.id.nav_home, null, new NavOptions.Builder()
-                                    .setPopUpTo(R.id.nav_home, true) // Purana stack clear
-                                    .setLaunchSingleTop(true)       // Naya instance na banayein
-                                    .build());
-                        }
-                        return true;
+            NavigationUI.setupWithNavController(binding.appBarMain.bottomNavigation, navController);
+            binding.appBarMain.bottomNavigation.setOnItemSelectedListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.nav_home) {
+                    if (navController.getCurrentDestination() != null && navController.getCurrentDestination().getId() != R.id.nav_home) {
+                        navController.navigate(R.id.nav_home, null, new NavOptions.Builder()
+                                .setPopUpTo(R.id.nav_home, true)
+                                .setLaunchSingleTop(true).build());
                     }
+                    return true;
+                }
+                return NavigationUI.onNavDestinationSelected(item, navController);
+            });
 
-                    // Gallery aur baki options ke liye default behavior
-                    return NavigationUI.onNavDestinationSelected(item, navController);
-                });
-
-                binding.appBarMain.bottomNavigation.setOnItemReselectedListener(item -> {
-                    if (item.getItemId() == R.id.nav_home) {
-                        navController.popBackStack(R.id.nav_home, false);
+            binding.navView.setNavigationItemSelectedListener(item -> {
+                int selectedId = item.getItemId();
+                int currentId = (navController.getCurrentDestination() != null) ? navController.getCurrentDestination().getId() : -1;
+                if (selectedId == currentId) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START);
+                    return true;
+                }
+                binding.drawerLayout.closeDrawer(GravityCompat.START);
+                binding.drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+                    @Override
+                    public void onDrawerClosed(View drawerView) {
+                        super.onDrawerClosed(drawerView);
+                        NavigationUI.onNavDestinationSelected(item, navController);
+                        binding.drawerLayout.removeDrawerListener(this);
                     }
                 });
-            }
+                return true;
+            });
 
-            NavigationUI.setupWithNavController(binding.navView, navController);
             binding.navView.setItemIconTintList(null);
-
             binding.drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
                 @Override
                 public void onDrawerStateChanged(int newState) {
-                    if (newState != DrawerLayout.STATE_IDLE) {
-                        binding.drawerLayout.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                    } else {
-                        binding.drawerLayout.setLayerType(View.LAYER_TYPE_NONE, null);
-                    }
+                    binding.drawerLayout.setLayerType(newState != DrawerLayout.STATE_IDLE ? View.LAYER_TYPE_HARDWARE : View.LAYER_TYPE_NONE, null);
                 }
             });
 
-            if (navHelper != null) {
-                navHelper.setupDrawer(navController);
-            }
+            if (navHelper != null) navHelper.setupDrawer(navController);
+
+            refreshProfileUI(profileViewModel);
+            navController.addOnDestinationChangedListener((c, d, a) -> refreshProfileUI(profileViewModel));
         }
+
 
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     binding.drawerLayout.closeDrawer(GravityCompat.START);
-                } else if (navController != null) {
-                    if (navController.getCurrentDestination() != null &&
-                            navController.getCurrentDestination().getId() != R.id.nav_home) {
-                        navController.popBackStack(R.id.nav_home, false);
-                    } else {
-                        finish();
-                    }
+                } else if (navController != null && navController.getCurrentDestination() != null && navController.getCurrentDestination().getId() != R.id.nav_home) {
+                    navController.popBackStack(R.id.nav_home, false);
+                } else {
+                    finish();
                 }
             }
         });
     }
+    private void refreshProfileUI(ProfileViewModel profileViewModel) {
+        TextView tvProfileInitial = binding.appBarMain.toolbar.findViewById(R.id.toolbar_profile_text);
+        ImageView ivProfile = binding.appBarMain.toolbar.findViewById(R.id.toolbar_profile_image);
 
-    // ... (Baki methods as it is rehne dein) ...
-    private void fetchFirebaseToken() {
-        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) return;
-            Log.d("FCM_TOKEN", "Device Token: " + task.getResult());
+        profileViewModel.getProfileLiveData().observe(this, profile -> {
+            if (profile == null) {
+                showFallbackInitial(tvProfileInitial, ivProfile, "U");
+                return;
+            }
+
+            String photoUrl = profile.getPhotoUrl();
+
+            if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                ivProfile.setVisibility(View.VISIBLE);
+                tvProfileInitial.setVisibility(View.GONE);
+
+                com.bumptech.glide.Glide.with(this)
+                        .load(photoUrl)
+                        .circleCrop()
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                        .signature(new com.bumptech.glide.signature.ObjectKey(photoUrl))
+                        .placeholder(ivProfile.getDrawable())
+                        .dontAnimate()
+                        .into(ivProfile);
+            } else {
+                showFallbackInitial(tvProfileInitial, ivProfile, profile.getName());
+            }
         });
     }
 
-    private void checkAndRequestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
-            }
-        }
+    private void showFallbackInitial(TextView tvInitial, ImageView ivProfile, String name) {
+        ivProfile.setVisibility(View.GONE);
+        tvInitial.setVisibility(View.VISIBLE);
+
+        String initial = (name != null && !name.trim().isEmpty())
+                ? String.valueOf(name.trim().charAt(0)).toUpperCase() : "U";
+
+        tvInitial.setText(initial);
     }
 
     private void handleNotificationIntent(Intent intent) {
         if (intent != null && intent.hasExtra("openFragment")) {
-            String fragmentName = intent.getStringExtra("openFragment");
-            if ("ImagesAndVideo".equals(fragmentName)) {
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (navController != null) navController.navigate(R.id.nav_gallery);
-                }, 500);
+            if ("ImagesAndVideo".equals(intent.getStringExtra("openFragment"))) {
+                if (navController != null) navController.navigate(R.id.nav_gallery);
             }
         }
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        handleNotificationIntent(intent);
     }
 
     private void setupToolbarActions() {
@@ -211,74 +261,72 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout iconContainer = toolbar.findViewById(R.id.icon_list_container);
         ImageView btnToggle = toolbar.findViewById(R.id.btn_toggle_menu);
 
+        // FrameLayout ko find karein jo pura touch area hai
+        View btnNotificationLayout = toolbar.findViewById(R.id.custom_notif_layout);
+
         if (btnToggle != null && iconContainer != null) {
             btnToggle.setOnClickListener(v -> {
                 v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                if (iconContainer.getVisibility() == View.GONE) {
-                    iconContainer.setVisibility(View.VISIBLE);
-                    btnToggle.animate().rotation(180).setDuration(300).start();
-                } else {
-                    iconContainer.setVisibility(View.GONE);
-                    btnToggle.animate().rotation(0).setDuration(300).start();
+                boolean isVisible = iconContainer.getVisibility() == View.VISIBLE;
+                iconContainer.setVisibility(isVisible ? View.GONE : View.VISIBLE);
+                btnToggle.animate().rotation(isVisible ? 0 : 180).setDuration(300).start();
+            });
+        }
+
+        // Notification container click listener with permission check
+        if (btnNotificationLayout != null) {
+            btnNotificationLayout.setOnClickListener(v -> {
+                v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                Log.e("MainActivity", "Notification bell layout clicked.");
+
+                if (permissionManager != null) {
+                    // Pehle check karein ke notification permission di hai ya nahi
+                    if (!permissionManager.isNotificationPermissionGranted(this)) {
+                        Log.e("MainActivity", "Notification permission not granted. Prompting user.");
+                        permissionManager.checkAndShowNotificationPrompt(this);
+                    }
+                    else if (permissionManager.isBatteryOptimized()) {
+                        // Agar notification permission di hui hai, toh battery optimization dialog show karein
+                        Log.e("MainActivity", "Notification granted, showing battery optimization dialog.");
+                        permissionManager.showBatteryOptimizationDialog();
+                    } else {
+                        Log.e("MainActivity", "Both notification and battery optimization requirements are met.");
+                    }
+
+                    // Dot ki state ko foran update karein
+                    permissionManager.updateNotificationDot();
                 }
             });
         }
 
-        toolbar.findViewById(R.id.custom_more_apps).setOnClickListener(v -> showOurAppsDialog());
-        toolbar.findViewById(R.id.custom_whatsapp).setOnClickListener(v -> UiUtils.openWhatsApp(this));
-        toolbar.findViewById(R.id.custom_notif_layout).setOnClickListener(v -> {
-            if (permissionManager != null) permissionManager.handleNotificationButtonClick();
-        });
-    }
-
-    private void showOurAppsDialog() {
-        final Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.dialog_more_apps);
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-            lp.copyFrom(dialog.getWindow().getAttributes());
-            lp.width = (int) (getResources().getDisplayMetrics().widthPixels * 0.90);
-            dialog.getWindow().setAttributes(lp);
+        View customWhatsApp = toolbar.findViewById(R.id.custom_whatsapp);
+        if (customWhatsApp != null) {
+            customWhatsApp.setOnClickListener(v -> UiUtils.openWhatsApp(this));
         }
-        dialog.findViewById(R.id.app_item_photo_enhancer).setOnClickListener(v -> launchPlayStore("com.mariaxcodexpert.easyclickcounter"));
-        dialog.show();
-    }
 
-    private void launchPlayStore(String packageName) {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName)));
-        } catch (Exception e) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)));
-        }
-    }
-
-    private void initSecondaryServices() {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (!isFinishing() && !isDestroyed()) {
-                android.content.SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-                AdManager.isPremiumUser = prefs.getBoolean("isPremium", false);
-                if (!AdManager.isPremiumUser) {
-                    ConsentFormManager.init(this);
-                    ConsentFormManager.getInstance().requestConsentForm(() -> {
-                        if (AdManager.canRequestAds()) AdManager.init(this);
-                    });
+            if (!isFinishing() && permissionManager != null) {
+                if (!permissionManager.isNotificationPermissionGranted(this)) {
+                    permissionManager.checkAndShowNotificationPrompt(this);
                 }
             }
-        }, 1500);
+        }, 20000);
     }
-
     @Override
     protected void onResume() {
         super.onResume();
         if (billingManager != null) billingManager.startConnection();
-        if (permissionManager != null) permissionManager.updateNotificationDot();
+
+        if (permissionManager != null) {
+            permissionManager.updateNotificationDot();
+        }
+        if (profileViewModel != null) {
+            refreshProfileUI(profileViewModel); 
+        }
     }
 
     private final ActivityResultLauncher<IntentSenderRequest> updateLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(),
-                    result -> Log.d("AppUpdate", "Result: " + result.getResultCode()));
+            registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(), result -> {});
 
     @Override
     public boolean onSupportNavigateUp() {

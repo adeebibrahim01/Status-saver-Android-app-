@@ -46,7 +46,7 @@
                 android:layout_marginTop="32dp"
                 android:fontFamily="sans-serif-black"
                 android:gravity="center"
-                android:text="Storage Permission"
+                android:text="@string/storage_permission"
                 android:textColor="#D4AF37"
                 android:textSize="18sp"
                 android:letterSpacing="0.08"
@@ -62,7 +62,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:gravity="center"
                 android:lineSpacingExtra="4dp"
-                android:text="To show your latest statuses, we need access to your status folder."
+                android:text="@string/to_show_your_latest_statuses_we_need_access_to_your_status_folder"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 app:layout_constraintTop_toBottomOf="@id/titleText" />
@@ -74,7 +74,7 @@
                 android:layout_marginTop="20dp"
                 app:cardBackgroundColor="#082B26"
                 app:cardCornerRadius="35dp"
-                app:cardElevation="20dp"
+                app:cardElevation="2dp"
                 app:strokeWidth="1.5dp"
                 app:strokeColor="#33D4AF37"
                 app:layout_constraintTop_toBottomOf="@id/subTitleText">
@@ -95,7 +95,7 @@
                         android:letterSpacing="0.2"
                         android:paddingHorizontal="16dp"
                         android:paddingVertical="5dp"
-                        android:text="STEP 2"
+                        android:text="@string/step_2"
                         android:textColor="#000000"
                         android:textSize="10sp" />
 
@@ -105,7 +105,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="22dp"
                         android:fontFamily="sans-serif-black"
-                        android:text="Select Folder"
+                        android:text="@string/select_folder"
                         android:textColor="#FFFFFF"
                         android:textSize="20sp"
                         android:letterSpacing="0.04"
@@ -118,7 +118,7 @@
                         android:alpha="0.6"
                         android:fontFamily="sans-serif-medium"
                         android:gravity="center"
-                        android:text="Please select the '.Statuses' folder to automatically sync your media."
+                        android:text="@string/please_select_the_statuses_folder_to_automatically_sync_your_media"
                         android:textColor="#FFFFFF"
                         android:textSize="13sp"
                         android:lineSpacingExtra="3dp"/>
@@ -129,7 +129,7 @@
                         android:layout_height="62dp"
                         android:layout_marginTop="30dp"
                         android:fontFamily="sans-serif-black"
-                        android:text="ALLOW ACCESS"
+                        android:text="@string/allow_access"
                         android:textColor="#000000"
                         android:textSize="16sp"
                         android:letterSpacing="0.05"
@@ -147,7 +147,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="NEED HELP? VIEW GUIDE"
+                android:text="@string/need_help_view_guide"
                 android:textColor="#D4AF37"
                 android:textSize="12sp"
                 android:letterSpacing="0.05"
@@ -159,33 +159,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/mainActionCard" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                app:layout_constraintTop_toBottomOf="@id/statusfolder">
-
-                <View
-                    android:layout_width="50dp"
-                    android:layout_height="1.5dp"
-                    android:alpha="0.2"
-                    android:background="#D4AF37" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:alpha="0.5"
-                    android:fontFamily="sans-serif-medium"
-                    android:gravity="center"
-                    android:letterSpacing="0.05"
-                    android:text="MARIA CREATIONS | SECURE PROTOCOL"
-                    android:textColor="#FFFFFF"
-                    android:textSize="9sp"
-                    android:textAllCaps="true" />
-            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

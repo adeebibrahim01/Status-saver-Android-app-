@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_splash_gradient">
+    android:background="#ECE5DD">
 
     <View
         android:layout_width="300dp"
@@ -38,7 +38,7 @@
                 app:cardBackgroundColor="#1AFFFFFF"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#33FFFFFF"
+                app:strokeColor="#FFD700"
                 app:strokeWidth="1.5dp">
 
                 <LinearLayout
@@ -59,7 +59,6 @@
                             android:id="@+id/imgPrivacyLogo"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:padding="12dp"
                             android:src="@mipmap/ic_launcher"
                             android:contentDescription="@string/app_name"/>
                     </com.google.android.material.card.MaterialCardView>
@@ -69,7 +68,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/privacy_title"
-                        android:textColor="@color/white"
+                        android:textColor="#424242"
                         android:textSize="24sp"
                         android:fontFamily="sans-serif-black" />
 
@@ -79,7 +78,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:text="@string/privacy_last_updated"
-                        android:textColor="#B3FFFFFF"
+                        android:textColor="#424242"
                         android:letterSpacing="0.05"
                         android:textSize="12sp"
                         android:fontFamily="sans-serif-medium" />

@@ -19,12 +19,12 @@ public class BaseMediaViewHolder extends RecyclerView.ViewHolder {
         imageThumb = v.findViewById(R.id.imageThumb);
         videoIcon = v.findViewById(R.id.videoIcon);
         downloadStatus = v.findViewById(R.id.downloadStatus);
-        downloadIcon = v.findViewById(R.id.downloadIcon); // Sirf Gallery mein ho sakta hai
+        downloadIcon = v.findViewById(R.id.downloadIcon);
         downloadProgress = v.findViewById(R.id.downloadProgress);
         countdownTimer = v.findViewById(R.id.countdownTimer);
-        deleteIcon = v.findViewById(R.id.deleteIcon); // Sirf Downloads mein ho sakta hai
+        deleteIcon = v.findViewById(R.id.deleteIcon);
 
-        // Performance Optimization
+
         if (imageThumb != null) {
             imageThumb.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         }

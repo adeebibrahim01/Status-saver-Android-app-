@@ -6,25 +6,26 @@ import android.widget.ImageView;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.data.local.MediaEntity;
 
 public class MediaViewUtils {
 
-    /**
-     * Common Image Loading for both Adapters
-     */
     public static void loadImage(RequestManager glide, String path, ImageView target) {
+        if (path == null || target == null || glide == null) return;
+
+        com.bumptech.glide.RequestBuilder<android.graphics.drawable.Drawable> thumbnailRequest = glide
+                .load(path)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop();
+
         glide.load(path)
                 .placeholder(R.drawable.shimmer_placeholder)
                 .error(R.drawable.shimmer_placeholder)
+                .thumbnail(thumbnailRequest)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .centerCrop()
+                .dontAnimate()
                 .into(target);
     }
-
-    /**
-     * Common Download/Saved Status UI
-     */
     public static void updateStatusUI(BaseMediaViewHolder holder, boolean isDownloaded) {
         if (holder.downloadProgress != null) holder.downloadProgress.setVisibility(View.GONE);
 

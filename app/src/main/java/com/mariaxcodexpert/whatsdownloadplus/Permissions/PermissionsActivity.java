@@ -12,17 +12,20 @@ import android.provider.DocumentsContract;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ListView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.mariaxcodexpert.whatsdownloadplus.ui.language.LanguageManager;
 import com.mariaxcodexpert.whatsdownloadplus.MainActivity;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.SmartNotify;
 
 public class PermissionsActivity extends AppCompatActivity {
 
@@ -34,80 +37,207 @@ public class PermissionsActivity extends AppCompatActivity {
     private final int[] layouts = {R.layout.layout_select_app, R.layout.layout_permissions};
     private boolean hasNavigated = false;
     private android.view.animation.Animation pulseAnim;
-    // 1. Notification Permission Launcher (For Android 13+)
+
     private final ActivityResultLauncher<String> requestNotificationLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             isGranted -> {
-                // Notification permission mile ya na mile, hum folder picker par bhej denge
                 openStatusFolderPicker();
             }
     );
 
-    // 2. Folder Picker Launcher (SAF)
     private final ActivityResultLauncher<Intent> folderPickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     handleFolderSelection(result.getData().getData());
                 } else {
-                    SmartNotify.warning(findViewById(android.R.id.content), "Selection required! ⚠️");
+                    SmartNotify.warning(findViewById(android.R.id.content), getString(R.string.perm_warning_selection_required));
+
                 }
             }
     );
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+       LanguageManager.initAppLanguage(this);
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.intro_activity);
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
         viewPager = findViewById(R.id.viewPager);
 
-        PermissionsPagerAdapter adapter = new PermissionsPagerAdapter(this, layouts, viewPager);
+        PermissionsPagerAdapter adapter =
+                new PermissionsPagerAdapter(this, layouts, viewPager);
+
         viewPager.setAdapter(adapter);
+
         viewPager.setUserInputEnabled(false);
 
-        findViewById(R.id.btnLeft).setOnClickListener(v -> viewPager.setCurrentItem(0, true));
+        findViewById(R.id.btnLeft)
+                .setOnClickListener(v ->
+                        viewPager.setCurrentItem(0, true));
 
-        findViewById(R.id.btnRight).setOnClickListener(v -> {
-            if (viewPager.getCurrentItem() == 0) {
-                if (isWhatsappSelected()) {
-                    viewPager.setCurrentItem(1, true);
-                } else {
-                    SmartNotify.warning(v, "Please click the checkbox first to proceed. 🚀");
-                }
-            } else {
-                startPermissionFlow();
-            }
-        });
+        findViewById(R.id.btnRight)
+                .setOnClickListener(v -> {
+
+                    if (viewPager.getCurrentItem() == 0) {
+
+                        if (isWhatsappSelected()) {
+
+                            viewPager.setCurrentItem(1, true);
+
+                        } else {
+
+                            SmartNotify.warning(
+                                    v,
+                                    getString(R.string.perm_warning_checkbox_first)
+                            );
+                        }
+
+                    } else {
+
+                        startPermissionFlow();
+                    }
+                });
 
         restoreFolderUri();
 
         if (isAlreadyGranted()) {
             redirectToMain();
         }
-        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                super.onPageSelected(position);
 
-                // Agar pehla page (R.layout.layout_select_app) load hua hai
-                if (position == 0) {
-                    // Thoda sa delay dete hain taake view render ho jaye
-                    viewPager.postDelayed(() -> {
-                        // ViewPager ke current fragment/view se checkbox dhondty hain
-                        View currentView = ((ViewGroup) viewPager.getChildAt(0)).getChildAt(0);
-                        if (currentView != null) {
-                            CheckBox cb = currentView.findViewById(R.id.selectWhatsappcheckbox);
-                            if (cb != null && !cb.isChecked()) {
-                                // Animation shuru karein
-                                pulseAnim = android.view.animation.AnimationUtils.loadAnimation(PermissionsActivity.this, R.anim.pulse);
-                                cb.startAnimation(pulseAnim);
-                            }
+        viewPager.registerOnPageChangeCallback(
+                new ViewPager2.OnPageChangeCallback() {
+
+                    @Override
+                    public void onPageSelected(int position) {
+
+                        super.onPageSelected(position);
+
+                        if (position == 0) {
+
+                            viewPager.post(() -> {
+
+                                View currentView =
+                                        ((ViewGroup) viewPager.getChildAt(0))
+                                                .getChildAt(0);
+
+                                if (currentView == null) return;
+
+                                // Checkbox animation
+                                CheckBox cb =
+                                        currentView.findViewById(
+                                                R.id.selectWhatsappcheckbox
+                                        );
+
+                                if (cb != null && !cb.isChecked()) {
+
+                                    pulseAnim =
+                                            android.view.animation.AnimationUtils
+                                                    .loadAnimation(
+                                                            PermissionsActivity.this,
+                                                            R.anim.pulse
+                                                    );
+
+                                    cb.startAnimation(pulseAnim);
+                                }
+
+                                View langSelector =
+                                        currentView.findViewById(
+                                                R.id.btnLanguageSelector
+                                        );
+
+                                if (langSelector != null) {
+
+                                    android.widget.TextView tvLang =
+                                            currentView.findViewById(
+                                                    R.id.tvSelectedLanguage
+                                            );
+
+                                    if (tvLang != null) {
+
+                                        String savedCode =
+                                                LanguageManager
+                                                        .getSavedLanguageCode(
+                                                                PermissionsActivity.this
+                                                        );
+
+                                        String langName = "English";
+
+                                        for (LanguageManager.LanguageModel model :
+                                                LanguageManager.getSupportedLanguages(
+                                                        PermissionsActivity.this
+                                                )) {
+
+                                            if (model.getCode()
+                                                    .equals(savedCode)) {
+
+                                                langName = model.getName();
+
+                                                break;
+                                            }
+                                        }
+
+                                        tvLang.setText(langName);
+                                    }
+
+                                    langSelector.setOnClickListener(
+                                            v -> showLanguageBottomSheet()
+                                    );
+                                }
+                            });
                         }
-                    }, 200); // 200ms ka delay safe hai
-                }
+                    }
+                });
+    }
+    private void showLanguageBottomSheet() {
+        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
+                new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
+
+        View sheetView = getLayoutInflater().inflate(R.layout.layout_language_bottom_sheet, null);
+        ListView listView = sheetView.findViewById(R.id.languageListView);
+
+        java.util.List<LanguageManager.LanguageModel> langList = LanguageManager.getSupportedLanguages(this);
+
+        android.widget.ArrayAdapter<LanguageManager.LanguageModel> adapter = new android.widget.ArrayAdapter<>(
+                this, android.R.layout.simple_list_item_1, langList) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                android.widget.TextView textView = (android.widget.TextView) super.getView(position, convertView, parent);
+                textView.setText(langList.get(position).getName());
+                textView.setTextColor(android.graphics.Color.WHITE);
+                textView.setPadding(40, 30, 40, 30);
+                textView.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+                textView.setTextDirection(android.view.View.TEXT_DIRECTION_LTR);
+                return textView;
             }
+        };
+
+        listView.setAdapter(adapter);
+        bottomSheet.setContentView(sheetView);
+        bottomSheet.show();
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            LanguageManager.LanguageModel selected = langList.get(position);
+
+            LanguageManager.applyLanguage(this, selected.getCode());
+
+            bottomSheet.dismiss();
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                String activeLang = LanguageManager.getCurrentActiveLanguage(this);
+
+                if (activeLang.contains(selected.getCode())) {
+                    android.widget.Toast.makeText(this, "Language set to: " + selected.getName(), android.widget.Toast.LENGTH_SHORT).show();
+                }
+                finish();
+                overridePendingTransition(0, 0);
+                startActivity(getIntent());
+                overridePendingTransition(0, 0);
+            }, 100);
         });
     }
 
@@ -137,7 +267,6 @@ public class PermissionsActivity extends AppCompatActivity {
     }
 
     private void startPermissionFlow() {
-        // 🔥 Android 13+ ke liye Notification mangna zaroori hai agar app reject hone se bachani hai
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestNotificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
@@ -145,7 +274,6 @@ public class PermissionsActivity extends AppCompatActivity {
                 openStatusFolderPicker();
             }
         } else {
-            // Android 10, 11, 12 ke liye direct picker
             openStatusFolderPicker();
         }
     }
@@ -153,7 +281,6 @@ public class PermissionsActivity extends AppCompatActivity {
     private void handleFolderSelection(Uri uri) {
         if (isValidWhatsAppFolder(uri)) {
             try {
-                // 🔥 UPDATE: READ aur WRITE dono flags lein taake access permanent ho jaye
                 final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                         | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
 
@@ -162,10 +289,10 @@ public class PermissionsActivity extends AppCompatActivity {
                 saveAndRedirect(uri);
             } catch (Exception e) {
                 e.printStackTrace();
-                SmartNotify.error(findViewById(android.R.id.content), "Permission error! Please grant access. ⚠️");
+                SmartNotify.error(findViewById(android.R.id.content), getString(R.string.perm_error_grant_access)); // 🔥 Changed
             }
         } else {
-            SmartNotify.warning(findViewById(android.R.id.content), "Select '.Statuses' folder to proceed! 📁");
+            SmartNotify.warning(findViewById(android.R.id.content), getString(R.string.perm_warning_select_statuses_folder));
             openStatusFolderPicker();
         }
     }
@@ -204,7 +331,6 @@ public class PermissionsActivity extends AppCompatActivity {
         com.google.android.material.bottomsheet.BottomSheetDialog bottomSheetDialog =
                 new com.google.android.material.bottomsheet.BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
 
-        // layout_guide_bottom_sheet wahi layout hai jo aapne guide dikhane ke liye banaya hoga
         View bottomSheetView = getLayoutInflater().inflate(R.layout.layout_guide_bottom_sheet, null);
         bottomSheetView.findViewById(R.id.btnGotIt).setOnClickListener(view -> bottomSheetDialog.dismiss());
         bottomSheetDialog.setContentView(bottomSheetView);

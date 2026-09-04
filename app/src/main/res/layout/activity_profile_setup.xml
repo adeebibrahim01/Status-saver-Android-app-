@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:py="http://schemas.android.com/tools"
+    android:background="@drawable/bg_gradient_splash">
+
+    <!-- Background Decorative Glow/Circle shapes for Modern Depth -->
+    <View
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="-60dp"
+        android:layout_marginTop="-60dp"
+        android:background="@drawable/bg_glow_circle"
+        android:alpha="0.15" />
+
+    <View
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="-80dp"
+        android:layout_marginBottom="-80dp"
+        android:background="@drawable/bg_glow_circle"
+        android:alpha="0.1" />
+
+    <!-- Main Content Centered Card Container (Glassmorphism Effect) -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginHorizontal="20dp"
+        app:cardBackgroundColor="#15FFFFFF"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="1.5dp"
+        app:strokeColor="#30FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="36dp">
+
+            <!-- App Icon / Logo with Outer Ring -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="84dp"
+                android:layout_height="84dp"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="#25FFFFFF"
+                app:cardCornerRadius="26dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#50FFFFFF">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="22dp"
+                    android:src="@drawable/ic_google_logo"
+                    app:tint="#FFFFFF" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Title & Subtitle -->
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="Welcome Back"
+                android:textColor="#FFFFFF"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="24dp"
+                android:fontFamily="sans-serif"
+                android:gravity="center"
+                android:text="Secure cloud sync for your statuses, chats, and configurations."
+                android:textColor="#B2DFDB"
+                android:textSize="13sp" />
+
+            <!-- Feature Pills / Badges Row (Advanced UI Touch) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="28dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:weightSum="3">
+
+                <!-- Feature 1 -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/bg_feature_chip"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    py:ignore="UnusedAttribute"
+                    android:paddingVertical="6dp"
+                    android:text="🔒 Secure"
+                    android:textColor="#E0F2F1"
+                    android:textSize="11sp" />
+
+                <!-- Feature 2 -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="2dp"
+                    android:background="@drawable/bg_feature_chip"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:paddingVertical="6dp"
+                    android:text="⚡ Fast Sync"
+                    android:textColor="#E0F2F1"
+                    android:textSize="11sp" />
+
+                <!-- Feature 3 -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_feature_chip"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:paddingVertical="6dp"
+                    android:text="☁️ Backup"
+                    android:textColor="#E0F2F1"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- Advanced Google Sign-in Button with Shadow & Rounded Radius -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGoogleSignIn"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:backgroundTint="#FFFFFF"
+                android:elevation="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="Continue with Google"
+                android:textAllCaps="false"
+                android:textColor="#212121"
+                android:textSize="15sp"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_google_logo"
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:iconSize="22dp"
+                app:iconTint="@null"
+                app:rippleColor="#E0E0E0" />
+
+            <!-- Smooth Modern ProgressBar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="18dp"
+                android:indeterminateTint="#FFFFFF"
+                android:visibility="gone" />
+
+            <!-- Terms and Policy Footer Text -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:fontFamily="sans-serif"
+                android:gravity="center"
+                android:text="By continuing, you agree to our Terms &amp; Privacy Policy"
+                android:textColor="#80CBC4"
+                android:textSize="10.5sp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</RelativeLayout>

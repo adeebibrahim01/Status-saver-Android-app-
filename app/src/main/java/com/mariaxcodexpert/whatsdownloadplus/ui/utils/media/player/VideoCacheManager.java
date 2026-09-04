@@ -1,4 +1,4 @@
-package com.mariaxcodexpert.whatsdownloadplus.utils.player;
+package com.mariaxcodexpert.whatsdownloadplus.ui.utils.media.player;
 
 import android.content.Context;
 import android.util.Log;

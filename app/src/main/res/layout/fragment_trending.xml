@@ -4,9 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ultra_luxury_bg">
+    android:background="#ECE5DD">
 
-    <!-- Premium Luxury Header Section -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -19,10 +18,10 @@
             android:layout_width="match_parent"
             android:layout_height="120dp"
             android:background="@drawable/white_luxury_header_bg"
-            android:elevation="8dp"
-            android:clipChildren="false">
+            android:elevation="2dp"
+            android:clipChildren="false"
+            android:clipToPadding="false">
 
-            <!-- Left Decorative Watermark -->
             <FrameLayout
                 android:id="@+id/watermarkContainerLeft"
                 android:layout_width="120dp"
@@ -51,7 +50,6 @@
                     app:tint="#D4AF37" />
             </FrameLayout>
 
-            <!-- Center Titles -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -67,7 +65,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
-                    android:text="✧ AI TRENDING ✧"
+                    android:text="@string/global_trending"
                     android:textAllCaps="true"
                     android:textColor="#BC9112"
                     android:textSize="11sp"
@@ -78,13 +76,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/dancing_script"
-                    android:text="Viral Status"
+                    android:text="@string/trending_status"
                     android:textColor="#FFFFFF"
                     android:textSize="30sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <!-- Right Decorative Watermark -->
             <FrameLayout
                 android:id="@+id/watermarkContainerRight"
                 android:layout_width="120dp"
@@ -113,7 +110,6 @@
                     app:tint="#D4AF37" />
             </FrameLayout>
 
-            <!-- Bottom Gold Line Decoration -->
             <View
                 android:layout_width="50dp"
                 android:layout_height="3dp"
@@ -125,14 +121,12 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Main List (RecyclerView) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTrending"
         android:layout_width="match_parent"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="60dp"
         android:layout_height="0dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="45dp"
         android:clipToPadding="false"
         android:padding="8dp"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout"
@@ -140,7 +134,56 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- LOADER: Main Screen Center -->
+    <LinearLayout
+        android:id="@+id/emptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="30dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout">
+
+        <ImageView
+            android:id="@+id/ivEmptyIcon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_wifi_off"
+            android:alpha="0.3"
+            app:tint="#BC9112" />
+
+        <TextView
+            android:id="@+id/tvEmptyTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="Connection Lost"
+            android:textColor="#BC9112"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tvEmptyDesc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="Please check your internet connection and try again to see viral statuses."
+            android:textColor="#80000000"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetry"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="RETRY"
+            android:textColor="#BC9112"
+            app:rippleColor="#20BC9112"/>
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/pbLoading"
         android:layout_width="55dp"

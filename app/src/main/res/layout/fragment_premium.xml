@@ -41,7 +41,7 @@
             android:layout_marginTop="14dp"
             android:fontFamily="sans-serif-black"
             android:letterSpacing="0.05"
-            android:text="ELITE UPGRADE"
+            android:text="@string/elite_upgrade"
             android:textColor="#424242"
             android:textSize="20sp" />
 
@@ -50,7 +50,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:letterSpacing="0.15"
-            android:text="✦ SUPREME FEATURES ✦"
+            android:text="@string/supreme_features"
             android:textColor="#D4AF37"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -69,7 +69,7 @@
                 android:layout_marginBottom="10dp"
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
-                android:text="Zero Disruptive Ads"
+                android:text="@string/zero_disruptive_ads"
                 android:textColor="#424242"
                 android:textSize="14sp"
                 app:drawableStartCompat="@android:drawable/btn_star_big_on"
@@ -81,7 +81,7 @@
                 android:layout_marginBottom="10dp"
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
-                android:text="Multi-Threaded Downloader"
+                android:text="@string/multi_threaded_downloader"
                 android:textColor="#424242"
                 android:textSize="14sp"
                 app:drawableStartCompat="@android:drawable/btn_star_big_on"
@@ -92,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:drawablePadding="10dp"
                 android:gravity="center_vertical"
-                android:text="Quality Content Access"
+                android:text="@string/quality_content_access"
                 android:textColor="#424242"
                 android:textSize="14sp"
                 app:drawableStartCompat="@android:drawable/btn_star_big_on"
@@ -104,11 +104,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="35dp"
             android:alpha="0.6"
-            android:text="CHOOSE YOUR ELITE PASS"
+            android:text="@string/choose_your_elite_pass"
             android:textColor="#424242"
             android:textSize="10sp"
             android:textStyle="bold" />
 
+        <!-- Monthly Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardMonthly"
             android:layout_width="match_parent"
@@ -129,7 +130,7 @@
                     android:id="@+id/titleMonthly"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Monthly"
+                    android:text="@string/monthly"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -143,7 +144,7 @@
                     android:background="#1A4CAF50"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="2dp"
-                    android:text="ACTIVE"
+                    android:text="@string/active"
                     android:textColor="#4CAF50"
                     android:textSize="9sp"
                     android:textStyle="bold"
@@ -153,23 +154,37 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/titleMonthly"
-                    android:text="Premium benefits"
+                    android:text="@string/premium_benefits"
                     android:textColor="#66FFFFFF"
                     android:textSize="11sp" />
 
-                <TextView
-                    android:id="@+id/tvPriceMonthly"
+                <!-- Price & Progress Section -->
+                <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:text=""
-                    android:textColor="#D4AF37"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_centerVertical="true">
+
+                    <ProgressBar
+                        android:id="@+id/progressMonthly"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvPriceMonthly"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textColor="#D4AF37"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Lifetime Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardLifetime"
             android:layout_width="match_parent"
@@ -179,7 +194,7 @@
             android:focusable="true"
             app:cardBackgroundColor="#D4AF37"
             app:cardCornerRadius="16dp"
-            app:cardElevation="12dp">
+            app:cardElevation="1dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -191,7 +206,7 @@
                     android:id="@+id/titleLifetime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Lifetime Access"
+                    android:text="@string/lifetime_access"
                     android:textColor="#000000"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -205,7 +220,7 @@
                     android:background="#33000000"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="2dp"
-                    android:text="ACTIVE"
+                    android:text="@string/active"
                     android:textColor="#000000"
                     android:textSize="9sp"
                     android:textStyle="bold"
@@ -215,23 +230,37 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/titleLifetime"
-                    android:text="One-time luxury pass"
+                    android:text="@string/one_time_luxury_pass"
                     android:textColor="#80000000"
                     android:textSize="11sp" />
 
-                <TextView
-                    android:id="@+id/tvPriceLifetime"
+                <!-- Price & Progress Section -->
+                <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:background="#15000000"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    android:text=""
-                    android:textColor="#000000"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_centerVertical="true">
+
+                    <ProgressBar
+                        android:id="@+id/progressLifetime"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:indeterminateTint="#000000"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvPriceLifetime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#15000000"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text=""
+                        android:textColor="#000000"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
 
@@ -243,7 +272,7 @@
             android:alpha="0.4"
             android:drawablePadding="8dp"
             android:gravity="center_vertical"
-            android:text="Verified by Google Play Security"
+            android:text="@string/verified_by_google_play_security"
             android:textColor="#424242"
             android:textSize="10sp"
             app:drawableStartCompat="@android:drawable/ic_lock_lock"

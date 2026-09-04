@@ -102,7 +102,7 @@
                         android:src="@drawable/ic_trending_up" />
                     <TextView
                         style="@style/MenuTextStyle"
-                        android:text="VIRAL" />
+                        android:text="@string/trending" />
                 </LinearLayout>
 
                 <View style="@style/VerticalDividerStyle" />
@@ -118,26 +118,49 @@
                         android:src="@drawable/ic_search" />
                     <TextView
                         style="@style/MenuTextStyle"
-                        android:text="SEARCH" />
+                        android:text="@string/search" />
                 </LinearLayout>
 
                 <View style="@style/VerticalDividerStyle" />
 
-                <!-- Button: Coming Soon -->
-                <LinearLayout
-                    android:id="@+id/btnComingSoon"
-                    style="@style/MenuButtonStyle"
-                    android:alpha="0.6"
+                <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1">
-                    <ImageView
-                        style="@style/MenuIconStyle"
-                        android:background="@drawable/bg_icon_circle_blue"
-                        android:src="@drawable/ic_lock_secure" />
-                    <TextView
-                        style="@style/MenuTextStyle"
-                        android:text="SOON" />
-                </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnReport"
+                        style="@style/MenuButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            style="@style/MenuIconStyle"
+                            android:background="@drawable/bg_icon_circle_blue"
+                            android:src="@drawable/ic_complaints" />
+
+                        <TextView
+                            style="@style/MenuTextStyle"
+                            android:text="@string/support" />
+                    </LinearLayout>
+
+                    <View
+                        android:id="@+id/redDotView"
+                        android:layout_width="10dp"
+                        android:layout_height="10dp"
+                        android:background="@drawable/bg_red_dot"
+                        android:layout_alignTop="@id/btnReport"
+                        android:layout_alignEnd="@id/btnReport"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="30dp"
+                        android:visibility="gone"
+                        android:elevation="5dp" />
+
+                </RelativeLayout>
             </LinearLayout>
+
         </LinearLayout>
+
     </FrameLayout>
+
 </androidx.cardview.widget.CardView>

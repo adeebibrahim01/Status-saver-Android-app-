@@ -11,10 +11,10 @@
         android:background="@drawable/luxury_card_bg"
         android:orientation="vertical"
         android:padding="28dp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <!-- Top Luxury Icon -->
         <ImageView
@@ -30,95 +30,57 @@
             android:layout_gravity="center"
             android:layout_marginTop="12dp"
             android:letterSpacing="0.2"
-            android:text="ELITE UPDATE"
+            android:text="@string/what_s_new"
             android:textColor="#D4AF37"
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <!-- Feature 1: Discovery -->
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp">
+            android:layout_marginTop="18dp">
 
             <ImageView
-                android:id="@+id/icon1"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_status_discovery"
-                app:tint="#FCF6BA" />
+                android:id="@+id/icon5"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:src="@drawable/ic_language_selector"
+                app:tint="#BF953F" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/icon1"
                 android:layout_marginStart="15dp"
+                android:layout_toEndOf="@id/icon5"
                 android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Global Discovery Engine"
+                    android:text="@string/multi_language_support"
                     android:textColor="#FFFFFF"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Search &amp; download high-quality images and videos."
+                    android:layout_marginTop="2dp"
+                    android:text="@string/change_app_language_as_you_prefer"
                     android:textColor="#9E9E9E"
-                    android:textSize="12sp"
-                    android:textAlignment="center"
-                    android:lineSpacingExtra="2dp" />
+                    android:textSize="11sp" />
             </LinearLayout>
-        </RelativeLayout>
 
-        <!-- Feature 2: Premium -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp">
-
-            <ImageView
-                android:id="@+id/icon2"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/ic_premium_gold"
-                app:tint="#FCF6BA" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/icon2"
-                android:layout_marginStart="15dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ads-Free Experience"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Go Premium ($1.49 / $6.99) via the side menu."
-                    android:textColor="#9E9E9E"
-                    android:textSize="12sp" />
-            </LinearLayout>
         </RelativeLayout>
 
         <CheckBox
             android:id="@+id/cb_dont_show"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="20dp"
             android:buttonTint="#D4AF37"
-            android:text="Don't show for this version"
+            android:text="@string/don_t_show_for_this_version"
             android:textColor="#666666"
             android:textSize="12sp" />
 
@@ -128,7 +90,7 @@
             android:layout_height="55dp"
             android:layout_marginTop="15dp"
             android:background="@drawable/golden_button_full"
-            android:text="EXPERIENCE NOW"
+            android:text="@string/experience_now"
             android:textColor="#000000"
             android:textStyle="bold" />
 

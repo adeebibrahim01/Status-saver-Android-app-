@@ -1,22 +1,19 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- WhatsApp-style Dark Theme -->
+
     <style name="Theme.WhatsDownloadPlus" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary WhatsApp colors (slightly darker) -->
+
         <item name="colorPrimary">@color/whatsapp_dark_green</item>
         <item name="colorPrimaryVariant">@color/whatsapp_green</item>
         <item name="colorOnPrimary">@android:color/white</item>
 
-        <!-- Secondary -->
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@android:color/white</item>
 
-        <!-- Backgrounds -->
         <item name="android:windowBackground">#121B1A</item>
         <item name="android:statusBarColor">@color/whatsapp_dark_green</item>
         <item name="android:navigationBarColor">@color/whatsapp_dark_green</item>
 
-        <!-- Text colors -->
         <item name="android:textColor">@android:color/white</item>
         <item name="android:colorBackground">#121B1A</item>
     </style>

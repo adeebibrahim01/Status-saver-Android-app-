@@ -10,15 +10,25 @@ import com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoEntity
 import java.util.Objects;
 
 public class GalleryDiffCallback extends DiffUtil.ItemCallback<Object> {
-
     @Override
     public boolean areItemsTheSame(@NonNull Object oldItem, @NonNull Object newItem) {
+
         if (oldItem.getClass() != newItem.getClass()) return false;
 
-        if (oldItem instanceof ImageEntity) {
-            return Objects.equals(((ImageEntity) oldItem).fileName, ((ImageEntity) newItem).fileName);
-        } else if (oldItem instanceof VideoEntity) {
-            return Objects.equals(((VideoEntity) oldItem).fileName, ((VideoEntity) newItem).fileName);
+        try {
+            if (oldItem instanceof ImageEntity && newItem instanceof ImageEntity) {
+                String oldName = ((ImageEntity) oldItem).fileName;
+                String newName = ((ImageEntity) newItem).fileName;
+                return oldName != null && oldName.equals(newName);
+            }
+
+            if (oldItem instanceof VideoEntity && newItem instanceof VideoEntity) {
+                String oldName = ((VideoEntity) oldItem).fileName;
+                String newName = ((VideoEntity) newItem).fileName;
+                return oldName != null && oldName.equals(newName);
+            }
+        } catch (Exception e) {
+            return false;
         }
 
         return false;
@@ -26,45 +36,49 @@ public class GalleryDiffCallback extends DiffUtil.ItemCallback<Object> {
 
     @Override
     public boolean areContentsTheSame(@NonNull Object oldItem, @NonNull Object newItem) {
-        // Agar items images hain
-        if (oldItem instanceof ImageEntity && newItem instanceof ImageEntity) {
-            ImageEntity oldImg = (ImageEntity) oldItem;
-            ImageEntity newImg = (ImageEntity) newItem;
+        try {
+            if (oldItem instanceof ImageEntity && newItem instanceof ImageEntity) {
+                ImageEntity o = (ImageEntity) oldItem;
+                ImageEntity n = (ImageEntity) newItem;
 
-            // 🔥 Anti-Blink: Sirf zaroori fields check karein
-            return oldImg.isDownloaded == newImg.isDownloaded &&
-                    oldImg.expiryTime == newImg.expiryTime &&
-                    Objects.equals(oldImg.getUri(), newImg.getUri()) &&
-                    Objects.equals(oldImg.gallery_path, newImg.gallery_path);
-        }
+                return o.isDownloaded == n.isDownloaded &&
+                        o.expiryTime == n.expiryTime &&
+                        Objects.equals(o.getUri(), n.getUri()) &&
+                        Objects.equals(o.gallery_path, n.gallery_path);
+            }
 
-        // Agar items videos hain
-        if (oldItem instanceof VideoEntity && newItem instanceof VideoEntity) {
-            VideoEntity oldVid = (VideoEntity) oldItem;
-            VideoEntity newVid = (VideoEntity) newItem;
+            if (oldItem instanceof VideoEntity && newItem instanceof VideoEntity) {
+                VideoEntity o = (VideoEntity) oldItem;
+                VideoEntity n = (VideoEntity) newItem;
 
-            // 🔥 Anti-Blink: Sirf zaroori fields check karein
-            return oldVid.isDownloaded == newVid.isDownloaded &&
-                    oldVid.expiryTime == newVid.expiryTime &&
-                    Objects.equals(oldVid.getUri(), newVid.getUri()) &&
-                    Objects.equals(oldVid.gallery_path, newVid.gallery_path);
+                return o.isDownloaded == n.isDownloaded &&
+                        o.expiryTime == n.expiryTime &&
+                        Objects.equals(o.getUri(), n.getUri()) &&
+                        Objects.equals(o.gallery_path, n.gallery_path);
+            }
+        } catch (Exception e) {
+            return false;
         }
 
         return Objects.equals(oldItem, newItem);
     }
-
     @Nullable
     @Override
     public Object getChangePayload(@NonNull Object oldItem, @NonNull Object newItem) {
-        // Sirf Download Tick (Green icon) update karne ke liye payload use karein
-        if (oldItem instanceof ImageEntity && newItem instanceof ImageEntity) {
-            if (((ImageEntity) oldItem).isDownloaded != ((ImageEntity) newItem).isDownloaded) {
-                return "FORCE_TICK_UPDATE";
+        try {
+            if (oldItem instanceof ImageEntity && newItem instanceof ImageEntity) {
+                if (((ImageEntity) oldItem).isDownloaded != ((ImageEntity) newItem).isDownloaded) {
+                    return "FORCE_TICK_UPDATE";
+                }
             }
-        } else if (oldItem instanceof VideoEntity && newItem instanceof VideoEntity) {
-            if (((VideoEntity) oldItem).isDownloaded != ((VideoEntity) newItem).isDownloaded) {
-                return "FORCE_TICK_UPDATE";
+
+            if (oldItem instanceof VideoEntity && newItem instanceof VideoEntity) {
+                if (((VideoEntity) oldItem).isDownloaded != ((VideoEntity) newItem).isDownloaded) {
+                    return "FORCE_TICK_UPDATE";
+                }
             }
+        } catch (Exception e) {
+            return null;
         }
 
         return super.getChangePayload(oldItem, newItem);

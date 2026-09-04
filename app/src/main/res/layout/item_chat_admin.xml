@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="8dp"
+    android:clipToPadding="false">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivAdminAvatar"
+        android:layout_width="42dp"  android:layout_height="42dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:padding="2dp"       android:src="@drawable/admin_gold_avatar" android:background="#1A1A1A"
+        android:scaleType="centerCrop" app:strokeColor="#D4AF37"
+        app:strokeWidth="1.5dp"
+        app:shapeAppearanceOverlay="@style/CircleImage"
+        android:elevation="4dp"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/ivAdminAvatar"
+        android:layout_marginStart="12dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_admin_bubble_premium"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:maxWidth="280dp"
+            android:lineSpacingExtra="3dp"
+            android:elevation="2dp" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp"
+            android:layout_marginStart="4dp"
+            android:gravity="center_vertical">
+
+            <!-- Generic Role Display (Admin ya Developer yahan show hoga) -->
+            <TextView
+                android:id="@+id/tv_role_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/admin"
+                android:textColor="#D4AF37"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:textSize="10sp"
+                android:letterSpacing="0.1" />
+
+            <!-- Separator Dot -->
+            <View
+                android:layout_width="3dp"
+                android:layout_height="3dp"
+                android:layout_marginHorizontal="6dp"
+                android:background="#40D4AF37" />
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#80FFFFFF"
+                android:textSize="9sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>

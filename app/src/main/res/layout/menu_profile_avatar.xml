@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="36dp"
+    android:layout_height="36dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="2dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardBackgroundColor="#ECE5DD"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="0dp"
+        app:strokeColor="#D4AF37"
+        app:strokeWidth="1.5dp">
+
+        <!-- ImageView ID must match code -->
+        <ImageView
+            android:id="@+id/toolbar_profile_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_person" />
+
+        <!-- TextView for fallback initial if photo is missing -->
+        <TextView
+            android:id="@+id/toolbar_profile_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textColor="#D4AF37"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </com.google.android.material.card.MaterialCardView>
+</FrameLayout>

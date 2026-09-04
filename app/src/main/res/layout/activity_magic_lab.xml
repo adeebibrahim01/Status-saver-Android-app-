@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
             android:letterSpacing="0.4"
-            android:text="✧ MAGIC LAB PRO ✧"
+            android:text="@string/magic_lab_pro"
             android:textColor="#D4AF37"
             android:textSize="11sp"
             android:textStyle="bold"
@@ -133,7 +133,7 @@
                 android:buttonTint="#D4AF37"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.1"
-                android:text="DENOISE"
+                android:text="@string/denoise"
                 android:textColor="#D4AF37"
                 android:textSize="9sp" />
 
@@ -150,7 +150,7 @@
                 android:buttonTint="#D4AF37"
                 android:fontFamily="sans-serif-medium"
                 android:letterSpacing="0.1"
-                android:text="VIVID HDR"
+                android:text="@string/vivid_hdr"
                 android:textColor="#D4AF37"
                 android:textSize="9sp" />
         </LinearLayout>
@@ -188,7 +188,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-black"
                 android:letterSpacing="0.4"
-                android:text="EXPOSURE"
+                android:text="@string/exposure"
                 android:textColor="#D4AF37"
                 android:textSize="10sp" />
 
@@ -219,67 +219,67 @@
 
                 <LinearLayout android:id="@+id/toolSmooth" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_smooth" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Smooth" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/smooth" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolExposure" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_exposure" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Exposure" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/exposures" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolHighlights" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_highlights" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Highlights" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/highlights" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolShadows" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_shadows" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Shadows" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/shadows" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolContrast" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_contrast" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Contrast" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/contrast" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolBrightness" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_brightness" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Bright" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/bright" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolVibrance" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_vibrance" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Vibrance" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/vibrance" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolWarmth" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_warmth" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Warmth" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/warmth" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolSaturation" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_color" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Color" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/color" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolTint" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_tint" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Tint" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/tint" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolClarity" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_clarity" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Clarity" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/clarity" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolDetail" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_details" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Sharpen" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/sharpen" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
 
                 <LinearLayout android:id="@+id/toolVignette" style="@style/ToolItemStyle">
                     <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_vignette" app:tint="#D4AF37" />
-                    <TextView style="@style/ToolTextStyle" android:text="Vignette" android:textColor="#B3FFFFFF" />
+                    <TextView style="@style/ToolTextStyle" android:text="@string/vignette" android:textColor="#B3FFFFFF" />
                 </LinearLayout>
             </LinearLayout>
         </HorizontalScrollView>
@@ -306,7 +306,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:fontFamily="sans-serif-medium"
-                    android:text="ORIGINAL"
+                    android:text="@string/original"
                     android:textColor="#80FFFFFF"
                     android:textSize="9sp"
                     app:cornerRadius="8dp"
@@ -333,7 +333,7 @@
                 android:elevation="8dp"
                 android:fontFamily="sans-serif-black"
                 android:letterSpacing="0.2"
-                android:text="EXPORT"
+                android:text="@string/export"
                 android:textColor="#000000"
                 android:textSize="12sp"
                 app:cornerRadius="25dp"

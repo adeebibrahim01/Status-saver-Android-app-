@@ -9,50 +9,53 @@
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_menu_camera_sidebar"
-            android:title="Dashboard" />
-
-        <item
-            android:id="@+id/nav_download"
-            android:icon="@drawable/ic_wa_download_sidebar"
-            android:title="Downloads" />
+            android:title="@string/dashboard" />
     </group>
 
+
+
+    <!-- SECTION 3: ENGAGEMENT & GROWTH -->
+    <item android:title="@string/community_amp_feedback">
+        <menu>
+            <item
+                android:id="@+id/nav_rate_app"
+                android:icon="@drawable/ic_rate_sidebar"
+                android:title="@string/recommend_us" />
+
+            <item
+                android:id="@+id/nav_share_app"
+                android:icon="@drawable/ic_share_sidebar"
+                android:title="@string/invite_friends" />
+
+            <item
+                android:id="@+id/nav_feedback"
+                android:icon="@drawable/ic_feedback_sidebar_channel"
+                android:title="@string/join_whatsapp_channel" />
+        </menu>
+    </item>
+
+
+    <!-- SECTION 4: TRUST CENTER -->
+    <item android:title="@string/app_information">
+        <menu>
+            <item
+                android:id="@+id/nav_privacy_policy"
+                android:icon="@drawable/ic_privacy_sidebar"
+                android:title="@string/privacy_amp_terms" />
+        </menu>
+    </item>
     <!-- SECTION 2: EXCLUSIVE ACCESS (Divider auto-added by Group) -->
     <group android:id="@+id/premium_group">
         <item
             android:id="@+id/nav_premium"
             android:icon="@drawable/ic_premium_gold_sidebar"
-            android:title="Unlock Pro Experience" />
+            android:title="@string/unlock_pro_experience" />
     </group>
-
-    <!-- SECTION 3: ENGAGEMENT & GROWTH -->
-    <item android:title="Community &amp; Feedback">
-        <menu>
-            <item
-                android:id="@+id/nav_rate_app"
-                android:icon="@drawable/ic_rate_sidebar"
-                android:title="Recommend Us" />
-
-            <item
-                android:id="@+id/nav_share_app"
-                android:icon="@drawable/ic_share_sidebar"
-                android:title="Invite Friends" />
-
-            <item
-                android:id="@+id/nav_feedback"
-                android:icon="@drawable/ic_feedback_sidebar_channel"
-                android:title="Join WhatsApp Channel" />
-        </menu>
-    </item>
-
-    <!-- SECTION 4: TRUST CENTER -->
-    <item android:title="App Information">
-        <menu>
-            <item
-                android:id="@+id/nav_privacy_policy"
-                android:icon="@drawable/ic_privacy_sidebar"
-                android:title="Privacy &amp; Terms" />
-        </menu>
-    </item>
-
+    <group android:id="@+id/language_group"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_language"
+            android:icon="@drawable/ic_language_selector"
+            android:title="@string/language" />
+    </group>
 </menu>

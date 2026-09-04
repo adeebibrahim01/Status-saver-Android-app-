@@ -5,15 +5,18 @@
     android:id="@+id/fullScreenContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A0A">
+    android:background="#000000">
 
-    <FrameLayout
+    <!-- 1. Ad Container (Positioned as per Reference - 45dp) -->
+    <androidx.cardview.widget.CardView
         android:id="@+id/adContainer"
         android:layout_width="match_parent"
-        android:layout_height="65dp"
-        android:layout_marginTop="35dp"
-        android:background="#121212"
-        android:elevation="4dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="45dp"
+        android:layout_marginHorizontal="10dp"
+        app:cardBackgroundColor="#CC121212"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -25,162 +28,188 @@
             android:layout_gravity="center"
             app:adSize="BANNER"
             app:adUnitId="ca-app-pub-9822767396000072/9452084887" />
-    </FrameLayout>
+    </androidx.cardview.widget.CardView>
 
+    <!-- Media ViewPager -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/mediaViewPager"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomActions"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottomControls"
         app:layout_constraintTop_toBottomOf="@id/adContainer" />
 
+    <!-- Top Shadow Overlay for Icon Visibility -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@drawable/top_shadow_gradient"
+        app:layout_constraintTop_toTopOf="@id/mediaViewPager" />
+
+    <!-- Close Button (Fixed at the Corner of Media Area) -->
     <FrameLayout
         android:id="@+id/closeButton"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
-        android:background="@drawable/circle_bg_black_round"
+        android:background="@drawable/circle_bg_glass"
         android:clickable="true"
-        android:elevation="15dp"
+        android:elevation="10dp"
         android:focusable="true"
-        android:outlineProvider="background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/mediaViewPager">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_close"
-            app:tint="#D4AF37" />
+            app:tint="#FFFFFF" />
     </FrameLayout>
 
+    <!-- 2. Bottom Controls Section -->
+    <LinearLayout
+        android:id="@+id/bottomControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bottom_shadow_gradient"
+        android:paddingBottom="20dp"
+        android:layout_marginBottom="35dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/titleSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:layout_marginBottom="15dp">
+
+            <TextView
+                android:id="@+id/tvFullMediaTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/saved_media"
+                android:textColor="#FFD700"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:shadowColor="#CC000000"
+                android:shadowRadius="4"/>
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="2dp"
+                android:layout_marginTop="6dp"
+                android:background="#D4AF37" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/bottomActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Repost -->
+            <LinearLayout
+                android:id="@+id/cardRepost"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+                <FrameLayout android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/bg_icon_glass_premium">
+                    <ImageView android:id="@+id/repostActionButton" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:src="@drawable/ic_repost" app:tint="#FFFFFF" />
+                </FrameLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/repost" android:textColor="#A6A6A6" android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- Share -->
+            <LinearLayout
+                android:id="@+id/cardShareFull"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+                <FrameLayout android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/bg_icon_glass_premium">
+                    <ImageView android:id="@+id/shareActionButton" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:src="@drawable/ic_share" app:tint="#FFFFFF" />
+                </FrameLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/share" android:textColor="#A6A6A6" android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- Delete -->
+            <LinearLayout
+                android:id="@+id/cardDelete"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
+                <FrameLayout android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/bg_icon_glass_red">
+                    <ImageView android:id="@+id/deleteActionButton" android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:src="@drawable/ic_delete" app:tint="#FF5252" />
+                </FrameLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/delete" android:textColor="#FF5252" android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 3. Progress Overlay -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/deleteOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#E6000000"
-        android:clickable="true"
         android:elevation="100dp"
-        android:focusable="true"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/deleteProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:indeterminate="false"
-            app:indicatorColor="#FF5252"
+            app:indicatorColor="#D4AF37"
             app:indicatorSize="90dp"
+            app:trackThickness="6dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:trackColor="#26FF5252"
-            app:trackCornerRadius="10dp"
-            app:trackThickness="8dp" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tvDeletePercent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-black"
             android:text="0%"
-            android:textColor="#FF5252"
+            android:textColor="#FFFFFF"
             android:textSize="18sp"
-            app:layout_constraintBottom_toBottomOf="@+id/deleteProgress"
-            app:layout_constraintEnd_toEndOf="@+id/deleteProgress"
-            app:layout_constraintStart_toStartOf="@+id/deleteProgress"
-            app:layout_constraintTop_toTopOf="@+id/deleteProgress" />
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/deleteProgress"
+            app:layout_constraintEnd_toEndOf="@id/deleteProgress"
+            app:layout_constraintStart_toStartOf="@id/deleteProgress"
+            app:layout_constraintTop_toTopOf="@id/deleteProgress" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.2"
-            android:text="PURGING SYSTEM..."
+            android:text="@string/deleting"
             android:textColor="#D4AF37"
-            android:textSize="13sp"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="12dp"
+            android:textSize="12sp"
+            android:letterSpacing="0.1"
+            app:layout_constraintTop_toBottomOf="@id/deleteProgress"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/deleteProgress" />
+            app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <LinearLayout
-        android:id="@+id/bottomActions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/premium_action_bg"
-        android:clipToPadding="false"
-        android:elevation="20dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingTop="24dp"
-        android:paddingBottom="48dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <LinearLayout
-            android:id="@+id/cardRepost"
-            style="@style/PremiumNavTab"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-            <FrameLayout
-                style="@style/PremiumIconFrame"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_icon_glass">
-                <ImageView
-                    android:id="@+id/repostActionButton"
-                    style="@style/PremiumIconStyle"
-                    android:src="@drawable/ic_repost"
-                    app:tint="#D4AF37" />
-            </FrameLayout>
-            <TextView style="@style/PremiumNavLabel" android:text="REPOST" android:textColor="#A6A6A6" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cardShareFull"
-            style="@style/PremiumNavTab"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-            <FrameLayout
-                style="@style/PremiumIconFrame"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_icon_glass">
-                <ImageView
-                    android:id="@+id/shareActionButton"
-                    style="@style/PremiumIconStyle"
-                    android:src="@drawable/ic_share"
-                    app:tint="#D4AF37" />
-            </FrameLayout>
-            <TextView style="@style/PremiumNavLabel" android:text="SHARE" android:textColor="#A6A6A6" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cardDelete"
-            style="@style/PremiumNavTab"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
-            <FrameLayout
-                style="@style/PremiumIconFrame"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_icon_glass_red">
-                <ImageView
-                    android:id="@+id/deleteActionButton"
-                    style="@style/PremiumIconStyle"
-                    android:src="@drawable/ic_delete"
-                    app:tint="#FF5252" />
-            </FrameLayout>
-            <TextView style="@style/PremiumNavLabel" android:text="DELETE" android:textColor="#FF5252" />
-        </LinearLayout>
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

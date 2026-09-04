@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Home.HomeFragment"
-        android:label="@string/STATUS_ENGINE"
+
         tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_home_to_gallery"
@@ -17,19 +17,23 @@
         <action
             android:id="@+id/action_home_to_trending"
             app:destination="@id/nav_trending" />
+
+        <action
+            android:id="@+id/action_home_to_downloads"
+            app:destination="@id/nav_download" />
     </fragment>
 
     <!-- AI Trend Hunter Fragment Registration -->
     <fragment
         android:id="@+id/nav_trending"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.trending.TrendingFragment"
-        android:label="AI Trend Hunter"
+
         tools:layout="@layout/fragment_trending" />
 
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.gallery.GalleryFragment"
-        android:label="@string/STATUS_ENGINE"
+
         tools:layout="@layout/fragment_imagesandvideo">
         <action
             android:id="@+id/action_gallery_to_home"
@@ -44,30 +48,42 @@
     <activity
         android:id="@+id/imageVideoPreviewActivity"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.preview.MediaPreviewActivity"
-        android:label="@string/STATUS_ENGINE"
+
         tools:layout="@layout/image_video_preview_activity" />
 
     <fragment
         android:id="@+id/nav_download"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Download.DownloadFragment"
-        android:label="@string/STATUS_ENGINE"
+
         tools:layout="@layout/fragment_download" />
 
     <fragment
         android:id="@+id/nav_privacy_policy"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Privacy_policy.PrivacyPolicyFragment"
-        android:label="@string/STATUS_ENGINE"
+
         tools:layout="@layout/fragment_privacy_policy" />
 
     <fragment
         android:id="@+id/nav_online_search"
         android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Search.OnlineSearchFragment"
-        android:label="@string/STATUS_ENGINE"
+
         tools:layout="@layout/fragment_online_search" />
 
     <fragment
         android:id="@+id/nav_premium"
-        android:name="com.mariaxcodexpert.whatsdownloadplus.PremiumFragment"
-        android:label="Premium Access"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Subscription.PremiumFragment"
+
         tools:layout="@layout/fragment_premium" />
+
+    <fragment
+        android:id="@+id/nav_language"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.language.LanguageFragment"
+
+        tools:layout="@layout/fragment_language" />
+    <!-- Profile Fragment Registration -->
+    <fragment
+        android:id="@+id/nav_profile"
+        android:name="com.mariaxcodexpert.whatsdownloadplus.ui.Profile.ProfileFragment"
+
+        tools:layout="@layout/fragment_profile" />
 </navigation>

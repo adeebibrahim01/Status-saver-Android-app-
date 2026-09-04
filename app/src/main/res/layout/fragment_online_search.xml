@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/ultra_luxury_bg">
+    android:background="#ECE5DD">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/luxuryHeader"
@@ -28,8 +28,7 @@
                 android:layout_height="60dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_video_library_dashboard"
-                app:tint="#D4AF37"
-                />
+                app:tint="#D4AF37" />
         </FrameLayout>
 
         <LinearLayout
@@ -47,7 +46,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:text="✧ GLOBAL SEARCH ✧"
+                android:text="@string/global_search"
                 android:textAllCaps="true"
                 android:textColor="#BC9112"
                 android:textSize="10sp"
@@ -58,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/dancing_script"
-                android:text="Status Discovery"
+                android:text="@string/status_discovery"
                 android:textColor="#FFFFFF"
                 android:textSize="26sp"
                 android:textStyle="bold" />
@@ -78,8 +77,7 @@
                 android:layout_height="60dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_photo_library_dashboard"
-                app:tint="#D4AF37"
-                />
+                app:tint="#D4AF37" />
         </FrameLayout>
 
         <View
@@ -91,15 +89,15 @@
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginBottom="10dp"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/searchCard"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="#FFFFFF"
+        android:layout_height="50dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="25dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#ECE5DD"
         app:strokeColor="#D4AF37"
         app:strokeWidth="1dp"
         app:layout_constraintTop_toBottomOf="@id/luxuryHeader">
@@ -109,48 +107,64 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="18dp">
+            android:paddingHorizontal="16dp">
+
+            <ImageView
+                android:id="@+id/btnSearch"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_search"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="#D4AF37" />
 
             <EditText
                 android:id="@+id/etSearch"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="8dp"
                 android:background="@null"
-                android:hint="Search premium status..."
+                android:hint="@string/search_premium_status"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
-                android:textColor="#333333"
-                android:textColorHint="#999999"
-                android:textSize="15sp" />
+                android:singleLine="true"
+                android:textColor="#424242"
+                android:textColorHint="#424242"
+                android:textSize="14sp" />
 
             <ImageView
-                android:id="@+id/btnSearch"
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:padding="6dp"
-                android:src="@drawable/ic_search"
-                android:background="@drawable/bg_action_gold_circle"
-                app:tint="#D4AF37" />
+                android:id="@+id/btnClearSearch"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_close"
+                android:alpha="0.6"
+                android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="#424242" />
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvOnlineImages"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="60dp"
+        android:layout_marginBottom="45dp"
         android:paddingHorizontal="10dp"
         android:paddingTop="8dp"
         android:paddingBottom="100dp"
         android:clipToPadding="false"
         android:visibility="gone"
-        android:layoutAnimation="@anim/layout_animation_fall_down"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchCard" />
+
     <ProgressBar
         android:id="@+id/loader"
         android:layout_width="50dp"
@@ -164,30 +178,30 @@
 
     <LinearLayout
         android:id="@+id/tvNoStatus"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="30dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchCard">
 
         <ImageView
             android:id="@+id/ivEmptyIcon"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:src="@drawable/ic_error_api"
             android:alpha="0.4"
-            app:tint="#D4AF37" />
+            app:tint="#BC9112" />
 
         <TextView
             android:id="@+id/tvEmptyTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Explore Premium Content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/explore_premium_content"
             android:textColor="#BC9112"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -198,11 +212,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Find the best status and wallpapers for you"
+            android:text="@string/find_the_best_status_and_wallpapers_for_you"
             android:textColor="#424242"
             android:textSize="14sp"
             android:gravity="center" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetrySearch"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="RETRY"
+            android:textColor="#BC9112"
+            android:visibility="gone"
+            app:rippleColor="#20BC9112" />
 
     </LinearLayout>
 

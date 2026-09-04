@@ -12,13 +12,17 @@
     <item
         android:id="@+id/nav_gallery"
         android:icon="@drawable/ic_status_gallery_merge"
-        android:title="Gallery"
+        android:title="@string/gallery"
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/nav_trending"
-        android:icon="@drawable/ic_trending_up"
-        android:title="Trending"
+        android:id="@+id/nav_download"
+        android:icon="@drawable/ic_wa_download"
+        android:title="@string/downloadss"
         app:showAsAction="ifRoom" />
-
+    <item
+        android:id="@+id/nav_profile"
+        android:icon="@drawable/ic_person"
+        android:title="@string/profile"
+        app:showAsAction="ifRoom" />
 </menu>

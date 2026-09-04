@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="No Status Found"
+        android:text="@string/no_status_found"
         android:textColor="#1A1A1A"
         android:textSize="16sp"
         android:textStyle="bold" />
@@ -32,7 +32,7 @@
         android:layout_marginTop="8dp"
         android:gravity="center"
         android:lineSpacingExtra="4sp"
-        android:text="First watch status from WhatsApp\nthen download from here."
+        android:text="@string/first_watch_status_from_whatsapp_nthen_download_from_here"
         android:textColor="#888888"
         android:textSize="12sp" />
 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="6dp">
+
+    <LinearLayout
+        android:id="@+id/layoutUserContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/ivUserSentImage"
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/tvUserMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#FFD700"
+            android:textColor="#000000"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:maxWidth="280dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutAIContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:gravity="start"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvAIMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#262626"
+            android:textColor="#FFFFFF"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:maxWidth="280dp" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -12,8 +12,14 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.mariaxcodexpert.whatsdownloadplus.R;
+
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -21,27 +27,33 @@ public class MediaDownloadHelper {
 
     private static final String TAG = "MediaDownloadHelper";
 
-    /**
-     * Callback interface download ke status ke liye
-     */
     public interface DownloadCallback {
         void onDownloadCompleted(Uri uri, String mimeType);
         void onDownloadFailed(String error);
     }
 
-    /**
-     * Media file download karne aur MediaStore (Gallery) mein save karne ke liye
-     */
-    public static void downloadToMediaStore(Context context, String fileUrl, String type, DownloadCallback callback) {
+    public static void downloadToMediaStore(@NonNull Context context, @Nullable String fileUrl, @Nullable String type, @NonNull DownloadCallback callback) {
+        if (fileUrl == null || fileUrl.isEmpty()) {
+            callback.onDownloadFailed("Invalid URL");
+            return;
+        }
+        WeakReference<Context> contextRef = new WeakReference<>(context);
+
         new Thread(() -> {
             Uri uri = null;
-            try {
-                // 1. File Info setup
-                String extension = "video".equalsIgnoreCase(type) ? ".mp4" : ".jpg";
-                String fileName = "WA_Status_" + System.currentTimeMillis() + extension;
-                String mimeType = "video".equalsIgnoreCase(type) ? "video/mp4" : "image/jpeg";
+            HttpURLConnection connection = null;
+            InputStream input = null;
+            OutputStream output = null;
 
-                Uri collection = "video".equalsIgnoreCase(type) ?
+            try {
+                Context innerContext = contextRef.get();
+                if (innerContext == null) return;
+                boolean isVideo = "video".equalsIgnoreCase(type);
+                String extension = isVideo ? ".mp4" : ".jpg";
+                String fileName = "WA_Status_" + System.currentTimeMillis() + extension;
+                String mimeType = isVideo ? "video/mp4" : "image/jpeg";
+
+                Uri collection = isVideo ?
                         MediaStore.Video.Media.EXTERNAL_CONTENT_URI :
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
@@ -50,84 +62,88 @@ public class MediaDownloadHelper {
                 values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    String folder = "video".equalsIgnoreCase(type) ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES;
+                    String folder = isVideo ? Environment.DIRECTORY_MOVIES : Environment.DIRECTORY_PICTURES;
                     values.put(MediaStore.MediaColumns.RELATIVE_PATH, folder + "/TrendingStatus");
                     values.put(MediaStore.MediaColumns.IS_PENDING, 1);
                 }
 
-                uri = context.getContentResolver().insert(collection, values);
+                uri = innerContext.getContentResolver().insert(collection, values);
 
-                if (uri != null) {
-                    URL url = new URL(fileUrl);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setConnectTimeout(20000);
-                    connection.connect();
+                if (uri == null) throw new Exception(innerContext.getString(R.string.error_mediastore_entry_failed));
 
-                    if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                        throw new Exception("Server returned HTTP " + connection.getResponseCode());
-                    }
+                URL url = new URL(fileUrl);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(15000); // 15 seconds timeout
+                connection.setReadTimeout(20000);
+                connection.setInstanceFollowRedirects(true);
+                connection.connect();
 
-                    InputStream input = connection.getInputStream();
-                    OutputStream output = context.getContentResolver().openOutputStream(uri);
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    throw new Exception(innerContext.getString(R.string.error_server_response_code, connection.getResponseCode()));
+                  }
 
-                    // 2. High Quality Stream Copy
-                    byte[] buffer = new byte[1024 * 16];
-                    int len;
-                    while ((len = input.read(buffer)) != -1) {
-                        output.write(buffer, 0, len);
-                    }
+                input = connection.getInputStream();
+                output = innerContext.getContentResolver().openOutputStream(uri);
 
-                    output.flush();
-                    output.close();
-                    input.close();
-
-                    // 3. Finalize File
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        values.clear();
-                        values.put(MediaStore.MediaColumns.IS_PENDING, 0);
-                        context.getContentResolver().update(uri, values, null, null);
-                    }
-
-                    Uri finalUri = uri;
-                    new Handler(Looper.getMainLooper()).post(() -> callback.onDownloadCompleted(finalUri, mimeType));
+                if (output == null) {
+                    throw new Exception(innerContext.getString(R.string.error_output_stream_failed));
                 }
+                byte[] buffer = new byte[8192];
+                int len;
+                while ((len = input.read(buffer)) != -1) {
+                    output.write(buffer, 0, len);
+                }
+
+                output.flush();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    values.clear();
+                    values.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                    innerContext.getContentResolver().update(uri, values, null, null);
+                }
+                Uri finalUri = uri;
+                new Handler(Looper.getMainLooper()).post(() -> callback.onDownloadCompleted(finalUri, mimeType));
+
             } catch (Exception e) {
                 Log.e(TAG, "Download Error: " + e.getMessage());
-                if (uri != null) {
-                    context.getContentResolver().delete(uri, null, null);
+                if (uri != null && contextRef.get() != null) {
+                    contextRef.get().getContentResolver().delete(uri, null, null);
                 }
                 new Handler(Looper.getMainLooper()).post(() -> callback.onDownloadFailed(e.getMessage()));
+            } finally {
+                try {
+                    if (input != null) input.close();
+                    if (output != null) output.close();
+                    if (connection != null) connection.disconnect();
+                } catch (Exception ignored) {}
             }
         }).start();
     }
 
-    /**
-     * Downloaded file ko WhatsApp Status par share karne ke liye
-     */
     public static void shareToWhatsApp(Context context, Uri fileUri, String mimeType) {
+        if (context == null || fileUri == null) return;
+
         try {
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType(mimeType);
-            intent.setPackage("com.whatsapp"); // Original WhatsApp ko target kar raha hai
             intent.putExtra(Intent.EXTRA_STREAM, fileUri);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-            // Chooser taake user ko option mile (WhatsApp ya Business WhatsApp)
-            Intent chooser = Intent.createChooser(intent, "Set Status via:");
+            intent.setPackage("com.whatsapp");
+            Intent chooser = Intent.createChooser(intent, context.getString(R.string.chooser_title_whatsapp_status));
             chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(chooser);
 
         } catch (Exception e) {
-            Log.e(TAG, "Share Error: " + e.getMessage());
-            // Agar normal WhatsApp nahi milta to try karein ke generic share open ho jaye
             try {
                 Intent genericIntent = new Intent(Intent.ACTION_SEND);
                 genericIntent.setType(mimeType);
                 genericIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
                 genericIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                context.startActivity(Intent.createChooser(genericIntent, "Share Status"));
+                Intent chooser = Intent.createChooser(genericIntent, context.getString(R.string.chooser_title_share_status));
+                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(chooser);
             } catch (Exception ex) {
-                Toast.makeText(context, "WhatsApp not installed!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, context.getString(R.string.toast_no_sharing_app_found), Toast.LENGTH_SHORT).show();
             }
         }
     }

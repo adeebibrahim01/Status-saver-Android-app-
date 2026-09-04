@@ -3,26 +3,28 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Home;
 import android.content.Context;
 import android.content.Intent;
 import android.os.*;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.*;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.Button;
-import android.widget.TextView;
+
 import androidx.annotation.*;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import android.util.Log;
-import android.widget.Toast;
-
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.*;
-import com.mariaxcodexpert.whatsdownloadplus.AdManager;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.mariaxcodexpert.whatsdownloadplus.Ads.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.StatsActivity;
+import com.mariaxcodexpert.whatsdownloadplus.ui.stickers.StickerActivity;
+import com.mariaxcodexpert.whatsdownloadplus.ui.support.SupportActivity;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.VersionHelper;
 import com.mariaxcodexpert.whatsdownloadplus.databinding.FragmentHomeBinding;
 import com.mariaxcodexpert.whatsdownloadplus.ui.Download.FullScreenMediaActivity;
+import com.google.firebase.database.*;
+
+import java.io.Serializable;
 import java.util.*;
 
 public class HomeFragment extends Fragment {
@@ -31,237 +33,242 @@ public class HomeFragment extends Fragment {
     private RecentDownloadsAdapter adapter;
     private boolean isNavigating = false;
     private final Handler navHandler = new Handler(Looper.getMainLooper());
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle saved) {
-        binding = FragmentHomeBinding.inflate(inflater, container, false);
-        viewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
+    private ValueEventListener supportListener;
+    private DatabaseReference supportRef;
 
-         return binding.getRoot(); // Ye line execute nahi hogi kyunki upar crash ho jayega
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inf, ViewGroup cont, Bundle sav) {
+        binding = FragmentHomeBinding.inflate(inf, cont, false);
+        viewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
+        return binding.getRoot();
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle saved) {
         super.onViewCreated(view, saved);
+
         setupUI();
-        observeRoomData();
+        observeState();
+
+        checkSupportNotifications();
     }
 
     private void setupUI() {
-        // 1. Recent Downloads Section (3-Column Vertical Grid)
-        // Vertical grid ke liye humein orientation dene ki zaroorat nahi hoti, ye default vertical hota hai
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 3);
-        binding.homeRecentLayout.rvRecentDownloads.setLayoutManager(gridLayoutManager);
+        if (binding == null) return;
 
-        // FIX: Row by row (1 2 3, then 4 5 6) dikhane ke liye aur scrolling smooth karne ke liye
+        GridLayoutManager glm = new GridLayoutManager(getContext(), 3);
+        binding.homeRecentLayout.rvRecentDownloads.setLayoutManager(glm);
         binding.homeRecentLayout.rvRecentDownloads.setHasFixedSize(true);
-        binding.homeRecentLayout.rvRecentDownloads.setNestedScrollingEnabled(false);
+        binding.homeRecentLayout.rvRecentDownloads.setItemAnimator(null);
 
-        // Spacing aur Padding fix (Left, Top, Right, Bottom)
-        int padding = (int) (8 * getResources().getDisplayMetrics().density); // 8dp padding
-        binding.homeRecentLayout.rvRecentDownloads.setPadding(padding, padding, padding, padding);
-        binding.homeRecentLayout.rvRecentDownloads.setClipToPadding(false);
-
-        adapter = new RecentDownloadsAdapter(item -> {
-            if (isNavigating || !isAdded()) return;
-            isNavigating = true;
+        adapter = new RecentDownloadsAdapter(item -> safeAction(null, () -> {
+            if (adapter == null || getActivity() == null) return;
 
             List<Object> currentList = adapter.getCurrentList();
-            ArrayList<java.io.Serializable> serializableList = new ArrayList<>();
+            ArrayList<Serializable> serializableList = new ArrayList<>();
             for (Object obj : currentList) {
-                if (obj instanceof java.io.Serializable) {
-                    serializableList.add((java.io.Serializable) obj);
-                }
+                if (obj instanceof Serializable) serializableList.add((Serializable) obj);
             }
-            int position = currentList.indexOf(item);
+
+            int pos = currentList.indexOf(item);
 
             AdManager.showInterstitial(getActivity(), new AdManager.AdCallback() {
                 @Override
                 public void onAdClosed() {
-                    openMedia(serializableList, position);
+                    if (isAdded()) openMedia(serializableList, pos);
                 }
-
                 @Override
                 public void onAdFailed() {
-                    openMedia(serializableList, position);
+                    if (isAdded()) openMedia(serializableList, pos);
                 }
             });
-
-            navHandler.postDelayed(() -> isNavigating = false, 1000);
-        });
+        }));
 
         binding.homeRecentLayout.rvRecentDownloads.setAdapter(adapter);
 
-        // Performance: Item update hone par jhatke (blink) na mare
-        if (binding.homeRecentLayout.rvRecentDownloads.getItemAnimator() instanceof SimpleItemAnimator) {
-            ((SimpleItemAnimator) Objects.requireNonNull(binding.homeRecentLayout.rvRecentDownloads.getItemAnimator()))
-                    .setSupportsChangeAnimations(false);
-        }
-
-        // 3. 🔥 Dashboard Icons Animation
-        Animation floatingAnim = AnimationUtils.loadAnimation(getContext(), R.anim.dashboard_icon_anim);
-        if (binding.ivImagesIcon != null) binding.ivImagesIcon.startAnimation(floatingAnim);
-        if (binding.ivdashboardIcon != null) binding.ivdashboardIcon.startAnimation(floatingAnim);
-
-        // 4. Main Menu Buttons
         binding.homeMenuLayout.btnImages.setOnClickListener(v -> safeAction(v, () -> navigateToGallery(false)));
         binding.homeMenuLayout.btnVideos.setOnClickListener(v -> safeAction(v, () -> navigateToGallery(true)));
-        binding.homeMenuLayout.btnSaved.setOnClickListener(v -> safeAction(v, () -> {
-            try {
-                NavHostFragment.findNavController(this).navigate(R.id.nav_download);
-            } catch (Exception e) { e.printStackTrace(); }
+        binding.homeMenuLayout.btnSaved.setOnClickListener(v -> safeAction(v, () -> navigate(R.id.action_home_to_downloads, null)));
+        binding.homeMenuLayout.btnViral.setOnClickListener(v -> safeAction(v, () -> navigate(R.id.action_home_to_trending, null)));
+        binding.homeMenuLayout.btnSearch.setOnClickListener(v -> safeAction(v, () -> navigate(R.id.nav_online_search, null)));
+
+        binding.peekModeContainer.getRoot().setOnClickListener(v -> safeAction(v, () -> {
+            Intent intent = new Intent(requireContext(), com.mariaxcodexpert.whatsdownloadplus.ui.peekmode.PeekModeActivity.class);
+            startActivity(intent);
+        }));
+//        binding.tvTestTrending.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Activity ko call karne ke liye Intent use karein
+//                android.content.Intent intent = new android.content.Intent(v.getContext(), StickerActivity.class);
+//                v.getContext().startActivity(intent);
+//            }
+//        });
+        binding.homeMenuLayout.btnReport.setOnClickListener(v -> safeAction(v, () -> {
+            if (getContext() != null) {
+                Intent intent = new Intent(requireContext(), SupportActivity.class);
+                startActivity(intent);
+            }
         }));
 
-        binding.homeMenuLayout.btnViral.setOnClickListener(v -> safeAction(v, () -> {
-            try {
-                NavHostFragment.findNavController(this).navigate(R.id.action_home_to_trending);
-            } catch (Exception e) { e.printStackTrace(); }
-        }));
-
-        binding.homeMenuLayout.btnSearch.setOnClickListener(v -> safeAction(v, () -> {
-            try {
-                NavHostFragment.findNavController(this).navigate(R.id.nav_online_search);
-            } catch (Exception e) { e.printStackTrace(); }
-        }));
-
-        binding.homeMenuLayout.btnComingSoon.setOnClickListener(v -> {
-            android.widget.Toast.makeText(getContext(), "Stay tuned! Coming soon.", android.widget.Toast.LENGTH_SHORT).show();
-        });
-
-        // 5. Version Info
         try {
-            binding.projectVersion.setText(com.mariaxcodexpert.whatsdownloadplus.VersionHelper.getAppVersion(requireContext()));
+            String version = VersionHelper.getAppVersion(requireContext());
+            binding.projectVersion.setText(version);
         } catch (Exception e) {
-            binding.projectVersion.setText("v1.0.16");
+            binding.projectVersion.setText(getString(R.string.default_app_version));
         }
     }
-    private void openMedia(ArrayList<java.io.Serializable> list, int position) {
+
+    private void checkSupportNotifications() {
         if (getContext() == null) return;
-        Intent intent = new Intent(getContext(), FullScreenMediaActivity.class);
-        intent.putExtra(com.mariaxcodexpert.whatsdownloadplus.ui.Download.MediaListAdapter.EXTRA_MEDIA_LIST, list);
-        intent.putExtra(com.mariaxcodexpert.whatsdownloadplus.ui.Download.MediaListAdapter.EXTRA_POSITION, position);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+
+        try {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            String identifier;
+
+            if (currentUser != null && currentUser.getUid() != null) {
+                identifier = currentUser.getUid();
+            } else {
+                identifier = Settings.Secure.getString(requireContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+            }
+
+            supportRef = FirebaseDatabase.getInstance().getReference("Support").child("Tickets").child(identifier);
+
+            supportListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (binding == null || !isAdded()) return;
+
+                    boolean hasNewMsg = false;
+                    if (snapshot.exists()) {
+                        for (DataSnapshot ticket : snapshot.getChildren()) {
+                            Boolean notify = ticket.child("hasNotification").getValue(Boolean.class);
+                            if (notify != null && notify) {
+                                hasNewMsg = true;
+                                break;
+                            }
+                        }
+                    }
+                    binding.homeMenuLayout.redDotView.setVisibility(hasNewMsg ? View.VISIBLE : View.GONE);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.e("Firebase_Home", "Notification check failed: " + error.getMessage());
+                }
+            };
+
+            supportRef.orderByChild("hasNotification").equalTo(true).addValueEventListener(supportListener);
+
+        } catch (Exception e) {
+            Log.e("Firebase_Home", "Error setting up notifications", e);
+        }
+    }
+    private void observeState() {
+        viewModel.uiState.observe(getViewLifecycleOwner(), state -> {
+            if (state == null || binding == null) return;
+
+            if (state.stats != null) {
+                binding.tvTodayCount.setVisibility(View.VISIBLE);
+                binding.tvLast7DaysCount.setVisibility(View.VISIBLE);
+                binding.tvActiveStreak.setVisibility(View.VISIBLE);
+
+                binding.tvTodayCount.setText(String.valueOf(state.stats.todayCount));
+                binding.tvLast7DaysCount.setText(String.valueOf(state.stats.totalCount));
+                binding.tvActiveStreak.setText(String.valueOf(state.stats.activeStatuses));
+                binding.joinedText.setText(state.stats.joinedDate);
+            }
+
+            List<Object> currentList = state.combinedList != null ? state.combinedList : new ArrayList<>();
+            adapter.submitList(currentList);
+
+            boolean empty = currentList.isEmpty();
+            binding.homeRecentLayout.rvRecentDownloads.setVisibility(empty ? View.GONE : View.VISIBLE);
+            binding.homeRecentLayout.tvRecentDownloadsEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+
+            toggleLoadingState(state.isSyncing, empty);
+        });
     }
 
-    private void observeRoomData() {
-        viewModel.dashboardStats.observe(getViewLifecycleOwner(), s -> {
-            if (s == null || binding == null) return;
+    private void toggleLoadingState(boolean syncing, boolean isListEmpty) {
+        if (binding == null) return;
+        int pVis = (syncing && isListEmpty) ? View.VISIBLE : View.GONE;
+        binding.pbTodayCount.setVisibility(pVis);
+        binding.pbLast7Days.setVisibility(pVis);
+        binding.pbActiveStreak.setVisibility(pVis);
 
-            // 🔴 Real-time Log for debugging
-            Log.d("HOME_UI_UPDATE", "Today: " + s.todayCount + " | Saved: " + s.totalCount);
+        float targetAlpha = (syncing) ? 0.6f : 1.0f;
+        binding.tvTodayCount.setAlpha(targetAlpha);
+        binding.tvLast7DaysCount.setAlpha(targetAlpha);
+        binding.tvActiveStreak.setAlpha(targetAlpha);
 
-            // Update with basic animation
-            updateAnimText(binding.tvTodayCount, String.valueOf(s.todayCount));
-            updateAnimText(binding.tvLast7DaysCount, String.valueOf(s.totalCount));
-            updateAnimText(binding.tvActiveStreak, String.valueOf(s.activeStatuses));
-
-            binding.joinedText.setText(s.joinedDate);
-
-            // Progress bars hide and Text show
-            binding.pbTodayCount.setVisibility(View.GONE);
-            binding.pbLast7Days.setVisibility(View.GONE);
-            binding.pbActiveStreak.setVisibility(View.GONE);
+        if (binding.tvTodayCount.getText().length() > 0) {
             binding.tvTodayCount.setVisibility(View.VISIBLE);
             binding.tvLast7DaysCount.setVisibility(View.VISIBLE);
             binding.tvActiveStreak.setVisibility(View.VISIBLE);
-        });
-
-        viewModel.recentImages.observe(getViewLifecycleOwner(), i -> updateList());
-        viewModel.recentVideos.observe(getViewLifecycleOwner(), v -> updateList());
-    }
-
-    private void updateList() {
-        if (binding == null) return;
-
-        List<Object> combined = new ArrayList<>();
-
-        // LiveData se current values uthana
-        List<com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity> images = viewModel.recentImages.getValue();
-        List<com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoEntity> videos = viewModel.recentVideos.getValue();
-
-        if (images != null) combined.addAll(images);
-        if (videos != null) combined.addAll(videos);
-
-        // 🔥 LATEST DOWNLOADED FIRST: Sorting by lastModified descending
-        Collections.sort(combined, (o1, o2) -> {
-            long t1 = (o1 instanceof com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity) ?
-                    ((com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity) o1).lastModified :
-                    ((com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoEntity) o1).lastModified;
-            long t2 = (o2 instanceof com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity) ?
-                    ((com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity) o2).lastModified :
-                    ((com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoEntity) o2).lastModified;
-            return Long.compare(t2, t1);
-        });
-
-        // UI visibility handle karna
-        boolean empty = combined.isEmpty();
-        binding.homeRecentLayout.rvRecentDownloads.setVisibility(empty ? View.GONE : View.VISIBLE);
-        binding.homeRecentLayout.tvRecentDownloadsEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
-        // ListAdapter ko data pass karna (New instance bhejni chahiye hamesha)
-        if (!empty) {
-            adapter.submitList(new ArrayList<>(combined));
-        } else {
-            adapter.submitList(null);
         }
     }
 
-    private void updateAnimText(TextView tv, String text) {
-        if (text == null || tv == null) return;
-        if (tv.getText().toString().equals(text)) return;
-
-        AlphaAnimation fade = new AlphaAnimation(0.5f, 1.0f);
-        fade.setDuration(300);
-        tv.startAnimation(fade);
-        tv.setText(text);
-    }
-
-    private void safeAction(View v, Runnable action) {
+    private void safeAction(View v, Runnable act) {
         if (isNavigating) return;
         isNavigating = true;
 
-        v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-
-        v.animate()
-                .scaleX(0.92f)
-                .scaleY(0.92f)
-                .setDuration(120)
-                .setInterpolator(new AccelerateDecelerateInterpolator())
-                .withEndAction(() -> {
-                    v.animate()
-                            .scaleX(1f)
-                            .scaleY(1f)
-                            .setDuration(100)
-                            .withEndAction(action)
-                            .start();
-                })
-                .start();
-
-        navHandler.postDelayed(() -> isNavigating = false, 800);
+        if (v != null) {
+            v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+            v.animate().scaleX(0.96f).scaleY(0.96f).setDuration(60).withEndAction(() ->
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(60).withEndAction(act).start()).start();
+        } else {
+            act.run();
+        }
+        navHandler.postDelayed(() -> isNavigating = false, 400);
     }
 
-    private void navigateToGallery(boolean isVideo) {
-        Bundle b = new Bundle();
-        b.putBoolean("arg_is_video", isVideo);
+    private void navigate(int id, Bundle b) {
+        if (!isAdded() || binding == null) return;
         try {
-            NavHostFragment.findNavController(this).navigate(R.id.nav_gallery, b);
+            NavHostFragment.findNavController(this).navigate(id, b);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("NAV_ERROR", "Navigation failed for ID: " + id);
         }
     }
+
+    private void openMedia(ArrayList<Serializable> list, int pos) {
+        Context ctx = getContext();
+        if (ctx == null || list == null || list.isEmpty()) return;
+
+        try {
+            Intent intent = new Intent(ctx, FullScreenMediaActivity.class);
+            intent.putExtra("EXTRA_MEDIA_LIST", list);
+            intent.putExtra("EXTRA_POSITION", pos);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e("OPEN_MEDIA", "Error starting FullScreenMedia: " + e.getMessage());
+        }
+    }
+    private void navigateToGallery(boolean vid) { Bundle b = new Bundle(); b.putBoolean("arg_is_video", vid); navigate(R.id.nav_gallery, b); }
+
+
 
     @Override
     public void onResume() {
         super.onResume();
         isNavigating = false;
-        if (viewModel != null) {
-            viewModel.resetSyncPhase();
-            // 🔥 Refresh data to show updated counts immediately after deletion/download
-            viewModel.refreshDashboardData();
-        }
+        navHandler.postDelayed(() -> {
+            if (viewModel != null && binding != null && !isNavigating) {
+                viewModel.refreshDashboardData();
+            }
+        }, 1200);
     }
 
-    @Override public void onDestroyView() {
+    @Override
+    public void onDestroyView() {
         navHandler.removeCallbacksAndMessages(null);
-        super.onDestroyView();
+        if (supportRef != null && supportListener != null) {
+            supportRef.removeEventListener(supportListener);
+        }
         binding = null;
+
+        super.onDestroyView();
     }
 }

@@ -1,5 +1,15 @@
 <resources>
+    <string-array name="app_languages">
+        <item>English</item>
+        <item>Urdu</item>
+        <item>Hindi</item>
+        <item>Arabic</item>
+        <item>Afrikaans (South Africa)</item>
+        <item>Português (Brasil)</item>
+        <item>Français (French)</item>
+    </string-array>
     <string name="app_name">Status Saver</string>
+    <string name="default_web_client_id">522786063562-jcq5e66l81i11geb73p07ar00oe8bsia.apps.googleusercontent.com</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Status Downloader plus</string>
@@ -100,19 +110,28 @@
     <string name="available">Live</string>
     <string name="today_s">Today\'s</string>
     <string name="saved">Saved</string>
-    <string name="lock_secure">lock_secure</string>
+
     <string name="active_session">LIVE</string>
     <string name="since_2019">SINCE 2019</string>
     <string name="v1_0_16">V1.0.16</string>
+    <string name="lock_secure">lock_secure</string>
+    <string name="app_logo">App Logo</string>
+    <string name="float_btn">float btn</string>
+    <string name="logo">logo</string>
+    <string name="size_1024_kb">Size: 1024 KB</string>
+    <string name="resolution_1080_x_1920">Resolution: 1080 x 1920</string>
+    <string name="duration_0h_0m_0s">Duration: 0h 0m 0s</string>
+    <string name="saved_media_images_videos">Saved Media • Images • Videos</string>
+    <string name="no_downloads_available">No downloads available</string>
+    <string name="no_files_found">No files found</string>
+    <string name="crop">crop</string>
     <string name="images">Images</string>
     <string name="videos">Videos</string>
     <string name="_saved">Saved</string>
     <string name="recent_downloads">RECENT DOWNLOADS</string>
     <string name="no_downloads_yet">No downloads yet</string>
     <string name="fast_amp_secure_downloader"><![CDATA[Fast & Secure Downloader]]></string>
-    <string name="app_logo">App Logo</string>
-    <string name="float_btn">float btn</string>
-    <string name="logo">logo</string>
+
     <string name="custom_video_trim">Custom Video Trim</string>
     <string name="total_duration_0s">Total Duration: 0s</string>
     <string name="start_sec">Start (sec)</string>
@@ -122,34 +141,27 @@
     <string name="media_details">Media Details</string>
     <string name="type_image">Type: Image</string>
     <string name="name_example_jpg">Name: example.jpg</string>
-    <string name="size_1024_kb">Size: 1024 KB</string>
-    <string name="resolution_1080_x_1920">Resolution: 1080 x 1920</string>
-    <string name="duration_0h_0m_0s">Duration: 0h 0m 0s</string>
+
     <string name="close">Close</string>
-    <string name="saved_media_images_videos">Saved Media • Images • Videos</string>
-    <string name="no_downloads_available">No downloads available</string>
-    <string name="no_files_found">No files found</string>
+
     <string name="media">Media</string>
-    <string name="overlay">overlay</string>
+
     <string name="save">save</string>
     <string name="share">Share</string>
-    <string name="crop">crop</string>
+
     <string name="edit">Edit</string>
     <string name="trim">trim</string>
     <string name="info">Info</string>
     <string name="back">Back</string>
     <string name="next">Next</string>
-    <string name="delete">Delete</string>
-    <string name="videoicon">videoicon</string>
     <string name="refreshing">Refreshing…</string>
-    <string name="downloadicon">downloadicon</string>
-    <string name="downloadstatus">downloadstatus</string>
-    <string name="snackicon">snackicon</string>
+    <string name="delete">Delete</string>
+
     <string name="action_successful">Action Successful!</string>
     <string name="enjoying_the_app">Enjoying the app?</string>
     <string name="your_review_helps_us_improve_it_only_takes_a_minute_to_support_us_on_the_play_store">Your review helps us improve. It only takes a minute to support us on the Play Store.</string>
     <string name="rate_on_play_store">Rate on Play Store</string>
-    <string name="star_visual">star_visual</string>
+
     <string name="ultimate_troubleshooting_guide">Ultimate Troubleshooting Guide</string>
     <string name="step_1_android_11_12_13_14_users">Step 1: Android 11, 12, 13, 14 Users</string>
     <string name="navigate_to_nandroid_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[Navigate to:\nAndroid > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
@@ -165,10 +177,10 @@
     <string name="search_for_a_folder_named_dual_or_999_or_parallel_in_your_main_storage_root">Search for a folder named \'Dual\' or \'999\' or \'Parallel\' in your main storage root.</string>
     <string name="important_after_selecting_the_folder_tap_use_this_folder_and_then_allow">Important: After selecting the folder, tap \'USE THIS FOLDER\' and then \'ALLOW\'.</string>
     <string name="everything_is_clear">Everything is Clear!</string>
-    <string name="folder_security">folder security</string>
+
     <string name="permissions_required">Permissions Required</string>
     <string name="grant_access_to_save_your_favorite_status">Grant access to save your favorite status</string>
-    <string name="_1">1</string>
+
     <string name="status_folder">Status Folder</string>
     <string name="allow">Allow</string>
     <string name="how_to_set_path_view_guide">How to set path? View Guide</string>
@@ -177,10 +189,9 @@
     <string name="status_downloader">Status Downloader</string>
     <string name="select_app">Select App</string>
     <string name="choose_whatsapp_to_scan_media">Choose WhatsApp to scan media</string>
-    <string name="whatsapp_icon">WhatsApp icon</string>
-    <string name="whatsapp">WhatsApp</string>
+
     <string name="official_messenger">Official Messenger</string>
-    <string name="thumbicon">thumbicon</string>
+
     <string name="rate_app">Rate App</string>
     <string name="send_feedback">Send Feedback</string>
     <string name="share_app">Share App</string>
@@ -190,8 +201,6 @@
     <string name="history">History</string>
     <string name="settings">Settings</string>
     <string name="Dashboard">Dashboard</string>
-    <string name="_Downloads">Downloads</string>
-    <string name="_7days">Last 7 Days</string>
 
     <string-array name="trending_tags">
         <item>ultra cinematic 8k hyperreal lighting</item>
@@ -245,4 +254,471 @@
         <item>hypnotic spiral motion aesthetic</item>
         <item>loopable cinematic abstract motion</item>
     </string-array>
+    <string name="whatsapp_icon">WhatsApp icon</string>
+    <string name="_1">1</string>
+    <string name="overlay">overlay</string>
+    <string name="videoicon">videoicon</string>
+    <string name="downloadicon">downloadicon</string>
+    <string name="downloadstatus">downloadstatus</string>
+    <string name="snackicon">snackicon</string>
+    <string name="star_visual">star_visual</string>
+    <string name="folder_security">folder security</string>
+    <string name="whatsapp">WhatsApp</string>
+    <string name="thumbicon">thumbicon</string>
+    <string name="_Downloads">Downloads</string>
+    <string name="_7days">Last 7 Days</string>
+    <string name="role_admin_name">Adeeb Ibrahim</string>
+    <string name="role_developer_name">OmarSamy</string>
+    <string name="trending">Trending</string>
+    <string name="search">SEARCH</string>
+    <string name="support">SUPPORT</string>
+    <string name="recent_downloads_s">RECENT DOWNLOADS</string>
+    <string name="premium_vault">✧ PREMIUM VAULT ✧</string>
+    <string name="gallery">Gallery</string>
+    <string name="downloadss">Downloads</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="community_amp_feedback"><![CDATA[Community & Feedback]]></string>
+    <string name="recommend_us">Recommend Us</string>
+    <string name="invite_friends">Invite Friends</string>
+    <string name="join_whatsapp_channel">Join WhatsApp Channel</string>
+    <string name="app_information">App Information</string>
+    <string name="privacy_amp_terms"><![CDATA[Privacy & Terms]]></string>
+    <string name="unlock_pro_experience">Unlock Pro Experience</string>
+    <string name="status_gallery">Status Gallery</string>
+    <string name="status_downloads">Status Downloads</string>
+    <string name="global_trending">✧ GLOBAL TRENDING ✧</string>
+    <string name="trending_status">Trending Status</string>
+    <string name="global_search">✧ GLOBAL SEARCH ✧</string>
+    <string name="status_discovery">Status Discovery</string>
+    <string name="explore_premium_content">Explore Premium Content</string>
+    <string name="find_the_best_status_and_wallpapers_for_you">Find the best status and wallpapers for you</string>
+    <string name="search_premium_status">Search premium status</string>
+    <string name="please_wait">PLEASE WAIT</string>
+    <string name="explain_your_issue">Explain your issue</string>
+    <string name="new_ticket">New Ticket</string>
+    <string name="re_open">Re-open</string>
+    <string name="this_ticket_is_closed_do_you_need_more_help">This ticket is closed. Do you need more help?</string>
+    <string name="our_developers_are_ready_to_assist_you_tell_us_your_issue_and_we_ll_get_back_to_you_shortly">Our developers are ready to assist you. Tell us your issue and we\'ll get back to you shortly.</string>
+    <string name="welcome_to_vip_support">Welcome to VIP Support</string>
+    <string name="typical_response_time_within_24_hours">Typical response time: Within 24 hours</string>
+    <string name="connected_to_support">Connected to Support</string>
+    <string name="ref">Ref: #-------</string>
+    <string name="media_preview">Media Preview</string>
+    <string name="magic_lab">MAGIC LAB</string>
+    <string name="processing">PROCESSING</string>
+    <string name="saved_media">Saved Media</string>
+    <string name="repost">REPOST</string>
+    <string name="set_as_status">SET AS STATUS</string>
+    <string name="timer_expired">Expired</string>
+    <string name="premium_status">Premium Status</string>
+    <string name="timer_expires_in">Expires in %1$02d:%2$02d:%3$02d</string>
+    <string name="magic_lab_pro">✧ MAGIC LAB PRO ✧</string>
+    <string name="denoise">DENOISE</string>
+    <string name="vivid_hdr">VIVID HDR</string>
+    <string name="exposure">EXPOSURE</string>
+    <string name="smooth">Smooth</string>
+    <string name="exposures">Exposure</string>
+    <string name="highlights">Highlights</string>
+    <string name="shadows">Shadows</string>
+    <string name="contrast">Contrast</string>
+    <string name="bright">Bright</string>
+    <string name="vibrance">Vibrance</string>
+    <string name="warmth">Warmth</string>
+    <string name="color">Color</string>
+    <string name="tint">Tint</string>
+    <string name="clarity">Clarity</string>
+    <string name="sharpen">Sharpen</string>
+    <string name="vignette">Vignette</string>
+    <string name="original">ORIGINAL</string>
+    <string name="export">EXPORT</string>
+    <string name="tab_images">Images</string>
+    <string name="tab_videos">Videos</string>
+    <string name="toast_already_saved">Already Saved!</string>
+    <string name="error_permission_denied">Permission not granted!</string>
+    <string name="empty_videos_title">No Videos Found</string>
+    <string name="empty_images_title">No Images Found</string>
+    <string name="empty_whatsapp_desc">First watch status from WhatsApp\nthen download from here.</string>
+    <string name="toast_whatsapp_not_installed">WhatsApp not installed</string>
+    <string name="error_open_preview">Could not open preview.</string>
+    <string name="error_item_unavailable">Item no longer available</string>
+    <string name="error_process_interrupted">Process interrupted. Please try again.</string>
+    <string name="error_media_not_found">Media not found</string>
+    <string name="error_could_not_open_media">Could not open media.</string>
+    <string name="error_system_permission_failed">System permission failed.</string>
+    <string name="empty_saved_media_title">No Saved Media</string>
+    <string name="empty_saved_media_desc">Save your favorite statuses to view them here anytime.</string>
+    <string name="default_app_version">v1.0.1</string>
+    <string name="joined_since_date">Since %s</string>
+    <string name="error_delete_failed">Delete failed. Try again.</string>
+    <string name="error_file_not_ready_share">File not ready for sharing</string>
+    <string name="error_path_not_found">File path not found</string>
+    <string name="error_share_failed">Could not process share request.</string>
+    <string name="share_chooser_title">Share via:</string>
+
+    <string name="tool_smooth_label">TEXTURE SMOOTH</string>
+    <string name="tool_exposure_label">EXPOSURE AI</string>
+    <string name="tool_contrast_label">DYNAMIC CONTRAST</string>
+    <string name="tool_brightness_label">LUMINANCE</string>
+    <string name="tool_saturation_label">SATURATION</string>
+    <string name="tool_warmth_label">COLOR TEMP</string>
+    <string name="tool_tint_label">TINT</string>
+    <string name="tool_detail_label">4K DETAIL</string>
+    <string name="tool_clarity_label">CLARITY AI</string>
+    <string name="tool_vibrance_label">VIBRANCE</string>
+    <string name="tool_highlights_label">HIGHLIGHTS</string>
+    <string name="tool_shadows_label">SHADOWS</string>
+    <string name="tool_vignette_label">VIGNETTE</string>
+
+    <string name="error_failed_process_4k">Failed to process 4K image</string>
+    <string name="error_oom_processing">Processing Error: Out of Memory</string>
+    <string name="error_failed_load_image">Failed to load image</string>
+    <string name="error_image_too_large">Image too large for preview</string>
+
+    <string name="notify_already_saved">Status already saved! ✅</string>
+    <string name="notify_gallery_already">Already in Gallery! ✅</string>
+    <string name="notify_magic_lab_unavailable">Magic Lab unavailable after download!</string>
+    <string name="notify_video_ai_soon">Unlocking Next-Gen Video AI soon. 🔥</string>
+    <string name="error_magic_lab_lost">Magic Lab data lost!</string>
+    <string name="error_invalid_uri">Invalid Media URI</string>
+    <string name="error_oom_or_file">Media Engine: Out of Memory or File Error</string>
+    <string name="error_low_memory">Device Low on Memory: Try standard save</string>
+    <string name="error_media_missing">Media path is missing!</string>
+    <string name="error_no_media">No media to display</string>
+    <string name="error_download_failed">Download Failed!</string>
+
+    <string name="progress_saving_masterpiece">Saving Masterpiece…</string>
+    <string name="progress_init_ai">Initializing AI Engine…</string>
+    <string name="progress_saving_video">Saving Video…</string>
+    <string name="progress_finalizing">Finalizing Masterpiece…</string>
+    <string name="progress_fetching">Fetching Image…</string>
+    <string name="progress_decoding">Decoding Image…</string>
+    <string name="progress_saving_gallery">Saving to Gallery…</string>
+    <string name="progress_pro_filters">Applying Pro Filters…</string>
+    <string name="progress_success_saved">Status Successfully Saved!</string>
+
+    <string name="info_name_format">Name: %s</string>
+    <string name="info_type_format">Type: %s</string>
+    <string name="info_status_downloaded">Status: Downloaded</string>
+    <string name="info_status_pending">Status: Pending</string>
+    <string name="info_path_wa">WA: %s</string>
+    <string name="info_path_gallery">Gallery: %s</string>
+    <string name="info_captured_on">Captured on: %s</string>
+    <string name="info_date_not_available">Date: Not available</string>
+    <string name="default_premium_status_title">Premium Status</string>
+    <string name="default_wallpaper_title">Wallpapers</string>
+
+    <string name="error_something_went_wrong">Something went wrong</string>
+    <string name="toast_title_copied">✧ Title Copied to Clipboard ✧</string>
+    <string name="toast_already_gallery">✧ Already in Gallery ✧</string>
+
+    <string name="action_save">SAVE</string>
+    <string name="action_saved">SAVED</string>
+
+    <string name="progress_initial_percent">0%</string>
+
+    <string name="error_no_internet">No internet connection. Please connect and try again.</string>
+    <string name="error_internet_unstable">Internet connection is unstable. Please try again.</string>
+    <string name="error_unable_to_download">Unable to download. Please check your storage or connection.</string>
+
+    <string name="empty_title_no_connection">No Connection</string>
+    <string name="empty_desc_no_connection">Please check your internet to search statuses.</string>
+    <string name="empty_title_server_error">Server Error</string>
+    <string name="empty_desc_server_error">We couldn\'t reach the server. Please try again in a moment.</string>
+    <string name="empty_title_no_results">No Results Found</string>
+    <string name="empty_desc_no_results">Try searching for something else.</string>
+
+    <string name="toast_failed_load_more">Failed to load more items.</string>
+
+    <string name="premium_discovery_subtitle">Premium Discovery</string>
+
+    <string name="mood_night">Night</string>
+    <string name="mood_morning">Morning</string>
+    <string name="mood_day">Day</string>
+    <string name="mood_evening">Evening</string>
+
+    <string name="fallback_nature_query">Nature</string>
+    <string name="fallback_premium_query">New Nature Wallpapers</string>
+
+    <string-array name="trends_pk">
+        <item>Sufi Art</item>
+        <item>Urdu Poetry</item>
+        <item>Truck Art</item>
+        <item>Northern Pakistan</item>
+        <item>Coke Studio</item>
+    </string-array>
+
+    <string-array name="trends_default">
+        <item>Cyberpunk</item>
+        <item>Nature</item>
+        <item>Abstract</item>
+        <item>Space</item>
+        <item>Minimal</item>
+    </string-array>
+
+    <string name="ticket_default_subject">Support Request</string>
+    <string name="ticket_status_open">Open</string>
+    <string name="ticket_status_closed">Closed</string>
+    <string name="ticket_date_na">N/A</string>
+
+
+    <string name="ticket_id_prefix">TICKET: #</string>
+    <string name="status_ticket_closed">Ticket Closed</string>
+    <string name="status_connected_support">Connected to Support</string>
+    <string name="status_start_conversation">Start a Conversation</string>
+
+    <string name="error_connection_failed">Connection Error: %s</string>
+    <string name="error_ticket_id_generation">System error: Could not generate ticket ID</string>
+    <string name="error_network_failed_ticket">Network Error: Failed to start ticket</string>
+    <string name="error_session_expired">Ticket session expired. Try again.</string>
+    <string name="error_message_send_failed">Message failed to send</string>
+    <string name="error_status_update_failed">Failed to update status</string>
+    <string name="error_database_failed">Database Error: %s</string>
+
+    <string name="toast_ticket_reopened">Ticket Reopened Successfully</string>
+    <string name="toast_ticket_closed_feedback">Ticket Closed</string>
+    <string name="toast_no_tickets_found">No previous tickets found</string>
+
+    <string name="dialog_history_title">Support History</string>
+    <string name="dialog_btn_close">Close</string>
+    <string name="auto_admin_initial_reply">Your ticket #%s has been successfully generated. Our support team will contact you shortly.</string>
+    <string name="auto_admin_reopen_reply">This ticket has been reopened. How can we help you further?</string>
+
+    <string name="identity_admin_system">Admin</string>
+    <string name="identity_admin_adeeb">Adeeb Ibrahim</string>
+
+    <string name="error_invalid_url">Invalid URL</string>
+    <string name="error_mediastore_entry_failed">Could not create MediaStore entry</string>
+    <string name="error_server_response_code">Server error: %d</string>
+    <string name="error_output_stream_failed">Failed to open output stream</string>
+
+    <string name="chooser_title_whatsapp_status">Set Status via:</string>
+    <string name="chooser_title_share_status">Share Status</string>
+    <string name="toast_no_sharing_app_found">No app found to share!</string>
+
+    <string name="trend_fallback_global">Global</string>
+
+    <string name="error_no_internet_toast">No Internet Connection!</string>
+
+    <string name="trend_region_global">Global</string>
+
+    <string name="progress_percentage_format">%d%%</string>
+
+    <string name="empty_title_no_records">No Records Found</string>
+    <string name="empty_desc_no_records">Currently, there are no viral images.</string>
+
+    <string name="toast_download_failed_internet">Download failed. Check internet.</string>
+
+
+    <string name="fallback_trending_status">Trending Status</string>
+
+    <string name="error_download_failed_network">Network error. Try again.</string>
+    <string name="progress_percentage_format_preview">%d%%</string>
+
+    <string name="toast_preparing_media">Preparing media ✧</string>
+    <string name="toast_preparing_repost">Preparing for Repost ✧</string>
+    <string name="error_repost_failed">Repost failed, try again</string>
+
+    <string name="chooser_title_share_via">Share via</string>
+    <string name="chooser_title_repost_via">Repost via</string>
+
+    <string name="notification_title_status_saver">Status Saver</string>
+    <string name="notification_desc_saved_success">Status successfully saved!</string>
+    <string name="error_billing_play_not_ready">Google Play is not ready. Check internet.</string>
+    <string name="error_billing_store_busy">Play Store is currently busy with many requests. Please try again shortly.</string>
+    <string name="feedback_title_question">Love our App?</string>
+    <string name="toast_feedback_thank_you">Thank you for your rating!</string>
+    <string name="tag_fragment_home">HOME</string>
+    <string name="tag_fragment_gallery">GALLERY</string>
+    <string name="tag_fragment_trending">TRENDING</string>
+
+
+    <string name="premium_state_active">ACTIVE</string>
+
+    <string name="error_billing_cancelled">Purchase cancelled.</string>
+    <string name="error_billing_already_owned">You already own this premium pass!</string>
+    <string name="error_billing_network_lost">Connection lost. Please check your internet.</string>
+    <string name="error_billing_play_store_busy">Play Store is busy. Please try again later.</string>
+    <string name="fallback_not_available">N/A</string>
+
+    <string name="progress_verifying_google">Verifying with Google…</string>
+    <string name="success_elite_welcome">✧ Welcome to Elite ✧\nAds Removed Permanently.</string>
+    <string name="notif_channel_name_expiry">Status Expiry Alerts</string>
+    <string name="notif_channel_desc_expiry">Critical alerts for saving statuses before they expire.</string>
+    <string name="splash_status_premium_member">⭐ PREMIUM MEMBER</string>
+    <string name="splash_status_loading_ad">Loading ad…</string>
+
+    <string name="perm_dialog_title_notif">Permission Required</string>
+    <string name="perm_dialog_desc_notif">Enable notifications to get alerts before statuses expire.</string>
+    <string name="perm_action_allow">Allow</string>
+    <string name="perm_action_later">Later</string>
+
+    <string name="toast_all_alerts_active">All alerts are active! </string>
+    <string name="toast_view_statuses_first">Please view the statuses in WhatsApp first!</string>
+    <string name="toast_whatsapp_not_found">WhatsApp not found!</string>
+    <string name="perm_warning_checkbox_first">Please click the checkbox first to proceed. 🚀</string>
+    <string name="perm_warning_selection_required">Selection required! ⚠️</string>
+    <string name="perm_error_grant_access">Permission error! Please grant access. ⚠️</string>
+    <string name="perm_warning_select_statuses_folder">Select \'.Statuses\' folder to proceed! 📁</string>
+    <string name="status_saver">Status Saver</string>
+    <string name="premium_access">PREMIUM ACCESS</string>
+    <string name="early_bird_special_step_1">EARLY BIRD SPECIAL: STEP 1</string>
+    <string name="smart_ai_media_engine">Smart AI Media Engine</string>
+    <string name="advanced_scanning_for_better_media_quality">• Advanced scanning for better media quality.</string>
+    <string name="faster_downloads_with_every_new_update">• Faster downloads with every new update.</string>
+    <string name="join_now_for_exclusive_future_rewards">• JOIN NOW for exclusive future rewards.</string>
+    <string name="start_setup">[ START SETUP ]</string>
+    <string name="note_please_keep_the_app_installed_to_maintain_your_premium_rewards_and_future_updates">Note: Please keep the app installed to maintain your premium rewards and future updates.</string>
+    <string name="storage_permission">Storage Permission</string>
+    <string name="to_show_your_latest_statuses_we_need_access_to_your_status_folder">To show your latest statuses, we need access to your status folder.</string>
+    <string name="step_2">STEP 2</string>
+    <string name="select_folder">Select Folder</string>
+    <string name="please_select_the_statuses_folder_to_automatically_sync_your_media">Please select the \'.Statuses\' folder to automatically sync your media.</string>
+    <string name="allow_access">ALLOW ACCESS</string>
+    <string name="need_help_view_guide">NEED HELP? VIEW GUIDE</string>
+    <string name="status_folder_setup_guide">STATUS FOLDER SETUP GUIDE</string>
+    <string name="follow_these_simple_steps_to_see_statuses">Follow these simple steps to see statuses</string>
+    <string name="for_new_android_11_14">FOR NEW ANDROID (11 – 14)</string>
+    <string name="go_to_android_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[Go to: Android > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
+    <string name="for_old_android_10_amp_below"><![CDATA[FOR OLD ANDROID (10 & BELOW)]]></string>
+    <string name="look_for_whatsapp_media_statuses_folder_in_your_internal_storage"><![CDATA[Look for: WhatsApp > Media > .Statuses folder in your internal storage.]]></string>
+    <string name="important_if_folder_is_empty">IMPORTANT: IF FOLDER IS EMPTY</string>
+    <string name="tap_the_3_dots_top_right_and_choose_show_hidden_files_this_is_required_to_find_the_status_folder">Tap the 3 dots (Top Right) and choose \'Show Hidden Files\'. This is required to find the status folder.</string>
+    <string name="select_statuses_folder_and_click_use_this_folder_button_at_the_bottom">Select \'.Statuses\' folder and click \'USE THIS FOLDER\' button at the bottom.</string>
+    <string name="i_understand">I UNDERSTAND</string>
+    <string name="we_are_working_hard_to_make_your_experience_better_a_quick_review_would_mean_the_world_to_us">We are working hard to make your experience better. A quick review would mean the world to us!</string>
+    <string name="tap_to_rate">TAP TO RATE</string>
+    <string name="it_only_takes_5_seconds">It only takes 5 seconds</string>
+    <string name="no_status_found">No Status Found</string>
+    <string name="first_watch_status_from_whatsapp_nthen_download_from_here">First watch status from WhatsApp\nthen download from here.</string>
+    <string name="get_expiry_alerts">Get Expiry Alerts ⏳</string>
+    <string name="to_prevent_notification_delays_caused_by_android_battery_saving_please_complete_the_following_steps">To prevent notification delays caused by Android battery saving, please complete the following steps:</string>
+    <string name="open_battery_settings">Open \'Battery\' settings</string>
+    <string name="_2">2</string>
+    <string name="select_unrestricted_don_t_optimize">Select \'Unrestricted\' / \'Don\'t Optimize\'</string>
+    <string name="_3">3</string>
+    <string name="maybe_later">Maybe Later</string>
+    <string name="go_to_settings">Go to Settings</string>
+    <string name="loading">Loading…</string>
+    <string name="admin">ADMIN</string>
+    <string name="deleting">Deleting…</string>
+    <string name="world">🌐</string>
+    <string name="customize_your_app_interface">Customize your app interface</string>
+    <string name="language_settings">Language Settings</string>
+    <string name="use_system_language">Use Default Language (English)</string>
+    <string name="region_amp_preferences"><![CDATA[REGION & PREFERENCES]]></string>
+    <string name="world_s">🌍</string>
+    <string name="preview">Preview</string>
+    <string name="current_english">Current: English</string>
+    <string name="apply_changes">Apply Changes</string>
+    <string name="need_help_contact_support">Need help? Contact Support</string>
+    <string name="app_interface_will_be_updated_to">App interface will be updated to: %</string>
+    <!-- Status and Preview Messages -->
+    <string name="status_system_default">Status: Using System Default</string>
+    <string name="preview_system_default">App will follow system language.</string>
+
+    <string name="status_selected">Selected: %s</string>
+    <string name="preview_selected">App interface will be updated to: %s</string>
+
+    <string name="status_current">Current: %s</string>
+    <string name="preview_current">App interface will be updated to: %s</string>
+    <string name="select_language_step_1">SELECT LANGUAGE STEP 1</string>
+    <string name="elite_upgrade">ELITE UPGRADE</string>
+    <string name="supreme_features">✦ SUPREME FEATURES ✦</string>
+    <string name="zero_disruptive_ads">Zero Disruptive Ads</string>
+    <string name="multi_threaded_downloader">Multi-Threaded Downloader</string>
+    <string name="quality_content_access">Quality Content Access</string>
+    <string name="choose_your_elite_pass">CHOOSE YOUR ELITE PASS</string>
+    <string name="monthly">Monthly</string>
+    <string name="active">ACTIVE</string>
+    <string name="premium_benefits">Premium benefits</string>
+    <string name="lifetime_access">Lifetime Access</string>
+    <string name="one_time_luxury_pass">One-time luxury pass</string>
+    <string name="verified_by_google_play_security">Verified by Google Play Security</string>
+    <string name="don_t_show_for_this_version">Don\'t show for this version</string>
+    <string name="experience_now">EXPERIENCE NOW</string>
+    <string name="what_s_new">WHAT\'S NEW</string>
+    <string name="multi_language_support">Multi-Language Support</string>
+    <string name="change_app_language_as_you_prefer">Change app language as you prefer.</string>
+    <string name="export_quality">Export Quality</string>
+    <string name="select_your_preference_magic_lab_ai_enhances_clarity_and_detail_automatically">Select your preference. Magic Lab AI enhances clarity and detail automatically.</string>
+    <string name="magic_lab_ai">Magic Lab AI</string>
+    <string name="ultra_hd_noise_reduction">Ultra HD + Noise Reduction</string>
+    <string name="original_quality">Original Quality</string>
+    <string name="set_as_default_for_future_exports">Set as default for future exports</string>
+    <string name="select_language">Select Language</string>
+    <string name="language">language</string>
+    <string name="file_details">File Details</string>
+    <string name="below_are_the_technical_details_and_storage_paths_for_the_selected_status_file">Below are the technical details and storage paths for the selected status file.</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="splash_ad_disclaimer">This screen contains ads</string>
+    <string name="last_sync">LAST SYNC</string>
+    <string name="logout">LOGOUT</string>
+    <string name="elite_features_coming_soon">ELITE FEATURES COMING SOON</string>
+    <string name="confirm_logout">Confirm Logout</string>
+    <string name="are_you_sure_you_want_to_logout_you_will_need_to_sign_in_again_to_access_your_account">Are you sure you want to logout? You will need to sign in again to access your account.</string>
+    <string name="cancel">Cancel</string>
+    <string name="peek_mode">Peek Mode</string>
+    <string name="intelligence_being_fine_tuned">Intelligence being fine-tuned</string>
+    <string name="analyze_moods_and_patterns_in_real_time">Analyze moods and patterns in real-time.</string>
+    <string name="peek_title_enable_access">Enable Peek Preview</string>
+    <string name="peek_desc_enable_access">Enable notification access so the app can securely categorize your incoming alerts.</string>
+
+    <string name="peek_title_no_alerts">No Recent Alerts</string>
+    <string name="peek_desc_no_alerts">Once new notifications arrive, they will appear here automatically.</string>
+
+    <string name="ai_stealth_status">Intelligence being fine-tuned</string>
+    <string name="profile">Profile</string>
+    <string name="messages">Messages</string>
+    <string name="avg_reply">Avg Reply</string>
+    <string name="New_media">Media</string>
+    <string name="ai_behavioral_analysis">AI Behavioral Analysis</string>
+    <string name="ai_calculating_behavior_patterns">AI Calculating behavior patterns…</string>
+    <string name="status_na">N/A</string>
+
+    <string name="mood_analyzing">Mood: Analyzing…</string>
+    <string name="type_analyzing">Type: Analyzing…</string>
+    <string name="vibe_analyzing">Vibe: Analyzing…</string>
+    <string name="typenew_analyzing">Type: Analyzing…</string>
+    <string name="peak_analyzing">Peak: Analyzing…</string>
+    <string name="fav_analyzing">Fav: Analyzing…</string>
+
+    <string name="label_type">Type: %s</string>
+    <string name="label_vibe">Vibe: %s</string>
+    <string name="label_trend"> | Trend: %s</string>
+
+    <string name="ai_status_high">High</string>
+    <string name="ai_status_delayed">Delayed</string>
+    <string name="mood_neutral">Mood: Neutral</string>
+    <string name="mood_happy">Mood: Happy</string>
+    <string name="mood_distant">Mood: Distant</string>
+
+    <string name="type_new_connection">Type: New Connection</string>
+    <string name="type_intense_duo">Type: Intense Duo</string>
+    <string name="type_heavy_chatter">Type: Heavy Chatter</string>
+    <string name="type_casual">Type: Casual</string>
+    <string name="type_low_profile">Type: Low Profile</string>
+
+    <string name="peak_na">Peak: N/A</string>
+    <string name="peak_format">Peak: %1$d%2$s</string>
+    <string name="fav_na">Fav: N/A</string>
+    <string name="fav_format">Fav: \'%s\'</string>
+
+    <string name="archetype_observer">Observer</string>
+    <string name="archetype_storyteller">Storyteller</string>
+    <string name="archetype_short_reply">Short-Reply King</string>
+    <string name="archetype_balanced">Balanced</string>
+    <string name="vibe_neutral">Neutral</string>
+    <string name="vibe_curious">Curious/Inquisitive</string>
+    <string name="vibe_friendly">Friendly/Cheerful</string>
+    <string name="vibe_straightforward">Straightforward</string>
+
+    <string name="status_ready">Ready to chat…</string>
+    <string name="status_active">Active - Reply in ~%d min</string>
+    <string name="status_soon">Expected soon</string>
+    <string name="status_low">Low chance of response</string>
+    <string name="status_high">High chance of reply</string>
+    <string name="cons_building">Building Rapport</string>
+    <string name="cons_rising">Rising Interest</string>
+    <string name="cons_declining">Declining Interest</string>
+    <string name="cons_consistent">Consistent</string>
 </resources>

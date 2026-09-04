@@ -30,7 +30,7 @@
         app:layout_constraintStart_toStartOf="@+id/profileRing"
         app:layout_constraintTop_toTopOf="@+id/profileRing"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-        app:strokeColor="#FFFFFF"
+        app:strokeColor="#D4AF37"
         app:strokeWidth="1dp" />
 
     <TextView

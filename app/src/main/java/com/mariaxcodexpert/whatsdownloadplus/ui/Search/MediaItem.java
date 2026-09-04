@@ -1,37 +1,66 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Search;
 
-import java.io.Serializable; // 🔥 1. Import zaroori hai
+import java.io.Serializable;
 
-/**
- * Developed by MariaXCodeExpert
- * Updated for Intent Transfer & Premium Discovery
- */
-public class MediaItem implements Serializable { // 🔥 2. Interface implement kerna h
+public class MediaItem implements Serializable {
 
-    // 🔥 3. Serial ID: Taake transfer k waqt versioning error na aye
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     private String url;
     private String videoUrl;
     private boolean isVideo;
     private boolean isDownloaded;
+    private String title;
 
-    public MediaItem(String url, String videoUrl, boolean isVideo) {
-        this.url = url;
-        this.videoUrl = videoUrl;
+    public MediaItem(String url, String videoUrl, boolean isVideo, String title) {
+        this.url = (url != null) ? url : "";
+        this.videoUrl = (videoUrl != null) ? videoUrl : "";
         this.isVideo = isVideo;
+        this.title = (title != null) ? title : "";
         this.isDownloaded = false;
     }
 
-    // Getters and Setters
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+    public String getUrl() {
+        return (url != null) ? url : "";
+    }
 
-    public String getVideoUrl() { return videoUrl; }
-    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
+    public String getVideoUrl() {
+        if (videoUrl == null || videoUrl.isEmpty()) {
+            return getUrl();
+        }
+        return videoUrl;
+    }
 
-    public boolean isVideo() { return isVideo; }
-    public void setVideo(boolean video) { isVideo = video; }
+    public String getTitle() {
+        if (title == null || title.trim().isEmpty()) {
+            return "";
+        }
+        if (title.length() > 0) {
+            return title.substring(0, 1).toUpperCase() + title.substring(1).toLowerCase();
+        }
+        return title;
+         }
+
+
+    public void setUrl(String url) {
+        this.url = (url != null) ? url : "";
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = (videoUrl != null) ? videoUrl : "";
+    }
+
+    public void setTitle(String title) {
+        this.title = (title != null) ? title : "";
+    }
+
+    public boolean isVideo() {
+        return isVideo;
+    }
+
+    public void setVideo(boolean video) {
+        isVideo = video;
+    }
 
     public boolean isDownloaded() {
         return isDownloaded;
@@ -39,5 +68,9 @@ public class MediaItem implements Serializable { // 🔥 2. Interface implement 
 
     public void setDownloaded(boolean downloaded) {
         isDownloaded = downloaded;
+    }
+
+    public boolean isValid() {
+        return url != null && !url.isEmpty();
     }
 }

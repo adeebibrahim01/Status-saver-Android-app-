@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#004D40">
+    android:background="#004D40"
+    android:layoutDirection="locale">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingHorizontal="28dp">
+        android:paddingHorizontal="28dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -18,35 +24,35 @@
             app:cardBackgroundColor="#082B26"
             app:cardCornerRadius="32dp"
             app:cardElevation="12dp"
-            app:strokeWidth="1.5dp"
-            app:strokeColor="#D4AF37">
+            app:strokeColor="#D4AF37"
+            app:strokeWidth="1.5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:paddingVertical="35dp"
-                android:paddingHorizontal="24dp">
+                android:paddingHorizontal="24dp"
+                android:paddingVertical="35dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:layout_width="65dp"
                     android:layout_height="65dp"
+                    android:background="@drawable/gold_glow_ring"
+                    android:elevation="6dp"
                     android:padding="3dp"
                     android:src="@mipmap/ic_launcher_round"
-                    android:background="@drawable/gold_glow_ring"
-                    app:shapeAppearanceOverlay="@style/CircleAppearance"
-                    android:elevation="6dp" />
+                    app:shapeAppearanceOverlay="@style/CircleAppearance" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="Status Saver"
+                    android:letterSpacing="0.01"
+                    android:text="@string/status_saver"
                     android:textColor="#FFFFFF"
-                    android:textSize="24sp"
-                    android:letterSpacing="0.01" />
+                    android:textSize="24sp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -55,13 +61,13 @@
                     android:background="@drawable/bg_dots_capsule"
                     android:backgroundTint="#D4AF37"
                     android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.1"
                     android:paddingHorizontal="12dp"
                     android:paddingVertical="4dp"
-                    android:text="PREMIUM ACCESS"
+                    android:text="@string/premium_access"
+                    android:textAllCaps="true"
                     android:textColor="#000000"
-                    android:textSize="10sp"
-                    android:letterSpacing="0.1"
-                    android:textAllCaps="true" />
+                    android:textSize="10sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -72,8 +78,8 @@
             app:cardBackgroundColor="#0A1F1C"
             app:cardCornerRadius="30dp"
             app:cardElevation="15dp"
-            app:strokeWidth="1.5dp"
-            app:strokeColor="#D4AF37">
+            app:strokeColor="#D4AF37"
+            app:strokeWidth="1.5dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -91,12 +97,12 @@
                         android:background="@drawable/bg_dots_capsule"
                         android:backgroundTint="#D4AF37"
                         android:fontFamily="sans-serif-black"
+                        android:letterSpacing="0.1"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="4dp"
-                        android:text="EARLY BIRD SPECIAL: STEP 1"
+                        android:text="@string/select_language_step_1"
                         android:textColor="#000000"
-                        android:textSize="9sp"
-                        android:letterSpacing="0.1" />
+                        android:textSize="9sp" />
 
                     <CheckBox
                         android:id="@+id/selectWhatsappcheckbox"
@@ -106,65 +112,50 @@
                         android:layout_centerVertical="true"
                         android:buttonTint="#D4AF37"
                         android:scaleX="1.3"
-                        android:scaleY="1.3" />
+                        android:scaleY="1.3"
+                        tools:ignore="RtlCompat" />
                 </RelativeLayout>
 
-                <TextView
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:fontFamily="sans-serif-black"
-                    android:text="Smart AI Media Engine"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
-                    android:letterSpacing="0.02" />
+                    android:layout_height="60dp"
+                    android:layout_marginTop="24dp"
+                    app:cardBackgroundColor="#082B26"
+                    app:cardCornerRadius="30dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#D4AF37"
+                    app:strokeWidth="1.5dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="12dp">
-
-                    <TextView
+                    <LinearLayout
+                        android:id="@+id/btnLanguageSelector"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="• Advanced scanning for better media quality."
-                        android:textColor="#CCFFFFFF"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif-medium"
-                        android:alpha="0.9" />
+                        android:layout_height="match_parent"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingEnd="20dp"
+                        android:paddingStart="20dp">
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="• Faster downloads with every new update."
-                        android:textColor="#CCFFFFFF"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif-medium"
-                        android:alpha="0.9" />
+                        <TextView
+                            android:id="@+id/tvSelectedLanguage"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="English"
+                            android:textColor="#FFFFFF"
+                            android:textSize="16sp"
+                            android:textDirection="locale" />
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="• JOIN NOW for exclusive future rewards."
-                        android:textColor="#D4AF37"
-                        android:textSize="13sp"
-                        android:fontFamily="sans-serif-black" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:fontFamily="sans-serif-black"
-                    android:text="[ START SETUP ]"
-                    android:textColor="#D4AF37"
-                    android:textSize="12sp"
-                    android:gravity="center"
-                    android:letterSpacing="0.1" />
-
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:contentDescription="@string/select_language"
+                            android:src="@drawable/ic_arrow_drop_down"
+                            app:tint="#D4AF37" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -175,15 +166,14 @@
             android:alpha="0.6"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:text="Note: Please keep the app installed to maintain your premium rewards and future updates."
+            android:paddingHorizontal="15dp"
+            android:text="@string/note_please_keep_the_app_installed_to_maintain_your_premium_rewards_and_future_updates"
             android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:paddingHorizontal="15dp"/>
+            android:textSize="10sp" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
-
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

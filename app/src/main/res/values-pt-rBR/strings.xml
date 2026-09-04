@@ -1,0 +1,839 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Status Saver</string>
+    <string name="navigation_drawer_open">Abrir menu de navegação</string>
+    <string name="navigation_drawer_close">Fechar menu de navegação</string>
+    <string name="nav_header_title">Status Downloader Plus</string>
+    <string name="nav_header_subtitle">mariaadeeb982@gmail.com</string>
+    <string name="nav_header_desc">Cabeçalho de navegação</string>
+    <string name="action_settings">Configurações</string>
+    <string name="menu_home">Início</string>
+    <string name="menu_gallery">Status</string>
+    <string name="Download">Baixar</string>
+    <string name="app_icon">ícone do app</string>
+    <string name="permission_icon">ícone de permissão</string>
+    <string name="storage_access">extra\n</string>
+    <string name="notification_access">extra2\n</string>
+
+    <string name="whatsapp_folder_path_line1">Caminho típico da pasta de mídia do WhatsApp:</string>
+    <string name="whatsapp_folder_path_line2">Android/media/com.whatsapp/WhatsApp/Media/.Statuses</string>
+
+    <string name="hidden_folder_guide_line1">Se a pasta .Statuses dentro da mídia do WhatsApp não estiver visível:</string>
+    <string name="hidden_folder_guide_line2">1. Toque no menu de 3 pontos</string>
+    <string name="hidden_folder_guide_line3">2. Ative "Mostrar arquivos ocultos"</string>
+    <string name="hidden_folder_guide_line4">3. Navegue até a pasta .Statuses</string>
+    <string name="hidden_folder_guide_line5">4. Selecione "Usar esta pasta" para conceder permissão corretamente.</string>
+
+    <string name="privacy_title">Política de Privacidade – Status Saver</string>
+    <string name="privacy_last_updated">Última atualização: 04 de maio de 2026</string>
+
+    <string name="privacy_section_1_heading">1. Privacidade e Coleta de Dados</string>
+    <string name="privacy_section_1">
+Sua privacidade é nossa principal preocupação. Nosso aplicativo não coleta, armazena ou compartilha qualquer informação de identidade pessoal, mensagens privadas ou contatos. Todas as funções principais do app são projetadas para funcionar localmente no seu dispositivo para garantir máxima segurança.
+</string>
+
+    <string name="privacy_section_2_heading">2. Armazenamento e Acesso a Pastas</string>
+    <string name="privacy_section_2">
+Este aplicativo utiliza o Android Storage Access Framework. Acessamos apenas os diretórios de mídia que você selecionar e autorizar manualmente. Não temos permissão para acessar arquivos privados ou sua galeria pessoal fora dos caminhos autorizados.
+</string>
+
+    <string name="privacy_section_3_heading">3. Permissões Essenciais</string>
+    <string name="privacy_section_3">
+Para o funcionamento do app, precisamos de: \n\n
+• Acesso a diretórios: Para gerenciar mídias salvas localmente. \n
+• Acesso à rede: Para conteúdo online e estabilidade do app. \n
+• Notificações: Para atualizações de status (opcional). \n\n
+Não solicitamos acesso à câmera, microfone ou localização.
+</string>
+
+    <string name="privacy_section_4_heading">4. Serviços de Conteúdo Online</string>
+    <string name="privacy_section_4">
+O aplicativo inclui um recurso de descoberta que permite navegar por mídias públicas. As pesquisas são usadas apenas para fornecer resultados em tempo real. Não vinculamos suas pesquisas a nenhum perfil pessoal.
+</string>
+
+    <string name="privacy_section_5_heading">5. Publicidade e Análises</string>
+    <string name="privacy_section_5">
+Podemos exibir anúncios fornecidos por redes de anúncios de terceiros. Esses parceiros podem usar identificadores técnicos não pessoais (como ID de publicidade) apenas para exibir e medir anúncios. Nenhuma mídia privada é compartilhada.
+</string>
+
+    <string name="privacy_section_6_heading">6. Segurança e Uso Offline</string>
+    <string name="privacy_section_6">
+A maioria das funções funciona offline. Como suas mídias não são enviadas para servidores, seus arquivos permanecem sob seu controle.
+</string>
+
+    <string name="privacy_section_7_heading">7. Privacidade de Crianças</string>
+    <string name="privacy_section_7">
+Nosso serviço é destinado ao público geral. Não coletamos intencionalmente dados de menores de 13 anos e seguimos as leis de proteção infantil.
+</string>
+
+    <string name="privacy_section_8_heading">8. Suporte e Contato</string>
+    <string name="privacy_section_8">
+Se tiver dúvidas sobre esta política, entre em contato:\n\n
+Email: mariaadeeb982@gmail.com
+</string>
+
+    <string name="disclaimer_heading">Aviso Legal</string>
+
+    <string name="disclaimer_text">
+<b>1. Não Afiliado:</b> \n
+Este app é uma ferramenta de terceiros e NÃO é afiliado, patrocinado ou aprovado por nenhuma plataforma de mensagens ou rede social. \n\n
+
+<b>2. Marcas Registradas:</b> \n
+Todos os nomes e marcas pertencem aos seus respectivos proprietários. \n\n
+
+<b>3. Uso:</b> \n
+Este app é para uso pessoal. O usuário é responsável por direitos sobre as mídias salvas. \n\n
+
+<b>4. Responsabilidade:</b> \n
+O desenvolvedor não se responsabiliza por uso indevido do aplicativo.
+</string>
+
+    <string name="STATUS_ENGINE">Status Engine</string>
+    <string name="hello_blank_fragment">Olá fragmento vazio</string>
+
+    <string name="accessibility_service_description">Serviço de acessibilidade de notificações</string>
+    <string name="download_drawer">Baixar</string>
+    <string name="_0">0</string>
+    <string name="privacy_protected">PRIVACIDADE PROTEGIDA</string>
+    <string name="statuses">Status</string>
+    <string name="downloads">Downloads</string>
+    <string name="lifetime">Vitalício</string>
+    <string name="available">Ao vivo</string>
+    <string name="today_s">Hoje</string>
+    <string name="saved">Salvos</string>
+
+    <string name="active_session">AO VIVO</string>
+    <string name="since_2019">DESDE 2019</string>
+    <string name="v1_0_16">V1.0.16</string>
+
+    <string name="lock_secure">lock_secure</string>
+    <string name="app_logo">Logo do app</string>
+    <string name="float_btn">botão flutuante</string>
+    <string name="logo">logo</string>
+
+    <string name="size_1024_kb">Tamanho: 1024 KB</string>
+    <string name="resolution_1080_x_1920">Resolução: 1080 x 1920</string>
+    <string name="duration_0h_0m_0s">Duração: 0h 0m 0s</string>
+
+    <string name="saved_media_images_videos">Mídia salva • Imagens • Vídeos</string>
+    <string name="no_downloads_available">Nenhum download disponível</string>
+    <string name="no_files_found">Nenhum arquivo encontrado</string>
+    <string name="crop">cortar</string>
+
+    <string name="images">Imagens</string>
+    <string name="videos">Vídeos</string>
+    <string name="_saved">Salvos</string>
+
+    <string name="recent_downloads">DOWNLOADS RECENTES</string>
+    <string name="no_downloads_yet">Ainda não há downloads</string>
+
+    <string name="fast_amp_secure_downloader"><![CDATA[Download rápido e seguro]]></string>
+
+    <string name="custom_video_trim">Corte de vídeo personalizado</string>
+    <string name="total_duration_0s">Duração total: 0s</string>
+    <string name="start_sec">Início (seg)</string>
+    <string name="end_sec">Fim (seg)</string>
+    <string name="_30">30</string>
+
+    <string name="trim_amp_preview"><![CDATA[Cortar & Pré-visualizar]]></string>
+
+    <string name="media_details">Detalhes da mídia</string>
+    <string name="type_image">Tipo: Imagem</string>
+    <string name="name_example_jpg">Nome: example.jpg</string>
+
+    <string name="close">Fechar</string>
+
+    <string name="media">Mídia</string>
+
+    <string name="save">salvar</string>
+    <string name="share">Compartilhar</string>
+
+    <string name="edit">Editar</string>
+    <string name="trim">cortar</string>
+    <string name="info">Info</string>
+    <string name="back">Voltar</string>
+    <string name="next">Próximo</string>
+    <string name="refreshing">Atualizando…</string>
+    <string name="delete">Excluir</string>
+
+    <string name="action_successful">Ação bem-sucedida!</string>
+    <string name="enjoying_the_app">Gostando do app?</string>
+    <string name="your_review_helps_us_improve_it_only_takes_a_minute_to_support_us_on_the_play_store">Sua avaliação nos ajuda a melhorar. Leva apenas um minuto para nos apoiar na Play Store.</string>
+    <string name="rate_on_play_store">Avaliar na Play Store</string>
+
+    <string name="ultimate_troubleshooting_guide">Guia definitivo de solução de problemas</string>
+    <string name="step_1_android_11_12_13_14_users">Passo 1: Usuários Android 11, 12, 13, 14</string>
+
+    <string name="navigate_to_nandroid_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[Navegue até:\nAndroid > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
+
+    <string name="step_2_android_10">Passo 2: Android 10</string>
+
+    <string name="if_you_don_t_see_android_media_look_directly_for_nwhatsapp_media_statuses"><![CDATA[Se não vir Android/media, procure diretamente:\nWhatsApp > Media > .Statuses]]></string>
+
+    <string name="step_3_whatsapp_business">Passo 3: WhatsApp Business</string>
+
+    <string name="look_for_nandroid_media_com_whatsapp_w4b_whatsapp_business_media_statuses"><![CDATA[Procure:\nAndroid > media > com.whatsapp.w4b > WhatsApp Business > Media > .Statuses]]></string>
+
+    <string name="step_4_folder_is_missing_or_hidden">Passo 4: Pasta não encontrada ou oculta?</string>
+
+    <string name="click_the_menu_in_the_top_right_and_tap_show_hidden_files_without_this_you_cannot_see_the_statuses_folder">Toque no menu (⋮) no canto superior direito e ative Mostrar arquivos ocultos. Sem isso, você não verá a pasta .Statuses.</string>
+
+    <string name="step_5_folder_is_empty">Passo 5: Pasta vazia?</string>
+
+    <string name="first_open_whatsapp_and_watch_some_statuses_if_you_haven_t_viewed_any_status_in_the_last_24_hours_the_folder_will_appear_empty">Primeiro, abra o WhatsApp e veja alguns status. Se não tiver visto nenhum status nas últimas 24 horas, a pasta aparecerá vazia.</string>
+
+    <string name="step_6_dual_apps_parallel_space">Passo 6: Apps duplicados / Parallel Space</string>
+
+    <string name="search_for_a_folder_named_dual_or_999_or_parallel_in_your_main_storage_root">Procure uma pasta chamada Dual, 999 ou Parallel no armazenamento principal.</string>
+
+    <string name="important_after_selecting_the_folder_tap_use_this_folder_and_then_allow">Importante: após selecionar a pasta, toque em USAR ESTA PASTA e depois em PERMITIR.</string>
+
+    <string name="everything_is_clear">Tudo está claro!</string>
+
+    <string name="permissions_required">Permissões necessárias</string>
+    <string name="grant_access_to_save_your_favorite_status">Conceda acesso para salvar seus status favoritos</string>
+
+    <string name="status_folder">Pasta de status</string>
+    <string name="allow">Permitir</string>
+    <string name="how_to_set_path_view_guide">Como definir o caminho? Ver guia</string>
+
+    <string name="need_help_contact_us_at_nmariaadeeb982_gmail_com">Precisa de ajuda? Contate-nos:\nmariaadeeb982@gmail.com</string>
+
+    <string name="to_fetch_recent_status">Para buscar status recentes</string>
+    <string name="status_downloader">Baixador de status</string>
+    <string name="select_app">Selecionar app</string>
+    <string name="choose_whatsapp_to_scan_media">Escolha o WhatsApp para escanear mídia</string>
+
+    <string name="official_messenger">Mensageiro oficial</string>
+
+    <string name="rate_app">Avaliar app</string>
+    <string name="send_feedback">Enviar feedback</string>
+    <string name="share_app">Compartilhar app</string>
+    <string name="privacy_policy">Política de privacidade</string>
+    <string name="stats">Estatísticas</string>
+    <string name="explorer">Explorador</string>
+    <string name="history">Histórico</string>
+    <string name="settings">Configurações</string>
+    <string name="Dashboard">Painel</string>
+
+    <string-array name="trending_tags">
+        <item>ultra cinematic 8k hyperreal lighting</item>
+        <item>IMAX style cinematic portrait shot</item>
+        <item>Hollywood movie still aesthetic</item>
+        <item>award winning photography style</item>
+        <item>dramatic cinematic golden hour scene</item>
+        <item>ultra luxury billionaire lifestyle</item>
+        <item>private jet luxury interior aesthetic</item>
+        <item>yacht ocean sunset billionaire vibe</item>
+        <item>luxury penthouse night city view</item>
+        <item>rich elite lifestyle aesthetic 8k</item>
+        <item>bugatti cinematic night highway neon</item>
+        <item>lamborghini cyber neon rain aesthetic</item>
+        <item>rolls royce phantom luxury cinematic</item>
+        <item>ferrari tunnel speed motion blur</item>
+        <item>hypercar drifting smoke cinematic shot</item>
+        <item>cyberpunk tokyo neon rain alley 8k</item>
+        <item>futuristic sci fi city blade runner vibe</item>
+        <item>neon holographic cyber world aesthetic</item>
+        <item>dark tech futuristic interface glow</item>
+        <item>virtual reality digital universe aesthetic</item>
+        <item>instagram viral aesthetic dark feed</item>
+        <item>tiktok trending cinematic background loop</item>
+        <item>reels aesthetic slow motion vibe</item>
+        <item>viral wallpaper aesthetic minimal glow</item>
+        <item>shorts background hypnotic motion</item>
+        <item>alpha male dominance mindset aesthetic</item>
+        <item>high value discipline success lifestyle</item>
+        <item>money mindset luxury motivation dark</item>
+        <item>self made billionaire aesthetic theme</item>
+        <item>focus productivity dark aesthetic setup</item>
+        <item>iceland volcano cinematic drone shot</item>
+        <item>norway fjords mist cinematic 8k</item>
+        <item>aurora borealis northern lights sky</item>
+        <item>maldives crystal water aerial view</item>
+        <item>mountain storm cinematic ultra hd</item>
+        <item>minimalist luxury workspace setup 4k</item>
+        <item>apple style clean aesthetic desk</item>
+        <item>modern architecture glass luxury design</item>
+        <item>white black contrast minimal aesthetic</item>
+        <item>calm zen productivity workspace vibe</item>
+        <item>ai generated abstract surreal art</item>
+        <item>fluid neon gradient motion art</item>
+        <item>fractal cosmic energy visualization</item>
+        <item>digital dreamscape surreal world</item>
+        <item>3d abstract morphing shapes aesthetic</item>
+        <item>satisfying loop animation hypnotic</item>
+        <item>infinite motion seamless background</item>
+        <item>smooth gradient wave animation 8k</item>
+        <item>hypnotic spiral motion aesthetic</item>
+        <item>loopable cinematic abstract motion</item>
+    </string-array>
+    <string name="whatsapp_icon">ícone do WhatsApp</string>
+    <string name="_1">1</string>
+    <string name="overlay">sobreposição</string>
+    <string name="videoicon">ícone de vídeo</string>
+    <string name="downloadicon">ícone de download</string>
+    <string name="downloadstatus">baixar status</string>
+    <string name="snackicon">ícone de notificação</string>
+    <string name="star_visual">visual de estrela</string>
+    <string name="folder_security">segurança da pasta</string>
+    <string name="whatsapp">WhatsApp</string>
+    <string name="thumbicon">ícone de polegar</string>
+
+    <string name="_Downloads">Downloads</string>
+    <string name="_7days"> 7 dias</string>
+
+    <string name="role_admin_name">Adeeb Ibrahim</string>
+    <string name="role_developer_name">OmarSamy</string>
+
+    <string name="trending">Tendências</string>
+    <string name="search">PESQUISAR</string>
+    <string name="support">SUPORTE</string>
+
+    <string name="recent_downloads_s">DOWNLOADS RECENTES</string>
+    <string name="premium_vault">✧ COFRE PREMIUM ✧</string>
+
+    <string name="gallery">Galeria</string>
+    <string name="downloadss">Downloads</string>
+    <string name="dashboard">Painel</string>
+
+    <string name="community_amp_feedback"><![CDATA[Comunidade & Feedback]]></string>
+    <string name="recommend_us">Recomende-nos</string>
+    <string name="invite_friends">Convidar amigos</string>
+    <string name="join_whatsapp_channel">Entrar no canal do WhatsApp</string>
+
+    <string name="app_information">Informações do app</string>
+    <string name="privacy_amp_terms"><![CDATA[Privacidade & Termos]]></string>
+
+    <string name="unlock_pro_experience">Desbloquear experiência Pro</string>
+
+    <string name="status_gallery">Galeria de status</string>
+    <string name="status_downloads">Downloads de status</string>
+
+    <string name="global_trending">✧ TENDÊNCIAS GLOBAIS ✧</string>
+    <string name="trending_status">Status em alta</string>
+
+    <string name="global_search">✧ PESQUISA GLOBAL ✧</string>
+    <string name="status_discovery">Descoberta de status</string>
+
+    <string name="explore_premium_content">Explorar conteúdo premium</string>
+    <string name="find_the_best_status_and_wallpapers_for_you">Encontre os melhores status e papéis de parede para você</string>
+    <string name="search_premium_status">Pesquisar status premium</string>
+
+    <string name="please_wait">AGUARDE</string>
+    <string name="explain_your_issue">Explique seu problema</string>
+
+    <string name="new_ticket">Novo Ticket</string>
+    <string name="re_open">Reabrir</string>
+    <string name="this_ticket_is_closed_do_you_need_more_help">Este ticket está fechado. Precisa de mais ajuda?</string>
+
+    <string name="our_developers_are_ready_to_assist_you_tell_us_your_issue_and_we_ll_get_back_to_you_shortly">
+Nossos desenvolvedores estão prontos para ajudar você. Conte seu problema e responderemos em breve.
+</string>
+
+    <string name="welcome_to_vip_support">Bem-vindo ao Suporte VIP</string>
+    <string name="typical_response_time_within_24_hours">Tempo de resposta: até 24 horas</string>
+    <string name="connected_to_support">Conectado ao suporte</string>
+
+    <string name="ref">Ref: #-------</string>
+
+    <string name="media_preview">Pré-visualização de mídia</string>
+
+    <string name="magic_lab">LAB MÁGICO</string>
+    <string name="processing">PROCESSANDO</string>
+
+    <string name="saved_media">Mídia salva</string>
+
+    <string name="repost">Repostar</string>
+    <string name="set_as_status">Definir como status</string>
+
+    <string name="timer_expired">Expirado</string>
+    <string name="premium_status">Status Premium</string>
+
+    <string name="timer_expires_in">Expira em %1$02d:%2$02d:%3$02d</string>
+
+    <string name="magic_lab_pro">✧ LAB MÁGICO PRO ✧</string>
+
+    <string name="denoise">REDUÇÃO DE RUÍDO</string>
+    <string name="vivid_hdr">HDR VIVO</string>
+    <string name="exposure">EXPOSIÇÃO</string>
+
+    <string name="smooth">Suavizar</string>
+    <string name="exposures">Exposição</string>
+    <string name="highlights">Destaques</string>
+    <string name="shadows">Sombras</string>
+    <string name="contrast">Contraste</string>
+    <string name="bright">Brilho</string>
+    <string name="vibrance">Vivacidade</string>
+    <string name="warmth">Temperatura</string>
+    <string name="color">Cor</string>
+    <string name="tint">Tonalidade</string>
+    <string name="clarity">Clareza</string>
+    <string name="sharpen">Nitidez</string>
+    <string name="vignette">Vinheta</string>
+
+    <string name="original">ORIGINAL</string>
+    <string name="export">EXPORTAR</string>
+
+    <string name="tab_images">Imagens</string>
+    <string name="tab_videos">Vídeos</string>
+
+    <string name="toast_already_saved">Já salvo!</string>
+    <string name="error_permission_denied">Permissão negada!</string>
+
+    <string name="empty_videos_title">Nenhum vídeo encontrado</string>
+    <string name="empty_images_title">Nenhuma imagem encontrada</string>
+
+    <string name="empty_whatsapp_desc">Primeiro veja o status no WhatsApp\ndepois baixe aqui.</string>
+
+    <string name="toast_whatsapp_not_installed">WhatsApp não instalado</string>
+
+    <string name="error_open_preview">Não foi possível abrir a pré-visualização.</string>
+    <string name="error_item_unavailable">Item não disponível</string>
+    <string name="error_process_interrupted">Processo interrompido. Tente novamente.</string>
+    <string name="error_media_not_found">Mídia não encontrada</string>
+    <string name="error_could_not_open_media">Não foi possível abrir a mídia.</string>
+    <string name="error_system_permission_failed">Falha na permissão do sistema.</string>
+
+    <string name="empty_saved_media_title">Nenhuma mídia salva</string>
+    <string name="empty_saved_media_desc">Salve seus status favoritos para vê-los aqui a qualquer momento.</string>
+
+    <string name="default_app_version">v1.0.1</string>
+    <string name="joined_since_date">Desde %s</string>
+    <string name="error_delete_failed">Falha ao excluir. Tente novamente.</string>
+    <string name="error_file_not_ready_share">Arquivo não está pronto para compartilhamento</string>
+    <string name="error_path_not_found">Caminho do arquivo não encontrado</string>
+    <string name="error_share_failed">Não foi possível processar a solicitação de compartilhamento.</string>
+    <string name="share_chooser_title">Compartilhar via:</string>
+
+    <string name="tool_smooth_label">SUAVIZAÇÃO DE TEXTURA</string>
+    <string name="tool_exposure_label">EXPOSIÇÃO IA</string>
+    <string name="tool_contrast_label">CONTRASTE DINÂMICO</string>
+    <string name="tool_brightness_label">LUMINÂNCIA</string>
+    <string name="tool_saturation_label">SATURAÇÃO</string>
+    <string name="tool_warmth_label">TEMPERATURA DE COR</string>
+    <string name="tool_tint_label">MATIZ</string>
+    <string name="tool_detail_label">DETALHE 4K</string>
+    <string name="tool_clarity_label">CLAREZA IA</string>
+    <string name="tool_vibrance_label">VIBRÂNCIA</string>
+    <string name="tool_highlights_label">ALTAS LUZES</string>
+    <string name="tool_shadows_label">SOMBRAS</string>
+    <string name="tool_vignette_label">VINHETA</string>
+
+    <string name="error_failed_process_4k">Falha ao processar imagem 4K</string>
+    <string name="error_oom_processing">Erro de processamento: memória insuficiente</string>
+    <string name="error_failed_load_image">Falha ao carregar imagem</string>
+    <string name="error_image_too_large">Imagem muito grande para pré-visualização</string>
+
+    <string name="notify_already_saved">Status já salvo! ✅</string>
+    <string name="notify_gallery_already">Já na Galeria! ✅</string>
+    <string name="notify_magic_lab_unavailable">Magic Lab indisponível após o download!</string>
+    <string name="notify_video_ai_soon">Desbloqueando a próxima geração de IA de vídeo em breve. 🔥</string>
+    <string name="error_magic_lab_lost">Dados do Magic Lab perdidos!</string>
+    <string name="error_invalid_uri">URI de mídia inválida</string>
+    <string name="error_oom_or_file">Motor de mídia: memória insuficiente ou erro de arquivo</string>
+    <string name="error_low_memory">Dispositivo com pouca memória: tente salvar padrão</string>
+    <string name="error_media_missing">Caminho da mídia ausente!</string>
+    <string name="error_no_media">Nenhuma mídia para exibir</string>
+    <string name="error_download_failed">Falha no download!</string>
+
+    <string name="progress_saving_masterpiece">Salvando obra-prima…</string>
+    <string name="progress_init_ai">Inicializando mecanismo de IA…</string>
+    <string name="progress_saving_video">Salvando vídeo…</string>
+    <string name="progress_finalizing">Finalizando obra-prima…</string>
+    <string name="progress_fetching">Buscando imagem…</string>
+    <string name="progress_decoding">Decodificando imagem…</string>
+    <string name="progress_saving_gallery">Salvando na galeria…</string>
+    <string name="progress_pro_filters">Aplicando filtros Pro…</string>
+    <string name="progress_success_saved">Status salvo com sucesso!</string>
+
+    <string name="info_name_format">Nome: %s</string>
+    <string name="info_type_format">Tipo: %s</string>
+    <string name="info_status_downloaded">Status: Baixado</string>
+    <string name="info_status_pending">Status: Pendente</string>
+    <string name="info_path_wa">WA: %s</string>
+    <string name="info_path_gallery">Galeria: %s</string>
+    <string name="info_captured_on">Capturado em: %s</string>
+    <string name="info_date_not_available">Data: não disponível</string>
+    <string name="default_premium_status_title">Status Premium</string>
+    <string name="default_wallpaper_title">Papéis de parede</string>
+
+    <string name="error_something_went_wrong">Algo deu errado</string>
+    <string name="toast_title_copied">✧ Título copiado para a área de transferência ✧</string>
+    <string name="toast_already_gallery">✧ Já na galeria ✧</string>
+
+    <string name="action_save">SALVAR</string>
+    <string name="action_saved">SALVO</string>
+
+    <string name="progress_initial_percent">0%</string>
+
+    <string name="error_no_internet">Sem conexão com a internet. Conecte-se e tente novamente.</string>
+    <string name="error_internet_unstable">Conexão instável. Tente novamente.</string>
+    <string name="error_unable_to_download">Não foi possível baixar. Verifique seu armazenamento ou conexão.</string>
+
+    <string name="empty_title_no_connection">Sem conexão</string>
+    <string name="empty_desc_no_connection">Verifique sua internet para buscar status.</string>
+    <string name="empty_title_server_error">Erro do servidor</string>
+    <string name="empty_desc_server_error">Não foi possível acessar o servidor. Tente novamente em instantes.</string>
+    <string name="empty_title_no_results">Nenhum resultado encontrado</string>
+    <string name="empty_desc_no_results">Tente buscar algo diferente.</string>
+
+    <string name="toast_failed_load_more">Falha ao carregar mais itens.</string>
+
+    <string name="premium_discovery_subtitle">Descoberta Premium</string>
+
+    <string name="mood_night">Noite</string>
+    <string name="mood_morning">Manhã</string>
+    <string name="mood_day">Dia</string>
+    <string name="mood_evening">Noite</string>
+
+    <string name="fallback_nature_query">Natureza</string>
+    <string name="fallback_premium_query">Novos papéis de parede de natureza</string>
+
+    <string-array name="trends_pk">
+        <item>Arte Sufi</item>
+        <item>Poesia Urdu</item>
+        <item>Arte de caminhões</item>
+        <item>Norte do Paquistão</item>
+        <item>Coke Studio</item>
+    </string-array>
+
+    <string-array name="trends_default">
+        <item>Cyberpunk</item>
+        <item>Natureza</item>
+        <item>Abstrato</item>
+        <item>Espaço</item>
+        <item>Minimalista</item>
+    </string-array>
+    <string name="ticket_default_subject">Solicitação de suporte</string>
+    <string name="ticket_status_open">Aberto</string>
+    <string name="ticket_status_closed">Fechado</string>
+    <string name="ticket_date_na">N/D</string>
+
+    <string name="ticket_id_prefix">TICKET: #</string>
+    <string name="status_ticket_closed">Ticket fechado</string>
+    <string name="status_connected_support">Conectado ao suporte</string>
+    <string name="status_start_conversation">Iniciar conversa</string>
+
+    <string name="error_connection_failed">Erro de conexão: %s</string>
+    <string name="error_ticket_id_generation">Erro do sistema: não foi possível gerar o ID do ticket</string>
+    <string name="error_network_failed_ticket">Erro de rede: falha ao iniciar o ticket</string>
+    <string name="error_session_expired">Sessão do ticket expirada. Tente novamente.</string>
+    <string name="error_message_send_failed">Falha ao enviar mensagem</string>
+    <string name="error_status_update_failed">Falha ao atualizar status</string>
+    <string name="error_database_failed">Erro de banco de dados: %s</string>
+
+    <string name="toast_ticket_reopened">Ticket reaberto com sucesso</string>
+    <string name="toast_ticket_closed_feedback">Ticket fechado</string>
+    <string name="toast_no_tickets_found">Nenhum ticket anterior encontrado</string>
+
+    <string name="dialog_history_title">Histórico de suporte</string>
+    <string name="dialog_btn_close">Fechar</string>
+
+    <string name="auto_admin_initial_reply">Seu ticket #%s foi criado com sucesso. Nossa equipe de suporte entrará em contato em breve.</string>
+    <string name="auto_admin_reopen_reply">Este ticket foi reaberto. Como podemos ajudar você?</string>
+
+    <string name="identity_admin_system">Admin</string>
+    <string name="identity_admin_adeeb">Adeeb Ibrahim</string>
+
+    <string name="error_invalid_url">URL inválida</string>
+    <string name="error_mediastore_entry_failed">Não foi possível criar entrada no MediaStore</string>
+    <string name="error_server_response_code">Erro do servidor: %d</string>
+    <string name="error_output_stream_failed">Falha ao abrir fluxo de saída</string>
+
+    <string name="chooser_title_whatsapp_status">Definir status via:</string>
+    <string name="chooser_title_share_status">Compartilhar status</string>
+    <string name="toast_no_sharing_app_found">Nenhum aplicativo encontrado para compartilhar!</string>
+
+    <string name="trend_fallback_global">Global</string>
+
+    <string name="error_no_internet_toast">Sem conexão com a internet!</string>
+
+    <string name="trend_region_global">Global</string>
+
+    <string name="progress_percentage_format">%d%%</string>
+
+    <string name="empty_title_no_records">Nenhum registro encontrado</string>
+    <string name="empty_desc_no_records">Atualmente não há imagens virais.</string>
+
+    <string name="toast_download_failed_internet">Falha no download. Verifique a internet.</string>
+
+    <string name="fallback_trending_status">Status em alta</string>
+
+    <string name="error_download_failed_network">Erro de rede. Tente novamente.</string>
+
+    <string name="progress_percentage_format_preview">%d%%</string>
+
+    <string name="toast_preparing_media">Preparando mídia ✧</string>
+    <string name="toast_preparing_repost">Preparando para repostar ✧</string>
+
+    <string name="error_repost_failed">Falha ao repostar, tente novamente</string>
+
+    <string name="chooser_title_share_via">Compartilhar via</string>
+    <string name="chooser_title_repost_via">Repostar via</string>
+
+    <string name="notification_title_status_saver">Status Saver</string>
+    <string name="notification_desc_saved_success">Status salvo com sucesso!</string>
+
+    <string name="error_billing_play_not_ready">O Google Play não está pronto. Verifique a internet.</string>
+    <string name="error_billing_store_busy">A Play Store está ocupada no momento. Tente novamente em breve.</string>
+
+    <string name="feedback_title_question">Gostou do nosso app?</string>
+    <string name="toast_feedback_thank_you">Obrigado pela sua avaliação!</string>
+
+    <string name="tag_fragment_home">INÍCIO</string>
+    <string name="tag_fragment_gallery">GALERIA</string>
+    <string name="tag_fragment_trending">TENDÊNCIAS</string>
+
+    <string name="premium_state_active">ATIVO</string>
+
+    <string name="error_billing_cancelled">Compra cancelada.</string>
+    <string name="error_billing_already_owned">Você já possui este plano premium!</string>
+    <string name="error_billing_network_lost">Conexão perdida. Verifique sua internet.</string>
+    <string name="error_billing_play_store_busy">A Play Store está ocupada. Tente novamente mais tarde.</string>
+
+    <string name="fallback_not_available">N/D</string>
+
+    <string name="progress_verifying_google">Verificando com o Google</string>
+
+    <string name="success_elite_welcome">✧ Bem-vindo ao Elite ✧\nAnúncios removidos permanentemente.</string>
+
+    <string name="notif_channel_name_expiry">Alertas de expiração de status</string>
+    <string name="notif_channel_desc_expiry">Alertas críticos para salvar status antes que expirem.</string>
+
+    <string name="splash_status_premium_member">⭐ MEMBRO PREMIUM</string>
+    <string name="splash_status_loading_ad">Carregando anúncio…</string>
+
+    <string name="perm_dialog_title_notif">Permissão necessária</string>
+    <string name="perm_dialog_desc_notif">Ative as notificações para receber alertas antes que os status expirem.</string>
+
+    <string name="perm_action_allow">Permitir</string>
+    <string name="perm_action_later">Mais tarde</string>
+
+    <string name="toast_all_alerts_active">Todos os alertas estão ativos!</string>
+    <string name="toast_view_statuses_first">Veja os status no WhatsApp primeiro!</string>
+    <string name="toast_whatsapp_not_found">WhatsApp não encontrado!</string>
+
+    <string name="perm_warning_checkbox_first">Marque a caixa de seleção primeiro para continuar. 🚀</string>
+    <string name="perm_warning_selection_required">Seleção obrigatória! ⚠️</string>
+    <string name="perm_error_grant_access">Erro de permissão! Conceda o acesso. ⚠️</string>
+    <string name="perm_warning_select_statuses_folder">Selecione a pasta .Statuses para continuar! 📁</string>
+
+    <string name="status_saver">Status Saver</string>
+    <string name="premium_access">ACESSO PREMIUM</string>
+
+    <string name="early_bird_special_step_1">OFERTA EARLY BIRD: PASSO 1</string>
+
+    <string name="smart_ai_media_engine">Motor de mídia com IA inteligente</string>
+
+    <string name="advanced_scanning_for_better_media_quality">• Escaneamento avançado para melhor qualidade de mídia.</string>
+    <string name="faster_downloads_with_every_new_update">• Downloads mais rápidos a cada nova atualização.</string>
+    <string name="join_now_for_exclusive_future_rewards">• ENTRE AGORA para recompensas futuras exclusivas.</string>
+
+    <string name="start_setup">[ INICIAR CONFIGURAÇÃO ]</string>
+
+    <string name="note_please_keep_the_app_installed_to_maintain_your_premium_rewards_and_future_updates">
+Nota: mantenha o aplicativo instalado para manter seus benefícios premium e futuras atualizações.
+</string>
+
+    <string name="storage_permission">Permissão de armazenamento</string>
+
+    <string name="to_show_your_latest_statuses_we_need_access_to_your_status_folder">
+Para mostrar seus status mais recentes, precisamos acessar sua pasta de status.
+</string>
+
+    <string name="step_2">PASSO 2</string>
+
+    <string name="select_folder">Selecionar pasta</string>
+
+    <string name="please_select_the_statuses_folder_to_automatically_sync_your_media">
+Selecione a pasta .Statuses para sincronizar automaticamente sua mídia.
+</string>
+
+    <string name="allow_access">PERMITIR ACESSO</string>
+
+    <string name="need_help_view_guide">PRECISA DE AJUDA? VER GUIA</string>
+
+    <string name="status_folder_setup_guide">GUIA DE CONFIGURAÇÃO DA PASTA DE STATUS</string>
+
+    <string name="follow_these_simple_steps_to_see_statuses">Siga estes passos simples para ver os status</string>
+
+    <string name="for_new_android_11_14">PARA ANDROID NOVO (11  14)</string>
+
+    <string name="go_to_android_media_com_whatsapp_whatsapp_media_statuses">
+Ir para: Android > media > com.whatsapp > WhatsApp > Media > .Statuses
+</string>
+
+    <string name="for_old_android_10_amp_below">PARA ANDROID ANTIGO (10 OU INFERIOR)</string>
+
+    <string name="look_for_whatsapp_media_statuses_folder_in_your_internal_storage">
+Procure: WhatsApp > Media > pasta .Statuses no armazenamento interno.
+</string>
+
+    <string name="important_if_folder_is_empty">IMPORTANTE: SE A PASTA ESTIVER VAZIA</string>
+
+    <string name="tap_the_3_dots_top_right_and_choose_show_hidden_files_this_is_required_to_find_the_status_folder">
+Toque nos 3 pontos (canto superior direito) e ative Mostrar arquivos ocultos.
+</string>
+
+    <string name="select_statuses_folder_and_click_use_this_folder_button_at_the_bottom">
+Selecione a pasta .Statuses e toque em USAR ESTA PASTA.
+</string>
+
+    <string name="i_understand">EU ENTENDO</string>
+
+    <string name="we_are_working_hard_to_make_your_experience_better_a_quick_review_would_mean_the_world_to_us">
+Estamos trabalhando para melhorar sua experiência. Uma avaliação rápida significa muito para nós!
+</string>
+
+    <string name="tap_to_rate">TOQUE PARA AVALIAR</string>
+
+    <string name="it_only_takes_5_seconds">Leva apenas 5 segundos</string>
+
+    <string name="no_status_found">Nenhum status encontrado</string>
+
+    <string name="first_watch_status_from_whatsapp_nthen_download_from_here">
+Primeiro veja os status no WhatsApp\ndepois baixe aqui.
+</string>
+
+    <string name="get_expiry_alerts">Receber alertas de expiração ⏳</string>
+
+    <string name="to_prevent_notification_delays_caused_by_android_battery_saving_please_complete_the_following_steps">
+Para evitar atrasos de notificações por economia de bateria, siga os passos abaixo:
+</string>
+
+    <string name="open_battery_settings">Abrir configurações de bateria</string>
+
+    <string name="_2">2</string>
+
+    <string name="select_unrestricted_don_t_optimize">Selecione Sem restrições / Não otimizar</string>
+
+    <string name="_3">3</string>
+
+    <string name="maybe_later">Talvez depois</string>
+
+    <string name="go_to_settings">Ir para configurações</string>
+
+    <string name="loading">Carregando</string>
+
+    <string name="admin">ADMIN</string>
+
+    <string name="deleting">Excluindo</string>
+    <string name="world">🌐</string>
+    <string name="customize_your_app_interface">Personalizar a interface do app</string>
+    <string name="language_settings">Configurações de idioma</string>
+    <string name="use_system_language">Usar idioma padrão (English)</string>
+    <string name="region_amp_preferences"><![CDATA[REGIÃO E PREFERÊNCIAS]]></string>
+    <string name="world_s">🌍</string>
+    <string name="preview">Visualização</string>
+    <string name="current_english">Atual: Inglês</string>
+    <string name="apply_changes">Aplicar alterações</string>
+    <string name="need_help_contact_support">Precisa de ajuda? Contate o suporte</string>
+    <string name="app_interface_will_be_updated_to">A interface do app será atualizada para: %s</string>
+
+    <!-- Status and Preview Messages -->
+    <string name="status_system_default">Status: Usando o padrão do sistema</string>
+    <string name="preview_system_default">O app seguirá o idioma do sistema.</string>
+
+    <string name="status_selected">Selecionado: %s</string>
+    <string name="preview_selected">A interface do app será atualizada para: %s</string>
+
+    <string name="status_current">Atual: %s</string>
+    <string name="preview_current">A interface do app será atualizada para: %s</string>
+    <string name="select_language_step_1">Selecionar idioma passo 1</string>
+    <string name="elite_upgrade">Atualização Elite</string>
+    <string name="supreme_features">✦ Recursos supremos ✦</string>
+    <string name="zero_disruptive_ads">Sem anúncios</string>
+    <string name="multi_threaded_downloader">Downloader rápido</string>
+    <string name="quality_content_access">Acesso a conteúdo</string>
+    <string name="choose_your_elite_pass">Escolha seu passe Elite</string>
+    <string name="monthly">Mensal</string>
+    <string name="active">Ativo</string>
+    <string name="premium_benefits">Benefícios premium</string>
+    <string name="lifetime_access">Acesso vitalício</string>
+    <string name="one_time_luxury_pass">Passe de luxo único</string>
+    <string name="verified_by_google_play_security">Verificado pelo Google Play</string>
+    <string name="don_t_show_for_this_version">Não mostrar nesta versão</string>
+    <string name="experience_now">Experimentar agora</string>
+    <string name="what_s_new">O que há de novo</string>
+    <string name="multi_language_support">Suporte multilíngue</string>
+    <string name="change_app_language_as_you_prefer">Alterar idioma</string>
+    <string name="export_quality">Qualidade de exportação</string>
+    <string name="select_your_preference_magic_lab_ai_enhances_clarity_and_detail_automatically">Escolha sua preferência. Magic Lab AI melhora a qualidade automaticamente.</string>
+    <string name="magic_lab_ai">Magic Lab AI</string>
+    <string name="ultra_hd_noise_reduction">Ultra HD + Noise Reduction</string>
+    <string name="original_quality">Qualidade original</string>
+    <string name="set_as_default_for_future_exports">Definir como padrão</string>
+
+    <string name="select_language">Selecione o idioma</string>
+    <string name="language">Idioma</string>
+    <string name="file_details">Detalhes do arquivo</string>
+    <string name="below_are_the_technical_details_and_storage_paths_for_the_selected_status_file">Abaixo estão os detalhes técnicos e caminhos de armazenamento do arquivo de status selecionado.</string>
+    <string name="dismiss">Dispensar</string>
+    <string name="splash_ad_disclaimer">Esta tela contém anúncios</string>
+
+    <string name="last_sync">SINCRONIZAÇÃO</string>
+    <string name="logout">SAIR</string>
+    <string name="elite_features_coming_soon">RECURSOS ELITE EM BREVE</string>
+    <string name="confirm_logout">Confirmar saída</string>
+    <string name="are_you_sure_you_want_to_logout_you_will_need_to_sign_in_again_to_access_your_account">Tem certeza de que deseja sair? Você precisará entrar novamente para acessar sua conta.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="peek_mode">Modo Peek</string>
+    <string name="intelligence_being_fine_tuned">Inteligência em processo de otimização</string>
+    <string name="analyze_moods_and_patterns_in_real_time">Analise humores e padrões em tempo real.</string>
+    <string name="peek_title_enable_access">Ativar Visualização Peek</string>
+    <string name="peek_desc_enable_access">Ative o acesso às notificações para que o aplicativo possa categorizar seus alertas com segurança.</string>
+
+    <string name="peek_title_no_alerts">Sem alertas recentes</string>
+    <string name="peek_desc_no_alerts">Assim que novas notificações chegarem, elas aparecerão aqui automaticamente.</string>
+
+    <string name="ai_stealth_status">Inteligência em processo de otimização</string>
+    <string name="profile">Perfil</string>
+
+    <string name="messages">Mensagens</string>
+    <string name="avg_reply">Resp. méd.</string>
+    <string name="New_media">Mídia</string>
+    <string name="ai_behavioral_analysis">Análise comportamental IA</string>
+    <string name="ai_calculating_behavior_patterns">Calculando padrões de comportamento</string>
+    <string name="status_na">N/D</string>
+    <string name="mood_analyzing">Humor: Analisando</string>
+    <string name="type_analyzing">Tipo: Analisando</string>
+    <string name="vibe_analyzing">Vibe: Analisando</string>
+    <string name="typenew_analyzing">Tipo: Analisando</string>
+    <string name="peak_analyzing">Pico: Analisando</string>
+    <string name="fav_analyzing">Favorito: Analisando</string>
+    <string name="label_type">Tipo: %s</string>
+    <string name="label_vibe">Vibe: %s</string>
+    <string name="label_trend"> | Tendência: %s</string>
+    <string name="ai_status_high">Alto</string>
+    <string name="ai_status_delayed">Atrasado</string>
+    <string name="mood_neutral">Humor: Neutro</string>
+    <string name="mood_happy">Humor: Feliz</string>
+    <string name="mood_distant">Humor: Distante</string>
+    <string name="type_new_connection">Tipo: Nova conexão</string>
+    <string name="type_intense_duo">Tipo: Duo intenso</string>
+    <string name="type_heavy_chatter">Tipo: Grande falador</string>
+    <string name="type_casual">Tipo: Casual</string>
+    <string name="type_low_profile">Tipo: Discreto</string>
+    <string name="peak_na">Pico: N/D</string>
+    <string name="peak_format">Pico: %1$d%2$s</string>
+    <string name="fav_na">Favorito: N/D</string>
+    <string name="fav_format">Favorito: \'%s\'</string>
+    <string name="archetype_observer">Observador</string>
+    <string name="archetype_storyteller">Contador de histórias</string>
+    <string name="archetype_short_reply">Rei das respostas curtas</string>
+    <string name="archetype_balanced">Equilibrado</string>
+    <string name="vibe_neutral">Neutro</string>
+    <string name="vibe_curious">Curioso</string>
+    <string name="vibe_friendly">Amigável</string>
+    <string name="vibe_straightforward">Direto</string>
+    <string name="status_ready">Pronto para conversar</string>
+    <string name="status_active">Ativo - Resposta em ~%d min</string>
+    <string name="status_soon">Esperado em breve</string>
+    <string name="status_low">Baixa chance de resposta</string>
+    <string name="status_high">Alta chance de resposta</string>
+    <string name="cons_building">Construindo rapport</string>
+    <string name="cons_rising">Interesse crescente</string>
+    <string name="cons_declining">Interesse em declínio</string>
+    <string name="cons_consistent">Consistente</string>
+</resources>

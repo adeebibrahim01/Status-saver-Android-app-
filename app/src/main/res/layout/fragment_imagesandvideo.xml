@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FDFDFD"
+    android:background="#ECE5DD"
     tools:context=".ui.gallery.GalleryFragment">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -66,7 +66,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
-                    android:text="✧ PREMIUM VAULT ✧"
+                    android:text="@string/premium_vault"
                     android:textAllCaps="true"
                     android:textColor="#BC9112"
                     android:textSize="11sp"
@@ -77,7 +77,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/dancing_script"
-                    android:text="Status Gallery"
+                    android:text="@string/status_gallery"
                     android:textColor="#FFFFFF"
                     android:textSize="28sp"
                     android:textStyle="bold" />
@@ -162,7 +162,6 @@
                 android:clipToPadding="false"
                 android:paddingHorizontal="10dp"
                 android:layout_marginBottom="60dp"
-                android:layoutAnimation="@anim/layout_animation_fall_down"
                 android:paddingTop="12dp"
                 android:scrollbars="none" />
 
@@ -185,6 +184,7 @@
                     android:id="@+id/ivEmptyIcon"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
+                    android:contentDescription="empty"
                     android:src="@drawable/ic_empty_folder"
                     app:layout_constraintBottom_toTopOf="@+id/tvEmptyTitle"
                     app:layout_constraintEnd_toEndOf="parent"

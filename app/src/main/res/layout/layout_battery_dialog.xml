@@ -30,7 +30,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Get Expiry Alerts ⏳"
+            android:text="@string/get_expiry_alerts"
             android:textColor="@color/white"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -40,7 +40,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="To prevent notification delays caused by Android battery saving, please complete the following steps:"
+            android:text="@string/to_prevent_notification_delays_caused_by_android_battery_saving_please_complete_the_following_steps"
             android:textColor="#99FFFFFF"
             android:textSize="13sp"
             android:gravity="center"
@@ -65,7 +65,7 @@
                     android:layout_height="28dp"
                     android:background="@drawable/circle_bg_black_round"
                     android:backgroundTint="#4CAF50"
-                    android:text="1"
+                    android:text="@string/_1"
                     android:gravity="center"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"/>
@@ -89,14 +89,14 @@
                     android:layout_height="28dp"
                     android:background="@drawable/circle_bg_black_round"
                     android:backgroundTint="#2196F3"
-                    android:text="2"
+                    android:text="@string/_2"
                     android:gravity="center"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Open 'Battery' settings"
+                    android:text="@string/open_battery_settings"
                     android:layout_marginStart="14dp"
                     android:textSize="15sp"
                     android:textColor="#FFFFFF"/>
@@ -112,14 +112,14 @@
                     android:layout_height="28dp"
                     android:background="@drawable/circle_bg_black_round"
                     android:backgroundTint="#FF9800"
-                    android:text="3"
+                    android:text="@string/_3"
                     android:gravity="center"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Select 'Unrestricted' / 'Don't Optimize'"
+                    android:text="@string/select_unrestricted_don_t_optimize"
                     android:layout_marginStart="14dp"
                     android:textSize="15sp"
                     android:textColor="#FFFFFF"
@@ -139,7 +139,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Maybe Later"
+                android:text="@string/maybe_later"
                 android:textColor="#77FFFFFF"
                 android:textSize="13sp"/>
 
@@ -147,7 +147,7 @@
                 android:id="@+id/btnSettings"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:text="Go to Settings"
+                android:text="@string/go_to_settings"
                 android:layout_marginStart="12dp"
                 android:paddingHorizontal="24dp"
                 app:cornerRadius="12dp"

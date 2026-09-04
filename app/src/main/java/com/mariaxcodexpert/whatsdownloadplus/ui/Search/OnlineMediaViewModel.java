@@ -8,10 +8,8 @@ import java.util.List;
 
 public class OnlineMediaViewModel extends ViewModel {
 
-    // Main list jo UI observe karegi
     private final MutableLiveData<List<MediaItem>> mediaList = new MutableLiveData<>(new ArrayList<>());
 
-    // Pagination aur state maintain karne ke liye variables
     private String lastQuery = "";
     private int lastPage = 1;
 
@@ -20,7 +18,8 @@ public class OnlineMediaViewModel extends ViewModel {
     }
 
     public void setMediaList(List<MediaItem> list) {
-        // 🔥 Thread Safety: UI thread check logic
+        if (list == null) list = new ArrayList<>();
+
         if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
             mediaList.setValue(list);
         } else {
@@ -28,71 +27,63 @@ public class OnlineMediaViewModel extends ViewModel {
         }
     }
 
-    /**
-     * Fragment jab scroll karke naya data laye ga,
-     * tab ye method purani list mein naya data append (add) kar dega.
-     */
     public void addMediaItems(List<MediaItem> newItems) {
-        List<MediaItem> currentList = mediaList.getValue();
-        if (currentList == null) {
-            currentList = new ArrayList<>();
-        }
+        if (newItems == null || newItems.isEmpty()) return;
 
-        List<MediaItem> updatedList = new ArrayList<>(currentList);
-        updatedList.addAll(newItems);
+        List<MediaItem> currentList = mediaList.getValue();
+        List<MediaItem> updatedList = (currentList == null) ? new ArrayList<>() : new ArrayList<>(currentList);
+
+        for (MediaItem newItem : newItems) {
+            if (newItem != null) {
+                updatedList.add(newItem);
+            }
+        }
 
         setMediaList(updatedList);
     }
 
-    /**
-     * Kisi specific media ka download status update karne ke liye
-     */
     public void updateDownloadStatus(String url, boolean status) {
-        List<MediaItem> currentList = mediaList.getValue();
-        if (currentList != null) {
-            boolean isFound = false;
+        if (url == null) return;
 
-            // Media search logic
-            for (MediaItem item : currentList) {
-                String matchUrl = item.isVideo() ? item.getVideoUrl() : item.getUrl();
-                if (matchUrl != null && matchUrl.equals(url)) {
-                    if (item.isDownloaded() != status) {
-                        item.setDownloaded(status);
-                        isFound = true;
-                    }
+        List<MediaItem> currentList = mediaList.getValue();
+        if (currentList == null || currentList.isEmpty()) return;
+
+        boolean isFound = false;
+        // Create a new list for modification to avoid ConcurrentModificationException
+        List<MediaItem> newList = new ArrayList<>(currentList);
+
+        for (MediaItem item : newList) {
+            if (item == null) continue;
+
+            String matchUrl = item.isVideo() ? item.getVideoUrl() : item.getUrl();
+            if (matchUrl != null && matchUrl.equals(url)) {
+                if (item.isDownloaded() != status) {
+                    item.setDownloaded(status);
+                    isFound = true;
                 }
             }
+        }
 
-            // Agar status change hua hai to UI notify karein
-            if (isFound) {
-                setMediaList(new ArrayList<>(currentList));
-            }
+        if (isFound) {
+            setMediaList(newList);
         }
     }
-
-    // --- State Management for Fragment Configuration Changes ---
-
     public String getLastQuery() {
         return lastQuery;
     }
-
     public void setLastQuery(String query) {
         this.lastQuery = query;
     }
-
     public int getLastPage() {
         return lastPage;
     }
-
     public void setLastPage(int page) {
-        this.lastPage = page;
+        this.lastPage = Math.max(1, page);
     }
 
-    /**
-     * Search change hone par list ko saaf karne ke liye
-     */
     public void clearList() {
         lastPage = 1;
+        lastQuery = "";
         setMediaList(new ArrayList<>());
     }
 }

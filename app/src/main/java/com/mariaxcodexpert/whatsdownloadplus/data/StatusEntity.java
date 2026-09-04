@@ -8,6 +8,6 @@ public class StatusEntity {
     @PrimaryKey(autoGenerate = true)
     public int id;
     public int contactId;
-    public String type; // "image", "video", "text", "emoji"
+    public String type;
     public long timestamp;
 }

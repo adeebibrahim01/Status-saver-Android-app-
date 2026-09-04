@@ -11,37 +11,27 @@ import androidx.core.content.ContextCompat;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.ui.utils.media.HDConverter;
-import com.mariaxcodexpert.whatsdownloadplus.AdManager;
-
+import com.mariaxcodexpert.whatsdownloadplus.Ads.AdManager;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MagicLabActivity extends AppCompatActivity {
     public static Bitmap finalEditedResult = null;
-
     private ImageView imgPreview;
     private View scanLine, loaderContainer, mainCard, seekbarContainer;
     private TextView tvPercent, activeToolName, tvStatusLabel;
     private ProgressBar neonProgressBar;
     private SeekBar mainSeekBar;
     private Uri mediaUri;
-
     private Bitmap originalBitmap, processedBitmap;
-
-    // Existing SeekBars
     private SeekBar seekSmooth, seekSharp, seekBright, seekContrast, seekSaturation, seekExposure, seekWarmth, seekTint;
-
-    // New SeekBars (Missing ones fixed)
     private SeekBar seekClarity, seekVibrance, seekHighlights, seekShadows, seekVignette;
-
     private CheckBox cbDenoise, cbHDR;
     private MaterialButtonToggleGroup toggleGroup;
     private Button btnSave;
-
     private int currentViewMode = 1;
     private boolean isProcessing = false;
     private final ExecutorService backgroundExecutor = Executors.newFixedThreadPool(4);
-
     private final ColorMatrix baseMatrix = new ColorMatrix();
     private final ColorMatrix tempMatrix = new ColorMatrix();
 
@@ -50,10 +40,8 @@ public class MagicLabActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_magic_lab);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.whatsapp_dark_green));
-
         String uriStr = getIntent().getStringExtra("MEDIA_URI");
         if (uriStr != null) mediaUri = Uri.parse(uriStr);
-
         initViews();
         loadOriginal();
     }
@@ -73,8 +61,6 @@ public class MagicLabActivity extends AppCompatActivity {
         toggleGroup = findViewById(R.id.toggleGroupQuality);
         cbDenoise = findViewById(R.id.cbDenoise);
         cbHDR = findViewById(R.id.cbHDR);
-
-        // Binding All SeekBars (Hidden Layouts)
         bindSeekBar(R.id.toolSmooth_hidden, s -> { seekSmooth = s; s.setProgress(0); });
         bindSeekBar(R.id.toolExposure_hidden, s -> { seekExposure = s; s.setProgress(50); });
         bindSeekBar(R.id.toolContrast_hidden, s -> { seekContrast = s; s.setProgress(50); });
@@ -83,8 +69,6 @@ public class MagicLabActivity extends AppCompatActivity {
         bindSeekBar(R.id.toolWarmth_hidden, s -> { seekWarmth = s; s.setProgress(50); });
         bindSeekBar(R.id.toolTint_hidden, s -> { seekTint = s; s.setProgress(50); });
         bindSeekBar(R.id.toolDetail_hidden, s -> { seekSharp = s; s.setProgress(50); });
-
-        // New Tools Binding
         bindSeekBar(R.id.toolClarity_hidden, s -> { seekClarity = s; s.setProgress(50); });
         bindSeekBar(R.id.toolVibrance_hidden, s -> { seekVibrance = s; s.setProgress(50); });
         bindSeekBar(R.id.toolHighlights_hidden, s -> { seekHighlights = s; s.setProgress(50); });
@@ -93,7 +77,7 @@ public class MagicLabActivity extends AppCompatActivity {
 
         setupClickListeners();
         setupToggleLogic();
-        switchTool("EXPOSURE AI", seekExposure);
+        switchTool(getString(R.string.tool_exposure_label), seekExposure);
     }
 
     private void setupClickListeners() {
@@ -105,22 +89,20 @@ public class MagicLabActivity extends AppCompatActivity {
             @Override public void onAdFailed() { saveImage4K(); }
         }));
 
-        // Horizontal Icons Click Listeners
-        setToolListener(R.id.toolSmooth, "TEXTURE SMOOTH", seekSmooth);
-        setToolListener(R.id.toolExposure, "EXPOSURE AI", seekExposure);
-        setToolListener(R.id.toolContrast, "DYNAMIC CONTRAST", seekContrast);
-        setToolListener(R.id.toolBrightness, "LUMINANCE", seekBright);
-        setToolListener(R.id.toolSaturation, "SATURATION", seekSaturation);
-        setToolListener(R.id.toolWarmth, "COLOR TEMP", seekWarmth);
-        setToolListener(R.id.toolTint, "TINT", seekTint);
-        setToolListener(R.id.toolDetail, "4K DETAIL", seekSharp);
+        setToolListener(R.id.toolSmooth, getString(R.string.tool_smooth_label), seekSmooth);
+        setToolListener(R.id.toolExposure, getString(R.string.tool_exposure_label), seekExposure);
+        setToolListener(R.id.toolContrast, getString(R.string.tool_contrast_label), seekContrast);
+        setToolListener(R.id.toolBrightness, getString(R.string.tool_brightness_label), seekBright);
+        setToolListener(R.id.toolSaturation, getString(R.string.tool_saturation_label), seekSaturation);
+        setToolListener(R.id.toolWarmth, getString(R.string.tool_warmth_label), seekWarmth);
+        setToolListener(R.id.toolTint, getString(R.string.tool_tint_label), seekTint);
+        setToolListener(R.id.toolDetail, getString(R.string.tool_detail_label), seekSharp);
 
-        // New Tools Listeners
-        setToolListener(R.id.toolClarity, "CLARITY AI", seekClarity);
-        setToolListener(R.id.toolVibrance, "VIBRANCE", seekVibrance);
-        setToolListener(R.id.toolHighlights, "HIGHLIGHTS", seekHighlights);
-        setToolListener(R.id.toolShadows, "SHADOWS", seekShadows);
-        setToolListener(R.id.toolVignette, "VIGNETTE", seekVignette);
+        setToolListener(R.id.toolClarity, getString(R.string.tool_clarity_label), seekClarity);
+        setToolListener(R.id.toolVibrance, getString(R.string.tool_vibrance_label), seekVibrance);
+        setToolListener(R.id.toolHighlights, getString(R.string.tool_highlights_label), seekHighlights);
+        setToolListener(R.id.toolShadows, getString(R.string.tool_shadows_label), seekShadows);
+        setToolListener(R.id.toolVignette, getString(R.string.tool_vignette_label), seekVignette);
 
         cbDenoise.setOnCheckedChangeListener((b, isChecked) -> applyLivePreview(false));
         cbHDR.setOnCheckedChangeListener((b, isChecked) -> applyLivePreview(false));
@@ -152,54 +134,70 @@ public class MagicLabActivity extends AppCompatActivity {
     private void applyLivePreview(boolean withAnimation) {
         if (imgPreview == null || processedBitmap == null || currentViewMode == 0) return;
 
-        float b = (seekBright.getProgress() - 50) * 1.5f;
-        float c = seekContrast.getProgress() / 50f;
-        float s = (seekSaturation.getProgress() / 50f);
+        try {
+            float b = (seekBright != null ? seekBright.getProgress() - 50 : 0) * 1.5f;
+            float c = (seekContrast != null ? seekContrast.getProgress() / 50f : 1.0f);
+            float s = (seekSaturation != null ? seekSaturation.getProgress() / 50f : 1.0f);
 
-        // Simple Vibrance implementation for preview
-        if (seekVibrance != null) s *= (1.0f + (seekVibrance.getProgress() - 50) / 100f);
-
-        float e = seekExposure.getProgress() / 50f;
-
-        if (cbHDR.isChecked()) { s *= 1.3f; b += 5f; }
-
-        baseMatrix.setSaturation(s);
-        float scale = c * e;
-        float translate = b + (127.5f * (1.0f - scale));
-
-        float[] mat = { scale, 0, 0, 0, translate, 0, scale, 0, 0, translate, 0, 0, scale, 0, translate, 0, 0, 0, 1, 0 };
-        tempMatrix.set(mat);
-        baseMatrix.postConcat(tempMatrix);
-
-        imgPreview.setColorFilter(new ColorMatrixColorFilter(baseMatrix));
-
-        // --- SMOOTHING FIX ---
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // 100/150 = 0.66 radius.
-            // Professional apps mein smoothing radius 1.0 se kam rakha jata h
-            // taake details kharab na hon.
-            float smoothRadius = seekSmooth.getProgress() / 150.0f;
-
-            if (smoothRadius > 0.01f) {
-                // Sirf itna blur jo noise ko khatam kray, puri image ko nahi
-                imgPreview.setRenderEffect(RenderEffect.createBlurEffect(
-                        smoothRadius,
-                        smoothRadius,
-                        Shader.TileMode.CLAMP
-                ));
-            } else {
-                imgPreview.setRenderEffect(null);
+            if (seekVibrance != null) {
+                s *= (1.0f + (seekVibrance.getProgress() - 50) / 100f);
             }
+
+            float e = (seekExposure != null ? seekExposure.getProgress() / 50f : 1.0f);
+
+            if (cbHDR != null && cbHDR.isChecked()) {
+                s *= 1.3f;
+                b += 5f;
+            }
+
+            baseMatrix.reset();
+            baseMatrix.setSaturation(s);
+
+            float scale = c * e;
+            float translate = b + (127.5f * (1.0f - scale));
+
+            float[] mat = {
+                    scale, 0, 0, 0, translate,
+                    0, scale, 0, 0, translate,
+                    0, 0, scale, 0, translate,
+                    0, 0, 0, 1, 0
+            };
+
+            tempMatrix.set(mat);
+            baseMatrix.postConcat(tempMatrix);
+
+            imgPreview.setColorFilter(new ColorMatrixColorFilter(baseMatrix));
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                if (seekSmooth != null) {
+                    float smoothRadius = seekSmooth.getProgress() / 150.0f;
+
+                    if (smoothRadius > 0.01f) {
+                        imgPreview.setRenderEffect(android.graphics.RenderEffect.createBlurEffect(
+                                smoothRadius,
+                                smoothRadius,
+                                android.graphics.Shader.TileMode.CLAMP
+                        ));
+                    } else {
+                        imgPreview.setRenderEffect(null);
+                    }
+                }
+            }
+
+        } catch (Exception err) {
+            android.util.Log.e("MagicLab_Preview", "Error applying live preview: " + err.getMessage());
         }
 
-        if (withAnimation) showScanAnimation();
+        if (withAnimation) {
+            showScanAnimation();
+        }
     }
 
     private void saveImage4K() {
-        if (isProcessing || mediaUri == null) return;
+        if (isProcessing || mediaUri == null || isFinishing()) return;
 
         isProcessing = true;
-        loaderContainer.setVisibility(View.VISIBLE);
+        if (loaderContainer != null) loaderContainer.setVisibility(View.VISIBLE);
         if (tvStatusLabel != null) tvStatusLabel.setVisibility(View.VISIBLE);
 
         backgroundExecutor.execute(() -> {
@@ -213,26 +211,37 @@ public class MagicLabActivity extends AppCompatActivity {
                         seekHighlights.getProgress(), seekShadows.getProgress(),
                         seekVignette.getProgress(),
                         cbDenoise.isChecked(), cbHDR.isChecked(), (p, status) -> runOnUiThread(() -> {
-                            tvPercent.setText(p + "%");
-                            if (tvStatusLabel != null) tvStatusLabel.setText(status);
-                            neonProgressBar.setProgress(p);
+                            // Crash Handle: UI updates should only happen if activity is alive
+                            if (!isFinishing()) {
+                                if (tvPercent != null) tvPercent.setText(p + "%");
+                                if (tvStatusLabel != null) tvStatusLabel.setText(status);
+                                if (neonProgressBar != null) neonProgressBar.setProgress(p);
+                            }
                         }));
 
                 runOnUiThread(() -> {
-                    loaderContainer.setVisibility(View.GONE);
+                    if (isFinishing()) return;
+
                     isProcessing = false;
+                    if (loaderContainer != null) loaderContainer.setVisibility(View.GONE);
+
                     if (result4K != null) {
                         finalEditedResult = result4K;
                         setResult(RESULT_OK, new Intent().putExtra("IS_EDITED", true));
                         finish();
-                    }
+                    } else {
+                        Toast.makeText(this, getString(R.string.error_failed_process_4k), Toast.LENGTH_SHORT).show();
+                           }
                 });
-            } catch (Exception e) {
-                runOnUiThread(() -> { loaderContainer.setVisibility(View.GONE); isProcessing = false; });
+            } catch (Exception | OutOfMemoryError e) {
+                runOnUiThread(() -> {
+                    isProcessing = false;
+                    if (loaderContainer != null) loaderContainer.setVisibility(View.GONE);
+                    Toast.makeText(this, getString(R.string.error_oom_processing), Toast.LENGTH_SHORT).show();
+                });
             }
         });
     }
-
     private void setupToggleLogic() {
         toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
@@ -253,14 +262,23 @@ public class MagicLabActivity extends AppCompatActivity {
 
     private void loadOriginal() {
         backgroundExecutor.execute(() -> {
-            originalBitmap = HDConverter.loadPreviewImage(this, mediaUri);
-            runOnUiThread(() -> {
-                if (originalBitmap != null) {
-                    imgPreview.setImageBitmap(originalBitmap);
-                    processedBitmap = originalBitmap;
-                    applyLivePreview(false);
-                }
-            });
+            try {
+                if (mediaUri == null) return;
+
+                final Bitmap loaded = HDConverter.loadPreviewImage(this, mediaUri);
+                runOnUiThread(() -> {
+                    if (!isFinishing() && loaded != null) {
+                        originalBitmap = loaded;
+                        processedBitmap = loaded;
+                        imgPreview.setImageBitmap(originalBitmap);
+                        applyLivePreview(false);
+                    } else if (loaded == null) {
+                        Toast.makeText(this, getString(R.string.error_failed_load_image), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (OutOfMemoryError e) {
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.error_image_too_large), Toast.LENGTH_SHORT).show());
+            }
         });
     }
 
@@ -273,7 +291,7 @@ public class MagicLabActivity extends AppCompatActivity {
     }
 
     private void resetSettings() {
-        // Resetting all 13 SeekBars
+
         if(seekSmooth != null) seekSmooth.setProgress(0);
         if(seekExposure != null) seekExposure.setProgress(50);
         if(seekContrast != null) seekContrast.setProgress(50);
@@ -287,7 +305,6 @@ public class MagicLabActivity extends AppCompatActivity {
         if(seekHighlights != null) seekHighlights.setProgress(50);
         if(seekShadows != null) seekShadows.setProgress(50);
         if(seekVignette != null) seekVignette.setProgress(0);
-
         cbDenoise.setChecked(false); cbHDR.setChecked(false);
         mainSeekBar.setProgress(50);
         applyLivePreview(true);
@@ -303,7 +320,13 @@ public class MagicLabActivity extends AppCompatActivity {
     interface SeekBarBinder { void onBind(SeekBar s); }
 
     @Override protected void onDestroy() {
-        backgroundExecutor.shutdownNow();
+        if (backgroundExecutor != null) {
+            backgroundExecutor.shutdownNow();
+        }
+        if (originalBitmap != null && !originalBitmap.isRecycled()) {
+            originalBitmap.recycle();
+            originalBitmap = null;
+        }
         super.onDestroy();
     }
 }

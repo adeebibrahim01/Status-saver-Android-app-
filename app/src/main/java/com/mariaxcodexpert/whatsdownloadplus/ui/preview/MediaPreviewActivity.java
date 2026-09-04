@@ -11,14 +11,12 @@ import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -38,9 +36,9 @@ import androidx.media3.common.util.UnstableApi;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
-import com.mariaxcodexpert.whatsdownloadplus.AdManager;
+import com.mariaxcodexpert.whatsdownloadplus.Ads.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
-import com.mariaxcodexpert.whatsdownloadplus.SmartNotify;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.SmartNotify;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageDao;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.ImagesEntity.ImageEntity;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.VideosEntity.VideoDao;
@@ -50,7 +48,6 @@ import com.mariaxcodexpert.whatsdownloadplus.ui.magic_lab.MagicLabActivity;
 import com.mariaxcodexpert.whatsdownloadplus.ui.utils.media.HDConverter;
 import com.mariaxcodexpert.whatsdownloadplus.ui.utils.media.MediaStatusUtils;
 import com.mariaxcodexpert.whatsdownloadplus.ui.utils.media.PROConverter;
-import com.mariaxcodexpert.whatsdownloadplus.ShakeDetector;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -78,11 +75,8 @@ public class MediaPreviewActivity extends AppCompatActivity {
     private int lastProgress = 0;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
-    private ShakeDetector mShakeDetector;
-    private ImageDao imageDao; // 🔥 Add this
-    private VideoDao videoDao; // 🔥 Add this
+    private ImageDao imageDao;
+    private VideoDao videoDao;
     private final java.util.concurrent.ExecutorService executor = com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase.databaseWriteExecutor; // 🔥 Add this
     private final ActivityResultLauncher<Intent> magicLabLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -99,7 +93,7 @@ public class MediaPreviewActivity extends AppCompatActivity {
         setContentView(R.layout.image_video_preview_activity);
 
         viewModel = new ViewModelProvider(this).get(GalleryViewModel.class);
-// 🔥 Database initialization add krain
+
         com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase db =
                 com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase.getInstance(this);
         imageDao = db.imageDao();
@@ -110,35 +104,19 @@ public class MediaPreviewActivity extends AppCompatActivity {
         String uriStr = getIntent().getStringExtra(EXTRA_URI);
         if (uriStr != null) mediaUri = Uri.parse(uriStr);
 
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mShakeDetector = new ShakeDetector();
-
-        mShakeDetector.setOnShakeListener(() -> {
-            if (!isDownloadedCurrent) {
-                vibrateOnShake();
-                performSaveAction();
-            } else {
-                SmartNotify.success(findViewById(android.R.id.content), "Status already saved! ✅");
-            }
-        });
-
         bindViews();
 
-// onCreate ke andar check ko is tarah krain
         if (getIntent().hasExtra("MEDIA_PATH")) {
             String url = getIntent().getStringExtra("MEDIA_PATH");
             isVideo = getIntent().getBooleanExtra("IS_VIDEO", false);
             String videoUrl = getIntent().getStringExtra("VIDEO_URL");
-            // Default false rakho, setupOnlinePreview khud check ker k true kery ga
             isDownloadedCurrent = false;
             setupOnlinePreview(url, videoUrl, isVideo);
         } else {
-            // Local WhatsApp Status Logic
             isDownloadedCurrent = getIntent().getBooleanExtra(EXTRA_IS_DOWNLOADED, false);
             initMedia();
         }
-      
+
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() { finish(); }
         });
@@ -146,7 +124,6 @@ public class MediaPreviewActivity extends AppCompatActivity {
 
     private void setupOnlinePreview(String url, String videoUrl, boolean isVid) {
         executor.execute(() -> {
-            // 🔥 Wahi unique ID banayein jo Fragment mein h
             String downloadUrl = isVid ? (videoUrl != null ? videoUrl : url) : url;
             String uniqueId = String.valueOf(downloadUrl.hashCode());
             String extension = isVid ? ".mp4" : ".jpg";
@@ -173,7 +150,7 @@ public class MediaPreviewActivity extends AppCompatActivity {
             final String finalFileName = targetFileName;
 
             runOnUiThread(() -> {
-                fileName = finalFileName; // Activity ka fileName update krain
+                fileName = finalFileName;
                 isDownloadedCurrent = finalDownloaded;
                 List<Object> onlineList = new ArrayList<>();
 
@@ -212,13 +189,13 @@ public class MediaPreviewActivity extends AppCompatActivity {
         tvLabel = findViewById(R.id.tvQualityLabel);
 
         viewPagerMedia.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override public void onPageScrollStateChanged(int s) {
-                if (s == ViewPager2.SCROLL_STATE_IDLE && viewPagerMedia.getAdapter() != null)
-                    ((PreviewPagerAdapter) viewPagerMedia.getAdapter()).handlePlayback(viewPagerMedia.getCurrentItem());
-            }
-            @Override public void onPageSelected(int p) {
+            @Override
+            public void onPageSelected(int p) {
                 PreviewPagerAdapter adapter = (PreviewPagerAdapter) viewPagerMedia.getAdapter();
-                if (adapter != null && adapter.getData().size() > p) syncUIMetadata(adapter.getData().get(p));
+                if (adapter != null && adapter.getData().size() > p) {
+                    syncUIMetadata(adapter.getData().get(p));
+                    adapter.handlePlayback(p);
+                }
             }
         });
 
@@ -227,15 +204,18 @@ public class MediaPreviewActivity extends AppCompatActivity {
 
         cardCrop.setOnClickListener(v -> {
             if (isDownloadedCurrent) {
-                SmartNotify.error(v, "Magic Lab unavailable after download!");
+                SmartNotify.error(v, getString(R.string.notify_magic_lab_unavailable));
             } else if (isVideo) {
-                SmartNotify.success(v, "Unlocking Next-Gen Video AI soon. 🔥");
+                SmartNotify.success(v, getString(R.string.notify_video_ai_soon));
             } else {
                 startMagicLab();
             }
         });
 
-        cardSave.setOnClickListener(v -> { if(!isDownloadedCurrent) performSaveAction(); else SmartNotify.success(v, "Already in Gallery! ✅"); });
+        cardSave.setOnClickListener(v -> {
+            if(!isDownloadedCurrent) performSaveAction();
+            else SmartNotify.success(v, getString(R.string.notify_gallery_already));
+        });
         cardInfo.setOnClickListener(v -> showInfoDialog());
     }
 
@@ -270,13 +250,13 @@ public class MediaPreviewActivity extends AppCompatActivity {
                 loaderContainer.setAlpha(0f);
                 loaderContainer.animate().alpha(1.0f).setDuration(300).start();
             }
-            updateProgressUI(0, quality == -2 ? "Saving Masterpiece..." : "Initializing AI Engine...");
+            updateProgressUI(0, quality == -2 ? getString(R.string.progress_saving_masterpiece) : getString(R.string.progress_init_ai));
         });
 
         new Thread(() -> {
             try {
                 if (isVideo) {
-                    updateProgressUI(50, "Saving Video...");
+                    updateProgressUI(50, getString(R.string.progress_saving_video));
                     MediaStatusUtils.saveToGallery(this, mediaUri, null, fileName, true, 100, (s, u) -> {
                         if (s) finalizeDownload(u); else handleError();
                     });
@@ -295,30 +275,37 @@ public class MediaPreviewActivity extends AppCompatActivity {
             try {
                 if (q == -2) {
                     resultBitmap = MagicLabActivity.finalEditedResult;
-                    updateProgressUI(90, "Finalizing Masterpiece...");
+                    if (resultBitmap == null) {
+                        handleErrordata(getString(R.string.error_magic_lab_lost));
+                        return;
+                    }
+                    updateProgressUI(90, getString(R.string.progress_finalizing));
                 } else if (q == 0) {
-                    updateProgressUI(20, "Fetching Image...");
+                    updateProgressUI(20, getString(R.string.progress_fetching));
+                    if (mediaUri == null) {
+                        handleErrordata(getString(R.string.error_invalid_uri));
+                        return;
+                    }
 
-                    // 🔥 CHECK: Agar URL internet wala h
                     if (mediaUri.toString().startsWith("http")) {
                         try {
-                            resultBitmap = Glide.with(this)
+                            resultBitmap = Glide.with(getApplicationContext())
                                     .asBitmap()
                                     .load(mediaUri.toString())
                                     .submit()
-                                    .get(); // Background thread h isliye .get() chalay ga
+                                    .get();
                         } catch (Exception e) {
                             Log.e("PREVIEW_SAVE", "Glide download failed", e);
                         }
                     } else {
-                        // Local WhatsApp file logic
                         try (InputStream is = getContentResolver().openInputStream(mediaUri)) {
-                            resultBitmap = BitmapFactory.decodeStream(is);
+                            if (is != null) {
+                                resultBitmap = BitmapFactory.decodeStream(is);
+                            }
                         }
                     }
-                    updateProgressUI(80, "Decoding Image...");
+                    updateProgressUI(80, getString(R.string.progress_decoding));
                 } else if (q == 1) {
-                    // Aapka HDConverter logic...
                     resultBitmap = HDConverter.process8KExport(this, mediaUri, 0, 0, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 0, false, false, this::updateProgressUI);
                 } else {
                     resultBitmap = PROConverter.processToIPhoneQuality(this, mediaUri, s, p -> updateProgressUI(p, "Applying Pro Filters..."));
@@ -326,90 +313,103 @@ public class MediaPreviewActivity extends AppCompatActivity {
 
                 if (resultBitmap != null) {
                     final Bitmap bitmapToSave = resultBitmap;
-                    updateProgressUI(95, "Saving to Gallery...");
+                    updateProgressUI(95, getString(R.string.progress_saving_gallery));
                     MediaStatusUtils.saveToGallery(this, mediaUri, bitmapToSave, fileName, false, 100, (success, uri) -> {
                         runOnUiThread(() -> {
-                            if (success) finalizeDownload(uri);
-                            else handleErrordata("Save Failed");
-
+                            if (success && !isFinishing()) {
+                                finalizeDownload(uri);
+                            } else {
+                                handleErrordata(getString(R.string.error_oom_or_file));
+                            }
                             if (q == -2) MagicLabActivity.finalEditedResult = null;
-                            if (bitmapToSave != null && !bitmapToSave.isRecycled() && q != -2) bitmapToSave.recycle();
+                            if (!bitmapToSave.isRecycled() && q != -2) bitmapToSave.recycle();
                         });
                     });
                 } else {
-                    handleErrordata("Media Engine Error");
+                    handleErrordata("Media Engine: Out of Memory or File Error");
                 }
-            } catch (Exception | OutOfMemoryError e) {
-                handleErrordata("Memory Error: Processing failed");
+            } catch (OutOfMemoryError e) {
+                handleErrordata(getString(R.string.error_low_memory));
+            } catch (Exception e) {
+                handleErrordata("Processing Error: " + e.getMessage());
             }
         }).start();
     }
     private void updateProgressUI(int targetProgress, String status) {
+        if (isFinishing() || isDestroyed()) return;
+
         runOnUiThread(() -> {
             if (circleProgress == null || tvPercent == null) return;
 
-            ValueAnimator animator = ValueAnimator.ofInt(lastProgress, targetProgress);
-            animator.setDuration(500);
-            animator.setInterpolator(new DecelerateInterpolator());
-            animator.addUpdateListener(animation -> {
-                int val = (int) animation.getAnimatedValue();
-                circleProgress.setProgress(val);
-                tvPercent.setText(val + "%");
-            });
-            animator.start();
-            lastProgress = targetProgress;
-
-            if (tvLabel != null) {
-                tvLabel.setText(status != null && !status.isEmpty() ? status : (targetProgress < 100 ? "Processing..." : "Finalizing..."));
+            try {
+                ValueAnimator animator = ValueAnimator.ofInt(lastProgress, targetProgress);
+                animator.setDuration(400);
+                animator.addUpdateListener(animation -> {
+                    if (circleProgress != null) {
+                        int val = (int) animation.getAnimatedValue();
+                        circleProgress.setProgress(val);
+                        tvPercent.setText(val + "%");
+                    }
+                });
+                animator.start();
+                lastProgress = targetProgress;
+                if (tvLabel != null) tvLabel.setText(status);
+            } catch (Exception e) {
             }
         });
     }
 
+    private void handleErrordata(String reason) {
+        runOnUiThread(() -> {
+            if (isFinishing()) return;
+            if (loaderContainer != null) loaderContainer.setVisibility(View.GONE);
+            SmartNotify.error(findViewById(android.R.id.content), reason);
+        });
+    }
+
     private void syncUIMetadata(@NonNull Object item) {
+        if (item == null) return;
+
         currentMediaItem = item;
         isVideo = item instanceof VideoEntity;
 
-        mediaUri = Uri.parse(isVideo ? ((VideoEntity)item).getUri() : ((ImageEntity)item).getUri());
-        fileName = isVideo ? ((VideoEntity)item).fileName : ((ImageEntity)item).fileName;
-
-        // Initial status purane object se
-        isDownloadedCurrent = isVideo ? ((VideoEntity)item).isDownloaded : ((ImageEntity)item).isDownloaded;
-
-        // 🔥 FIREBASE REALTIME SYNC (Add/Update Entry)
-        // Sirf local WhatsApp status sync krain, online/pexels nahi
-        if (!isDownloadedCurrent && mediaUri != null && !mediaUri.toString().startsWith("http")) {
-            int statusId = Math.abs(fileName.hashCode());
-            long expiryTime = (item instanceof ImageEntity) ?
-                    ((ImageEntity) item).expiryTime :
-                    ((VideoEntity) item).expiryTime;
-
-            com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.handleFirebaseSync(
-                    getApplicationContext(),
-                    statusId,
-                    expiryTime,
-                    false // Viewed: Add or Update entry with notified=false
-            );
+        String uriPath = isVideo ? ((VideoEntity)item).getUri() : ((ImageEntity)item).getUri();
+        if (uriPath == null) {
+            handleErrordata(getString(R.string.error_media_missing));
+            return;
         }
 
-        // 🔥 ALTERNATE: Existing methods use karte hue
-        executor.execute(() -> {
-            boolean freshStatus = false;
-            if (isVideo) {
-                VideoEntity freshVid = videoDao.getVideoByFileName(fileName);
-                if (freshVid != null) freshStatus = freshVid.isDownloaded;
-            } else {
-                ImageEntity freshImg = imageDao.getImageByFileName(fileName);
-                if (freshImg != null) freshStatus = freshImg.isDownloaded;
-            }
+        mediaUri = Uri.parse(uriPath);
+        fileName = isVideo ? ((VideoEntity)item).fileName : ((ImageEntity)item).fileName;
+        isDownloadedCurrent = isVideo ? ((VideoEntity)item).isDownloaded : ((ImageEntity)item).isDownloaded;
 
-            if (freshStatus != isDownloadedCurrent) {
-                final boolean statusToUpdate = freshStatus;
+        if (!isDownloadedCurrent && !uriPath.startsWith("http")) {
+            int statusId = Math.abs(fileName.hashCode());
+            long expiryTime = (item instanceof ImageEntity) ? ((ImageEntity) item).expiryTime : ((VideoEntity) item).expiryTime;
+            com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.handleFirebaseSync(getApplicationContext(), statusId, expiryTime, false);
+        }
+
+        executor.execute(() -> {
+            if (videoDao == null || imageDao == null) return;
+            boolean freshStatus = false;
+            try {
+                if (isVideo) {
+                    VideoEntity freshVid = videoDao.getVideoByFileName(fileName);
+                    if (freshVid != null) freshStatus = freshVid.isDownloaded;
+                } else {
+                    ImageEntity freshImg = imageDao.getImageByFileName(fileName);
+                    if (freshImg != null) freshStatus = freshImg.isDownloaded;
+                }
+
+                final boolean finalStatus = freshStatus;
                 runOnUiThread(() -> {
-                    isDownloadedCurrent = statusToUpdate;
-                    if (currentMediaItem instanceof ImageEntity) ((ImageEntity) currentMediaItem).isDownloaded = statusToUpdate;
-                    else if (currentMediaItem instanceof VideoEntity) ((VideoEntity) currentMediaItem).isDownloaded = statusToUpdate;
-                    updateUIState();
+                    if (!isFinishing()) {
+                        isDownloadedCurrent = finalStatus;
+                        updateUIState();
+                    }
                 });
+            } catch (Exception e) {
+                android.util.Log.e("DB_SYNC", "Sync failed", e);
             }
         });
 
@@ -427,21 +427,17 @@ public class MediaPreviewActivity extends AppCompatActivity {
             finalAnim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    if (tvLabel != null) tvLabel.setText("Status Successfully Saved!");
-
-                    // 🔥 FIREBASE REALTIME SYNC (Remove on Download)
-                    // Download hote hi Firebase se entry delete krain
+                    if (tvLabel != null) tvLabel.setText(getString(R.string.progress_success_saved));
                     if (mediaUri != null && !mediaUri.toString().startsWith("http")) {
                         int statusId = Math.abs(fileName.hashCode());
                         com.mariaxcodexpert.whatsdownloadplus.model.StatusStorage.handleFirebaseSync(
                                 getApplicationContext(),
                                 statusId,
-                                0,    // Expiry delete k waqt 0 bhej skty hain
-                                true  // isDeleted = true, Firebase se entry remove kery ga
+                                0,
+                                true
                         );
                     }
 
-                    // Database aur UI Sync logic
                     executor.execute(() -> {
                         String galleryPath = u.toString();
                         long currentTime = System.currentTimeMillis();
@@ -519,28 +515,28 @@ public class MediaPreviewActivity extends AppCompatActivity {
         TextView tvDate = v.findViewById(R.id.infoDate);
         View layoutGallery = v.findViewById(R.id.layoutGallery);
 
-        tvName.setText("Name: " + fileName);
-        tvType.setText("Type: " + (isVideo ? "Video" : "Image"));
+        tvName.setText(getString(R.string.info_name_format, fileName));
+        tvType.setText(getString(R.string.info_type_format, (isVideo ? "Video" : "Image")));
         if (isDownloadedCurrent) {
-            tvStatus.setText("Status: Downloaded");
+            tvStatus.setText(getString(R.string.info_status_downloaded));
             tvStatus.setTextColor(android.graphics.Color.parseColor("#25D366"));
         } else {
-            tvStatus.setText("Status: Pending");
+            tvStatus.setText(getString(R.string.info_status_pending));
             tvStatus.setTextColor(android.graphics.Color.parseColor("#FF9800"));
         }
-        tvPath.setText("WA: " + mediaUri.getPath());
+        tvPath.setText(getString(R.string.info_path_wa, mediaUri.getPath()));
 
         String gPath = (currentMediaItem instanceof ImageEntity) ? ((ImageEntity) currentMediaItem).gallery_path : ((VideoEntity) currentMediaItem).gallery_path;
         if (isDownloadedCurrent && gPath != null && !gPath.isEmpty()) {
             layoutGallery.setVisibility(View.VISIBLE);
-            tvGalleryPath.setText("Gallery: " + gPath);
+            tvGalleryPath.setText(getString(R.string.info_path_gallery, gPath));
         } else layoutGallery.setVisibility(View.GONE);
 
         long timestamp = (currentMediaItem instanceof ImageEntity) ? ((ImageEntity) currentMediaItem).downloadTime : ((VideoEntity) currentMediaItem).downloadTime;
         if (timestamp > 0) {
             String dateFormatted = new java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault()).format(new java.util.Date(timestamp));
-            tvDate.setText("Captured on: " + dateFormatted);
-        } else tvDate.setText("Date: Not available");
+            tvDate.setText(getString(R.string.info_captured_on, dateFormatted));
+        } else tvDate.setText(getString(R.string.info_date_not_available));
 
         v.findViewById(R.id.btnClose).setOnClickListener(view -> dialog.dismiss());
         if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -556,22 +552,46 @@ public class MediaPreviewActivity extends AppCompatActivity {
 
         String uriStr = getSharedPreferences("AppPrefs", MODE_PRIVATE).getString("statusFolderUri", null);
         if (uriStr != null) {
-            viewModel.loadStatuses(this, Uri.parse(uriStr), false, isVideo);
+            viewModel.loadStatuses(Uri.parse(uriStr), false, isVideo);
         }
     }
 
     private void setupPager(List<Object> list) {
-        viewPagerMedia.setAdapter(new PreviewPagerAdapter(this, list));
-        int pos = 0;
-        for (int i = 0; i < list.size(); i++) {
-            String name = (list.get(i) instanceof ImageEntity) ? ((ImageEntity) list.get(i)).fileName : ((VideoEntity) list.get(i)).fileName;
-            if (fileName != null && fileName.equals(name)) { pos = i; break; }
+        if (list == null || list.isEmpty()) {
+            handleErrordata(getString(R.string.error_no_media));
+            return;
         }
-        viewPagerMedia.setCurrentItem(pos, false);
-        syncUIMetadata(list.get(pos));
-        mainHandler.postDelayed(() -> { if (viewPagerMedia.getAdapter() != null) ((PreviewPagerAdapter) viewPagerMedia.getAdapter()).handlePlayback(viewPagerMedia.getCurrentItem()); }, 500);
-    }
 
+        PreviewPagerAdapter adapter = new PreviewPagerAdapter(this, list);
+        viewPagerMedia.setAdapter(adapter);
+
+        int pos = 0;
+        if (fileName != null) {
+            for (int i = 0; i < list.size(); i++) {
+                Object obj = list.get(i);
+                String name = (obj instanceof ImageEntity) ? ((ImageEntity) obj).fileName : ((VideoEntity) obj).fileName;
+                if (fileName.equals(name)) {
+                    pos = i;
+                    break;
+                }
+            }
+        }
+
+        final int finalPos = pos;
+        viewPagerMedia.post(() -> {
+            if (!isFinishing()) {
+                viewPagerMedia.setCurrentItem(finalPos, false);
+
+                syncUIMetadata(list.get(finalPos));
+
+                viewPagerMedia.postDelayed(() -> {
+                    if (!isFinishing() && viewPagerMedia.getAdapter() != null) {
+                        ((PreviewPagerAdapter) viewPagerMedia.getAdapter()).handlePlayback(finalPos);
+                    }
+                }, 400);
+            }
+        });
+    }
     private void showAd(Runnable action) {
         pauseVideo();
         if (AdManager.isInterstitialLoaded()) {
@@ -589,35 +609,34 @@ public class MediaPreviewActivity extends AppCompatActivity {
                 .putExtra("FILE_NAME", fileName));
     }
 
-    private void handleErrordata(String reason) {
-        runOnUiThread(() -> {
-            if (loaderContainer != null) loaderContainer.setVisibility(View.GONE);
-            SmartNotify.error(findViewById(android.R.id.content), reason);
-        });
-    }
 
-    private void handleError() { handleErrordata("Download Failed!"); }
+
+    private void handleError() { handleErrordata(getString(R.string.error_download_failed)); }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (mSensorManager != null && mAccelerometer != null) {
-            mSensorManager.registerListener(mShakeDetector, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
-        }
+
     }
 
     @Override
     protected void onPause() {
-        if (mSensorManager != null) {
-            mSensorManager.unregisterListener(mShakeDetector);
-        }
+
         super.onPause();
-        pauseVideo();
+        if (viewPagerMedia != null && viewPagerMedia.getAdapter() != null) {
+            ((PreviewPagerAdapter) viewPagerMedia.getAdapter()).handlePlayback(-1);
+        }
     }
 
-    @Override protected void onDestroy() {
-        if (viewPagerMedia != null && viewPagerMedia.getAdapter() != null) ((PreviewPagerAdapter) viewPagerMedia.getAdapter()).releaseAll();
+    @Override
+    protected void onDestroy() {
+        if (viewPagerMedia != null && viewPagerMedia.getAdapter() != null) {
+            ((PreviewPagerAdapter) viewPagerMedia.getAdapter()).releaseAll();
+            viewPagerMedia.setAdapter(null); // Clear adapter reference
+        }
         mainHandler.removeCallbacksAndMessages(null);
         super.onDestroy();
     }
+
+
 }

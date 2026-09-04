@@ -17,7 +17,6 @@ public class ImageEntity implements Serializable {
     public String whatsapp_path;
     public String gallery_path;
 
-    // 🔥 FIX: lastModified name use kiya hai taake ViewModel/Fragment se match kare
     public long lastModified;
 
     public boolean isDownloaded;

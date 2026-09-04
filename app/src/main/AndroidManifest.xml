@@ -9,11 +9,14 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="com.whatsapp.sticker.READ" />
     <queries>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
+        <intent>
+            <action android:name="com.whatsapp.intent.action.ENABLE_STICKER_PACK" />
+        </intent>
     </queries>
-
     <application
         android:name=".MyApp"
         android:allowBackup="true"
@@ -21,16 +24,25 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:usesCleartextTraffic="true"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
+        android:supportsRtl="false"
         android:theme="@style/Theme.WhatsDownloadPlus"
         android:enableOnBackInvokedCallback="true"
         android:largeHeap="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+
         android:hardwareAccelerated="true"
         tools:targetApi="34">
-
+        <provider
+            android:name=".ui.stickers.StickerContentProvider"
+            android:authorities="com.mariaxcodexpert.whatsdownloadplus.stickercontentprovider"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:readPermission="com.whatsapp.sticker.READ"
+            tools:ignore="ExportedContentProvider" />
         <activity
-            android:name=".Splash_screen"
+            android:name=".Splash.Splash_screen"
             android:exported="true"
             android:theme="@style/Theme.App.InternalSplash">
             <intent-filter>
@@ -40,7 +52,6 @@
         </activity>
         <activity
             android:name=".ui.magic_lab.MagicLabActivity"
-
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
         <activity
             android:name=".MainActivity"
@@ -53,13 +64,60 @@
         <activity android:name=".ui.Download.FullScreenMediaActivity" android:exported="false" />
 
         <activity
+            android:name=".ui.stickers.StickerActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.stickers.EditorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
+        <activity
+            android:name=".ui.stickers.CropActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.stickers.CutoutActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.stickers.StickerTextView"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.Profile.ProfileSetupActivity"
+            android:exported="false" />
+
+
+        <activity
+            android:name=".ui.Profile.ProfileDetailsActivity"
+            android:exported="false" />
+
+
+        <activity
+            android:name=".ui.stickers.PackDetailActivity"
+            android:exported="false" />
+        <activity android:name=".ui.peekmode.PeekChatDetailActivity" />
+        <activity
+            android:name=".ui.peekmode.PeekModeActivity"
+            android:exported="false" />
+        <service
+            android:name=".ui.peekmode.service.MyNotificationListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+
+        <activity
             android:name=".ui.preview.MediaPreviewActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:hardwareAccelerated="true"
             tools:ignore="LockedOrientationActivity" />
         <service
-            android:name=".MyFirebaseMessagingService"
+            android:name=".Firebase_Message_Service.MyFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
@@ -70,21 +128,14 @@
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
 
         <activity
-            android:name=".StatsActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
-        <activity
-            android:name=".ui.Search.OnlineSearchFragment"
-            android:exported="false"
-            android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar"/>
-        <activity
             android:name=".ui.Search.OnlineMediaPreviewActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
+
         <activity
             android:name=".Permissions.PermissionsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar" />
+            android:configChanges="layoutDirection|locale|orientation|screenSize|smallestScreenSize|uiMode"
+            android:exported="true" />
 
         <activity
             android:name="com.canhub.cropper.CropImageActivity"
@@ -92,7 +143,11 @@
             android:theme="@style/Base.Theme.AppCompat"
             tools:replace="android:exported" />
 
-
+        <activity
+            android:name=".ui.support.SupportActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.WhatsDownloadPlus.NoActionBar"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -104,7 +159,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!-- Naya Provider sirf Trending Status ke liye -->
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.trending_provider"
@@ -121,7 +176,6 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-9822767396000072~6754372345" />
-        <!-- YAHAN PASTE KAREIN -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="status_alerts_channel" />
@@ -134,5 +188,6 @@
             android:name="android.adservices.AD_SERVICES_CONFIG"
             android:resource="@xml/gma_ad_services_config"
             tools:replace="android:resource" />
+
 
     </application> </manifest>

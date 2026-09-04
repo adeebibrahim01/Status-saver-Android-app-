@@ -1,13 +1,16 @@
 package com.mariaxcodexpert.whatsdownloadplus.ui.Search;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -15,6 +18,7 @@ import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.mariaxcodexpert.whatsdownloadplus.R;
+import com.mariaxcodexpert.whatsdownloadplus.Helper.FeedbackPromptManager;
 
 import java.util.List;
 
@@ -23,10 +27,11 @@ public class OnlineImageAdapter extends RecyclerView.Adapter<OnlineImageAdapter.
     private final Context context;
     private final List<MediaItem> mediaList;
     private OnItemClickListener listener;
-    private com.mariaxcodexpert.whatsdownloadplus.FeedbackPromptManager feedbackManager;
+    private FeedbackPromptManager feedbackManager;
+
     public interface OnItemClickListener {
         void onDownloadClick(MediaItem item);
-        void onPreviewClick(MediaItem item); // 🔥 Naya method preview k liye
+        void onPreviewClick(MediaItem item);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -47,75 +52,97 @@ public class OnlineImageAdapter extends RecyclerView.Adapter<OnlineImageAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        if (mediaList == null || position >= mediaList.size()) return;
+
         MediaItem item = mediaList.get(position);
-// 🔥 High-End "BlurHash" Style Loading
-        if (context != null && holder.imageThumb != null) {
+        if (item == null) return;
 
-            // 1. Instant Thumbnail Request (Bohot choti image jo blur feel degi)
-            RequestBuilder<Drawable> thumbRequest = Glide.with(context)
-                    .load(item.getUrl())
-                    .override(20, 30) // Size mazeed kam kiya taake instant load ho aur blur lage
-                    .centerCrop();
+        setupTextAndIcons(holder, item);
+        setupImageLoading(holder, item);
+        setupStatusUI(holder, item);
+        setupClickListeners(holder, item);
+    }
 
-            // 2. Main Premium Loading
-            Glide.with(context)
-                    .load(item.getUrl())
-                    .override(400, 600) // Portrait grid size
-                    .thumbnail(thumbRequest)
 
-                    // 🔥 Duration 400ms krain, 200ms bohot jaldi khatam ho jata h
-                    .transition(DrawableTransitionOptions.withCrossFade(400))
-
-                    .centerCrop()
-
-                    // Placeholder ko halka grey ya off-white krain (Luxury feel)
-                    .placeholder(new ColorDrawable(Color.parseColor("#F8F8F8")))
-
-                    .error(android.R.drawable.stat_notify_error)
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .into(holder.imageThumb);
+    private void setupTextAndIcons(ViewHolder holder, MediaItem item) {
+        if (holder.tvTrendTitle != null) {
+            holder.tvTrendTitle.setText(item.getTitle() != null && !item.getTitle().isEmpty()
+                    ? item.getTitle()
+                    : context.getString(R.string.default_wallpaper_title));
         }
-
-        // 2. 🔥 Video Icon Visibility
         if (holder.videoIcon != null) {
             holder.videoIcon.setVisibility(item.isVideo() ? View.VISIBLE : View.GONE);
         }
+    }
 
-        // 3. 🔥 Downloaded Status UI
-        if (item.isDownloaded()) {
-            if (holder.downloadedStatus != null) holder.downloadedStatus.setVisibility(View.VISIBLE);
-            if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.GONE);
-            holder.imageThumb.setAlpha(0.6f);
-        } else {
-            if (holder.downloadedStatus != null) holder.downloadedStatus.setVisibility(View.GONE);
-            if (holder.downloadIcon != null) holder.downloadIcon.setVisibility(View.VISIBLE);
-            holder.imageThumb.setAlpha(1.0f);
+    private void setupImageLoading(ViewHolder holder, MediaItem item) {
+        if (context == null || holder.imageThumb == null || item.getUrl() == null) return;
+
+        try {
+            RequestBuilder<Drawable> thumbRequest = Glide.with(context)
+                    .load(item.getUrl())
+                    .override(20, 30)
+                    .centerCrop();
+
+            Glide.with(context)
+                    .load(item.getUrl())
+                    .override(400, 600)
+                    .thumbnail(thumbRequest)
+                    .transition(DrawableTransitionOptions.withCrossFade(400))
+                    .centerCrop()
+                    .placeholder(new ColorDrawable(Color.parseColor("#1A1A1A"))) // Darker placeholder for Premium look
+                    .error(android.R.drawable.stat_notify_error)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .into(holder.imageThumb);
+        } catch (Exception e) {
+            Log.e("GLIDE_ERROR", "Image load failed: " + e.getMessage());
+        }
+    }
+
+    private void setupStatusUI(ViewHolder holder, MediaItem item) {
+        boolean isDownloaded = item.isDownloaded();
+
+        if (holder.downloadedStatus != null)
+            holder.downloadedStatus.setVisibility(isDownloaded ? View.VISIBLE : View.GONE);
+
+        if (holder.downloadIcon != null)
+            holder.downloadIcon.setVisibility(isDownloaded ? View.GONE : View.VISIBLE);
+
+        if (holder.imageThumb != null) {
+            holder.imageThumb.setAlpha(isDownloaded ? 0.6f : 1.0f);
+        }
+    }
+
+    private void setupClickListeners(ViewHolder holder, MediaItem item) {
+        // Download Click
+        if (holder.downloadIcon != null) {
+            holder.downloadIcon.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDownloadClick(item);
+                    triggerFeedback();
+                }
+            });
         }
 
-        // 4. 🔥 Download Button Click (Updated for 100M Growth)
-        holder.downloadIcon.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onDownloadClick(item);
-
-                // Feedback Logic
-                if (feedbackManager == null && context instanceof android.app.Activity) {
-                    feedbackManager = new com.mariaxcodexpert.whatsdownloadplus.FeedbackPromptManager((android.app.Activity) context);
-                }
-                if (feedbackManager != null) {
-                    feedbackManager.incrementSuccessAndCheck();
-                }
-            }
-        });
-
-        // 5. 🔥 Card Preview Click (Poore item pr click)
         holder.itemView.setOnClickListener(v -> {
+            if (v == null) return;
             v.animate().scaleX(0.95f).scaleY(0.95f).setDuration(100).withEndAction(() -> {
                 v.animate().scaleX(1f).scaleY(1f).setDuration(100).start();
-                if (listener != null) {
-                    listener.onPreviewClick(item);
-                }
+                if (listener != null) listener.onPreviewClick(item);
             }).start();
         });
+    }
+
+    private void triggerFeedback() {
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            if (!activity.isFinishing() && !activity.isDestroyed()) {
+                if (feedbackManager == null) {
+                    feedbackManager = new FeedbackPromptManager(activity);
+                }
+                feedbackManager.incrementSuccessAndCheck();
+            }
+        }
     }
 
     @Override
@@ -123,8 +150,17 @@ public class OnlineImageAdapter extends RecyclerView.Adapter<OnlineImageAdapter.
         return (mediaList != null) ? mediaList.size() : 0;
     }
 
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        if (context != null && holder.imageThumb != null) {
+            Glide.with(context.getApplicationContext()).clear(holder.imageThumb);
+        }
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageThumb, videoIcon, downloadIcon, downloadedStatus;
+        TextView tvTrendTitle;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -132,6 +168,7 @@ public class OnlineImageAdapter extends RecyclerView.Adapter<OnlineImageAdapter.
             videoIcon = itemView.findViewById(R.id.videoIcon);
             downloadIcon = itemView.findViewById(R.id.downloadIcon);
             downloadedStatus = itemView.findViewById(R.id.downloadStatus);
+            tvTrendTitle = itemView.findViewById(R.id.tvTrendTitle);
 
             if (imageThumb != null) {
                 imageThumb.setClipToOutline(true);

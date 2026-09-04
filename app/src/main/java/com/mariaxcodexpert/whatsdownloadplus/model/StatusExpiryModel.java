@@ -1,19 +1,24 @@
 package com.mariaxcodexpert.whatsdownloadplus.model;
 
+import androidx.annotation.Keep;
+import com.google.firebase.database.PropertyName;
+
+@Keep
 public class StatusExpiryModel {
+
     public String token;
-    public String deviceId;
+    public String identity;
     public int statusId;
-    public String expiryTime; // String format for UTC readability
-    public boolean notified;
+    public String expiryTime;
+    public boolean isNotified;
 
-    public StatusExpiryModel() { } // Firebase requirements
+    public StatusExpiryModel() {}
 
-    public StatusExpiryModel(String token, String deviceId, int statusId, String expiryTime, boolean notified) {
+    public StatusExpiryModel(String token, String identity, int statusId, String expiryTime, boolean isNotified) {
         this.token = token;
-        this.deviceId = deviceId;
+        this.identity = identity;
         this.statusId = statusId;
         this.expiryTime = expiryTime;
-        this.notified = notified;
+        this.isNotified = isNotified;
     }
 }

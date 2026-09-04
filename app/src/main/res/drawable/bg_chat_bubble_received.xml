@@ -1,0 +1,5 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Light background (#ECE5DD) ke liye White bubble best hai -->
+    <solid android:color="#FFFFFF" />
+    <corners android:radius="12dp" />
+</shape>

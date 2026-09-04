@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-black"
         android:gravity="center"
-        android:text="STATUS FOLDER SETUP GUIDE"
+        android:text="@string/status_folder_setup_guide"
         android:textColor="#D4AF37"
         android:textSize="20sp"
         android:letterSpacing="0.05"
@@ -33,7 +33,7 @@
         android:layout_marginTop="4dp"
         android:alpha="0.6"
         android:fontFamily="sans-serif-medium"
-        android:text="Follow these simple steps to see statuses"
+        android:text="@string/follow_these_simple_steps_to_see_statuses"
         android:textColor="#FFFFFF"
         android:textSize="11sp" />
 
@@ -67,7 +67,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="FOR NEW ANDROID (11 - 14)"
+                        android:text="@string/for_new_android_11_14"
                         android:textColor="#D4AF37"
                         android:textSize="13sp" />
                     <TextView
@@ -75,7 +75,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:alpha="0.8"
-                        android:text="Go to: Android > media > com.whatsapp > WhatsApp > Media > .Statuses"
+                        android:text="@string/go_to_android_media_com_whatsapp_whatsapp_media_statuses"
                         android:textColor="#FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -99,7 +99,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="FOR OLD ANDROID (10 &amp; BELOW)"
+                        android:text="@string/for_old_android_10_amp_below"
                         android:textColor="#D4AF37"
                         android:textSize="13sp" />
                     <TextView
@@ -107,7 +107,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:alpha="0.8"
-                        android:text="Look for: WhatsApp > Media > .Statuses folder in your internal storage."
+                        android:text="@string/look_for_whatsapp_media_statuses_folder_in_your_internal_storage"
                         android:textColor="#FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -131,14 +131,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="IMPORTANT: IF FOLDER IS EMPTY"
+                        android:text="@string/important_if_folder_is_empty"
                         android:textColor="#FF5252"
                         android:textSize="13sp" />
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Tap the 3 dots (Top Right) and choose 'Show Hidden Files'. This is required to find the status folder."
+                        android:text="@string/tap_the_3_dots_top_right_and_choose_show_hidden_files_this_is_required_to_find_the_status_folder"
                         android:textColor="#FFFFFF"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -157,7 +157,7 @@
                     android:padding="16dp"
                     android:fontFamily="sans-serif-black"
                     android:gravity="center"
-                    android:text="Select '.Statuses' folder and click 'USE THIS FOLDER' button at the bottom."
+                    android:text="@string/select_statuses_folder_and_click_use_this_folder_button_at_the_bottom"
                     android:textColor="#000000"
                     android:textSize="12sp" />
             </com.google.android.material.card.MaterialCardView>
@@ -170,7 +170,7 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginTop="24dp"
-        android:text="I UNDERSTAND"
+        android:text="@string/i_understand"
         android:textColor="#000000"
         android:textSize="15sp"
         android:fontFamily="sans-serif-black"

@@ -3,6 +3,8 @@ package com.mariaxcodexpert.whatsdownloadplus.ui.Search;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,30 +13,34 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.Target;
+
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.analytics.FirebaseAnalytics;
-import com.mariaxcodexpert.whatsdownloadplus.AdManager;
+import com.mariaxcodexpert.whatsdownloadplus.Ads.AdManager;
 import com.mariaxcodexpert.whatsdownloadplus.R;
 import com.mariaxcodexpert.whatsdownloadplus.data.local.Database.AppDatabase;
 import com.mariaxcodexpert.whatsdownloadplus.ui.utils.media.MediaStatusUtils;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -47,6 +53,10 @@ public class OnlineSearchFragment extends Fragment {
     private RecyclerView recyclerView;
     private ProgressBar loader;
     private View tvNoStatus;
+    private ImageView ivEmptyIcon;
+    private TextView tvEmptyTitle, tvEmptyDescription;
+    private MaterialButton btnRetrySearch;
+
     private OnlineImageAdapter adapter;
     private List<MediaItem> mediaList = new ArrayList<>();
     private OnlineMediaViewModel viewModel;
@@ -60,7 +70,6 @@ public class OnlineSearchFragment extends Fragment {
 
     private SharedPreferences prefs;
     private static final String PREF_NAME = "UserInterests";
-
     private FirebaseAnalytics mFirebaseAnalytics;
 
     @Nullable
@@ -69,50 +78,59 @@ public class OnlineSearchFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_online_search, container, false);
 
         etSearch = root.findViewById(R.id.etSearch);
+        ImageView btnClearSearch = root.findViewById(R.id.btnClearSearch);
+        ImageView btnSearchIcon = root.findViewById(R.id.btnSearch);
         recyclerView = root.findViewById(R.id.rvOnlineImages);
         loader = root.findViewById(R.id.loader);
         tvNoStatus = root.findViewById(R.id.tvNoStatus);
+        ivEmptyIcon = root.findViewById(R.id.ivEmptyIcon);
+        tvEmptyTitle = root.findViewById(R.id.tvEmptyTitle);
+        tvEmptyDescription = root.findViewById(R.id.tvEmptyDescription);
+        btnRetrySearch = root.findViewById(R.id.btnRetrySearch);
 
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(requireContext());
         if (getActivity() != null) {
             toolbarTitle = getActivity().findViewById(R.id.toolbarTitle);
             toolbarSubtitle = getActivity().findViewById(R.id.toolbarSubtitle);
         }
-
         prefs = requireActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         psychologyManager = new UserPsychologyManager(requireContext());
-
-        // ViewModel Initialization
         viewModel = new ViewModelProvider(requireActivity()).get(OnlineMediaViewModel.class);
 
         setupRecyclerView();
 
-        // Observe ViewModel Data
         viewModel.getMediaList().observe(getViewLifecycleOwner(), items -> {
             if (items != null) {
                 mediaList.clear();
                 mediaList.addAll(items);
                 if (adapter != null) adapter.notifyDataSetChanged();
 
-                // Visibility handle kerna
                 if (!mediaList.isEmpty()) {
                     recyclerView.setVisibility(View.VISIBLE);
-                    recyclerView.setAlpha(1.0f);
                     tvNoStatus.setVisibility(View.GONE);
+                    loader.setVisibility(View.GONE);
                 }
             }
         });
 
-        // Restore State or Init
-        if (viewModel.getLastQuery().isEmpty()) {
+        List<MediaItem> currentList = viewModel.getMediaList().getValue();
+        if (currentList == null || currentList.isEmpty()) {
             initDiscovery();
         } else {
             currentQuery = viewModel.getLastQuery();
-            currentPage = viewModel.getLastPage();
             updateToolbarUI(currentQuery);
+            recyclerView.setVisibility(View.VISIBLE);
+            tvNoStatus.setVisibility(View.GONE);
+        }
+        if (btnSearchIcon != null) btnSearchIcon.setOnClickListener(v -> performSearch());
+
+        if (btnClearSearch != null) {
+            btnClearSearch.setOnClickListener(v -> {
+                etSearch.setText("");
+                btnClearSearch.setVisibility(View.GONE);
+            });
         }
 
-        root.findViewById(R.id.btnSearch).setOnClickListener(v -> performSearch());
         etSearch.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 performSearch();
@@ -121,18 +139,15 @@ public class OnlineSearchFragment extends Fragment {
             return false;
         });
 
+        btnRetrySearch.setOnClickListener(v -> performSearch());
+
         return root;
     }
 
     private void setupRecyclerView() {
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3);
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setItemAnimator(new androidx.recyclerview.widget.DefaultItemAnimator());
         recyclerView.setHasFixedSize(true);
-
-        android.view.animation.LayoutAnimationController controller =
-                android.view.animation.AnimationUtils.loadLayoutAnimation(getContext(), R.anim.layout_animation_fall_down);
-        recyclerView.setLayoutAnimation(controller);
 
         adapter = new OnlineImageAdapter(getContext(), mediaList);
         recyclerView.setAdapter(adapter);
@@ -140,8 +155,7 @@ public class OnlineSearchFragment extends Fragment {
         adapter.setOnItemClickListener(new OnlineImageAdapter.OnItemClickListener() {
             @Override
             public void onDownloadClick(MediaItem item) {
-                int position = mediaList.indexOf(item);
-                showAd(() -> handleMediaDownload(item, position));
+                showAd(() -> handleMediaDownload(item, mediaList.indexOf(item)));
             }
 
             @Override
@@ -151,9 +165,6 @@ public class OnlineSearchFragment extends Fragment {
                     intent.putExtra("MEDIA_LIST", (java.io.Serializable) new ArrayList<>(mediaList));
                     intent.putExtra("POSITION", mediaList.indexOf(item));
                     startActivity(intent);
-                    if (getActivity() != null) {
-                        getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                    }
                 });
             }
         });
@@ -162,14 +173,10 @@ public class OnlineSearchFragment extends Fragment {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (dy > 0 && !isLoading) {
-                    int visibleItemCount = layoutManager.getChildCount();
-                    int totalItemCount = layoutManager.getItemCount();
-                    int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
-
-                    if ((visibleItemCount + pastVisibleItems) >= totalItemCount - 6) {
+                    if (layoutManager.findLastVisibleItemPosition() >= layoutManager.getItemCount() - 6) {
                         isLoading = true;
                         currentPage++;
-                        viewModel.setLastPage(currentPage); // Sync with ViewModel
+                        viewModel.setLastPage(currentPage);
                         fetchMixedContent(currentQuery, false);
                     }
                 }
@@ -178,221 +185,239 @@ public class OnlineSearchFragment extends Fragment {
     }
 
     private void handleMediaDownload(MediaItem item, int position) {
-        if (item.isDownloaded()) {
-            Toast.makeText(getContext(), "Already Saved ✅", Toast.LENGTH_SHORT).show();
+        if (item.isDownloaded()) return;
+
+        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(position);
+        View overlay = (holder != null) ? holder.itemView.findViewById(R.id.downloadOverlay) : null;
+        TextView progressTv = (holder != null) ? holder.itemView.findViewById(R.id.progressText) : null;
+
+        com.google.android.material.progressindicator.CircularProgressIndicator progressBar =
+                (holder != null) ? holder.itemView.findViewById(R.id.neonProgressBar) : null;
+
+        if (overlay != null) {
+            overlay.setVisibility(View.VISIBLE);
+            if (progressTv != null) progressTv.setText(getString(R.string.progress_initial_percent));
+            if (progressBar != null) {
+                progressBar.setIndeterminate(false);
+                progressBar.setMax(100);
+                progressBar.setProgress(0);
+            }
+        }
+
+        String downloadUrl = item.isVideo() ? item.getVideoUrl() : item.getUrl();
+        if (downloadUrl == null || downloadUrl.isEmpty()) {
+            if (overlay != null) overlay.setVisibility(View.GONE);
             return;
         }
 
-        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(position);
-        if (holder != null) {
-            holder.itemView.findViewById(R.id.downloadOverlay).setVisibility(View.VISIBLE);
-            ((TextView) holder.itemView.findViewById(R.id.progressText)).setText("0%");
-        }
+        String fileName = "Pexels_" + Math.abs(downloadUrl.hashCode()) + (item.isVideo() ? ".mp4" : ".jpg");
+        Context appContext = requireActivity().getApplicationContext();
 
-        MediaStatusUtils.executor.execute(() -> {
-            try {
-                String downloadUrl = item.isVideo() ? item.getVideoUrl() : item.getUrl();
-                String fileName = "Pexels_" + Math.abs(downloadUrl.hashCode()) + (item.isVideo() ? ".mp4" : ".jpg");
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(downloadUrl).build();
 
-                for (int p = 15; p <= 85; p += 25) {
-                    final int progress = p;
-                    if (getActivity() != null && isAdded()) {
-                        getActivity().runOnUiThread(() -> {
-                            if (holder != null) {
-                                ((TextView) holder.itemView.findViewById(R.id.progressText)).setText(progress + "%");
-                            }
-                        });
-                    }
-                    Thread.sleep(150);
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                handleDownloadError(holder, e.getMessage());
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (!response.isSuccessful() || response.body() == null) {
+                    handleDownloadError(holder, "Server error");
+                    return;
                 }
 
-                File file = Glide.with(requireContext())
-                        .asFile()
-                        .load(downloadUrl)
-                        .submit(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                        .get();
+                long totalBytes = response.body().contentLength();
+                File tempFile = new File(appContext.getCacheDir(), fileName);
 
-                if (file != null && file.exists()) {
-                    MediaStatusUtils.saveToGallery(requireContext(), Uri.fromFile(file), null, fileName, item.isVideo(), 100, (success, savedUri) -> {
+                try (okio.BufferedSink sink = okio.Okio.buffer(okio.Okio.sink(tempFile));
+                     okio.BufferedSource source = response.body().source()) {
+
+                    long bytesRead = 0;
+                    long read;
+                    while ((read = source.read(sink.buffer(), 8192)) != -1) {
+                        bytesRead += read;
+                        final int progress = totalBytes > 0 ? (int) ((bytesRead * 100) / totalBytes) : 0;
+
                         if (getActivity() != null && isAdded()) {
                             getActivity().runOnUiThread(() -> {
-                                if (holder != null) holder.itemView.findViewById(R.id.downloadOverlay).setVisibility(View.GONE);
+                                if (progressTv != null) progressTv.setText(progress + "%");
+                                // 🔥 Ab neonProgressBar fill hoga
+                                if (progressBar != null) progressBar.setProgress(progress);
+                            });
+                        }
+                    }
+                    sink.writeAll(source);
+                    sink.flush();
+
+                    MediaStatusUtils.saveToGallery(appContext, Uri.fromFile(tempFile), null, fileName, item.isVideo(), 100, (success, savedUri) -> {
+                        if (getActivity() != null && isAdded()) {
+                            getActivity().runOnUiThread(() -> {
+                                if (overlay != null) overlay.setVisibility(View.GONE);
                                 if (success) {
-                                    viewModel.updateDownloadStatus(downloadUrl, true); // Update via ViewModel
-                                    Toast.makeText(getContext(), "Saved Successfully! ✧", Toast.LENGTH_SHORT).show();
+                                    viewModel.updateDownloadStatus(downloadUrl, true);
                                 }
                             });
                         }
                     });
-                }
-            } catch (Exception e) {
-                if (getActivity() != null && isAdded()) {
-                    getActivity().runOnUiThread(() -> {
-                        if (holder != null) holder.itemView.findViewById(R.id.downloadOverlay).setVisibility(View.GONE);
-                        Toast.makeText(getContext(), "Download Failed", Toast.LENGTH_SHORT).show();
-                    });
+
+                } catch (Exception e) {
+                    handleDownloadError(holder, e.getMessage());
+                } finally {
+                    response.close();
                 }
             }
         });
     }
+    private void handleDownloadError(RecyclerView.ViewHolder holder, String debugMsg) {
+        if (getActivity() != null && isAdded()) {
+            getActivity().runOnUiThread(() -> {
+                if (holder != null) {
+                    holder.itemView.findViewById(R.id.downloadOverlay).setVisibility(View.GONE);
+                }
+                String errorMsg;
+                if (!isNetworkAvailable()) {
+                    errorMsg = getString(R.string.error_no_internet);
+                         }
+                else if (debugMsg != null && (debugMsg.contains("timeout") || debugMsg.contains("Unable to resolve host"))) {
+                    errorMsg = getString(R.string.error_internet_unstable);
+                }
+                else {
+                    errorMsg = getString(R.string.error_unable_to_download);
+                }
 
-    private boolean isNetworkAvailable() {
-        android.net.ConnectivityManager connectivityManager = (android.net.ConnectivityManager)
-                requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        android.net.NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-    }
-
-    private void showAd(Runnable afterAdAction) {
-        if (getActivity() != null && AdManager.isInterstitialLoaded()) {
-            AdManager.showInterstitial(getActivity(), new AdManager.AdCallback() {
-                @Override public void onAdClosed() { afterAdAction.run(); }
-                @Override public void onAdFailed() { afterAdAction.run(); }
+                Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
+                Log.e("SearchDebug", "Download Error: " + debugMsg);
             });
-        } else {
-            afterAdAction.run();
         }
     }
 
     private void fetchMixedContent(String query, boolean isNewSearch) {
+        if (!isAdded() || getContext() == null) return;
+
         if (!isNetworkAvailable()) {
-            showNoInternetUI();
+            showEmptyState(true,
+                    getString(R.string.empty_title_no_connection),
+                    getString(R.string.empty_desc_no_connection),
+                    R.drawable.ic_wifi_off,
+                    true);
             return;
         }
 
-        if (isNewSearch && isAdded()) {
+        if (isNewSearch) {
+            showEmptyState(false, "", "", 0, false);
             loader.setVisibility(View.VISIBLE);
-            tvNoStatus.setVisibility(View.GONE);
             recyclerView.setVisibility(View.GONE);
         }
 
         final String encodedQuery = Uri.encode(query.trim().isEmpty() ? "trending" : query.trim());
         OkHttpClient client = new OkHttpClient();
 
-        // Photos API
         Request photoReq = new Request.Builder()
                 .url("https://api.pexels.com/v1/search?query=" + encodedQuery + "&per_page=30&page=" + currentPage + "&orientation=portrait")
-                .addHeader("Authorization", API_KEY)
-                .build();
+                .addHeader("Authorization", API_KEY).build();
 
         client.newCall(photoReq).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) { handleApiError(isNewSearch); }
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                if (isAdded() && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> handleApiError(isNewSearch));
+                }
+            }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                List<MediaItem> photosList = new ArrayList<>();
-                if (response.isSuccessful() && response.body() != null) {
-                    try {
-                        JSONObject json = new JSONObject(response.body().string());
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                try (response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        String responseData = response.body().string();
+                        JSONObject json = new JSONObject(responseData);
                         JSONArray photos = json.optJSONArray("photos");
+                        List<MediaItem> rawList = new ArrayList<>();
+
                         if (photos != null) {
                             for (int i = 0; i < photos.length(); i++) {
-                                String imgUrl = photos.getJSONObject(i).getJSONObject("src").optString("large2x");
-                                if (imgUrl != null) photosList.add(new MediaItem(imgUrl, null, false));
+                                JSONObject obj = photos.getJSONObject(i);
+                                rawList.add(new MediaItem(
+                                        obj.getJSONObject("src").optString("large2x"),
+                                        null,
+                                        false,
+                                        obj.optString("alt", "Premium Status")
+                                ));
                             }
                         }
-                    } catch (Exception ignored) {}
+                 if (isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> updateUI(rawList, isNewSearch));
+                        }
+                    } else {
+                        if (isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> handleApiError(isNewSearch));
+                        }
+                    }
+                } catch (Exception e) {
+                    if (isAdded() && getActivity() != null) {
+                        getActivity().runOnUiThread(() -> updateUI(new ArrayList<>(), isNewSearch));
+                    }
                 }
-                updateUI(photosList, isNewSearch);
             }
         });
-
-        // Videos API
-        Request videoReq = new Request.Builder()
-                .url("https://api.pexels.com/videos/search?query=" + encodedQuery + "&per_page=15&page=" + currentPage + "&orientation=portrait")
-                .addHeader("Authorization", API_KEY)
-                .build();
-
-        client.newCall(videoReq).enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) { checkAndHideLoader(isNewSearch); }
-            @Override public void onResponse(Call call, Response response) throws IOException {
-                List<MediaItem> videosList = new ArrayList<>();
-                if (response.isSuccessful() && response.body() != null) {
-                    try {
-                        JSONObject json = new JSONObject(response.body().string());
-                        JSONArray videos = json.optJSONArray("videos");
-                        if (videos != null) {
-                            for (int i = 0; i < videos.length(); i++) {
-                                JSONObject vObj = videos.getJSONObject(i);
-                                String thumb = vObj.optString("image");
-                                JSONArray files = vObj.optJSONArray("video_files");
-                                if (files != null && files.length() > 0) {
-                                    videosList.add(new MediaItem(thumb, files.getJSONObject(0).optString("link"), true));
-                                }
-                            }
-                        }
-                    } catch (Exception ignored) {}
-                }
-                updateUI(videosList, false);
+    }
+    private void showEmptyState(boolean show, String title, String desc, int iconRes, boolean showRetry) {
+        if (!isAdded()) return;
+        getActivity().runOnUiThread(() -> {
+            if (show) {
+                recyclerView.setVisibility(View.GONE);
+                loader.setVisibility(View.GONE);
+                tvNoStatus.setVisibility(View.VISIBLE);
+                tvEmptyTitle.setText(title);
+                tvEmptyDescription.setText(desc);
+                if (iconRes != 0) ivEmptyIcon.setImageResource(iconRes);
+                btnRetrySearch.setVisibility(showRetry ? View.VISIBLE : View.GONE);
+            } else {
+                tvNoStatus.setVisibility(View.GONE);
             }
         });
     }
 
     private void handleApiError(boolean isNewSearch) {
-        if (isNewSearch && isAdded()) {
-            getActivity().runOnUiThread(() -> {
-                loader.setVisibility(View.GONE);
-                if (mediaList.isEmpty()) tvNoStatus.setVisibility(View.VISIBLE);
-            });
+        if (isNewSearch) {
+            showEmptyState(true, getString(R.string.empty_title_server_error), getString(R.string.empty_desc_server_error), R.drawable.ic_error_api, true);
+        } else {
+            if (getActivity() != null && isAdded()) {
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(getContext(), getString(R.string.toast_failed_load_more), Toast.LENGTH_SHORT).show());
+            }
         }
     }
 
-    private void showNoInternetUI() {
-        if (!isAdded()) return;
-        getActivity().runOnUiThread(() -> {
-            loader.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.GONE);
-            tvNoStatus.setVisibility(View.VISIBLE);
-        });
-    }
-
-    private void checkAndHideLoader(boolean isNewSearch) {
-        if (isNewSearch && isAdded()) getActivity().runOnUiThread(() -> loader.setVisibility(View.GONE));
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnected();
     }
 
     private void performSearch() {
         String query = etSearch.getText().toString().trim();
         if (!query.isEmpty()) {
-            Bundle bundle = new Bundle();
-            bundle.putString(FirebaseAnalytics.Param.SEARCH_TERM, query);
-            mFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.SEARCH, bundle);
-
-            psychologyManager.trackSearch(query);
             currentQuery = query;
             currentPage = 1;
             isLoading = true;
-
-            // ViewModel state update
             viewModel.setLastQuery(currentQuery);
             viewModel.clearList();
-
-            if (recyclerView != null) {
-                recyclerView.setVisibility(View.INVISIBLE);
-                recyclerView.setAlpha(0f);
-            }
-
             updateToolbarUI(query);
-            if (loader != null) loader.setVisibility(View.VISIBLE);
-            if (tvNoStatus != null) tvNoStatus.setVisibility(View.GONE);
-
             fetchMixedContent(query, true);
-            etSearch.clearFocus();
             hideKeyboard();
         }
     }
 
-    private void hideKeyboard() {
-        View view = getActivity() != null ? getActivity().getCurrentFocus() : null;
-        if (view != null) {
-            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager)
-                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-    }
-
     private void updateUI(List<MediaItem> newItems, boolean isNewSearch) {
-        if (!isAdded() || newItems == null) return;
+        if (!isAdded()) return;
+        if (isNewSearch && (newItems == null || newItems.isEmpty())) {
+            showEmptyState(true, getString(R.string.empty_title_no_results), getString(R.string.empty_desc_no_results), R.drawable.ic_error_api, false);
+            return;
+        }
+
         MediaStatusUtils.executor.execute(() -> {
             AppDatabase db = AppDatabase.getInstance(getContext());
             for (MediaItem item : newItems) {
@@ -405,64 +430,106 @@ public class OnlineSearchFragment extends Fragment {
 
             if (getActivity() != null && isAdded()) {
                 getActivity().runOnUiThread(() -> {
-                    if (loader != null) loader.setVisibility(View.GONE);
-
+                    loader.setVisibility(View.GONE);
                     if (isNewSearch) {
                         Collections.shuffle(newItems);
-                        viewModel.setMediaList(newItems); // New search triggers reset
-                        if (!newItems.isEmpty()) {
-                            recyclerView.scheduleLayoutAnimation();
-                        }
+                        viewModel.setMediaList(newItems);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        recyclerView.scheduleLayoutAnimation();
                     } else {
-                        viewModel.addMediaItems(newItems); // Pagination triggers append
+                        viewModel.addMediaItems(newItems);
                     }
-
                     isLoading = false;
                 });
             }
         });
     }
-
     private void initDiscovery() {
         String aiQuery = psychologyManager.getAIPredictedQuery();
-
         if (aiQuery == null || aiQuery.trim().isEmpty()) {
-            // 🔥 Strings.xml se array load karne ka tarika
-            String[] tags = getResources().getStringArray(R.array.trending_tags);
-            aiQuery = tags[new Random().nextInt(tags.length)];
+            aiQuery = "Luxury Car";
         }
+        proceedWithDiscovery(aiQuery);
+    }
+    private void proceedWithDiscovery(String query) {
+        if (!isAdded()) return;
 
-        currentQuery = aiQuery;
-        viewModel.setLastQuery(currentQuery);
-        updateToolbarUI(currentQuery);
-        fetchMixedContent(currentQuery, true);
+        getActivity().runOnUiThread(() -> {
+            currentQuery = query;
+            viewModel.setLastQuery(currentQuery);
+            updateToolbarUI(currentQuery);
+            fetchMixedContent(currentQuery, true);
+        });
+    }
+
+    private void showAd(Runnable action) {
+        if (getActivity() != null && AdManager.isInterstitialLoaded()) {
+            AdManager.showInterstitial(getActivity(), new AdManager.AdCallback() {
+                @Override public void onAdClosed() { action.run(); }
+                @Override public void onAdFailed() { action.run(); }
+            });
+        } else action.run();
     }
 
     private void updateToolbarUI(String query) {
-        if (toolbarTitle != null) toolbarTitle.setText("✧ " + query.toUpperCase() + " ✧");
-        if (toolbarSubtitle != null) toolbarSubtitle.setText("Premium Discovery");
+        if (toolbarTitle != null) {
+            // Query null na ho iska dhyan rakhein
+            String displayQuery = (query != null && !query.isEmpty()) ? query : "Luxury Car";
+            toolbarTitle.setText("✧ " + displayQuery.toUpperCase() + " ✧");
+        }
+        if (toolbarSubtitle != null) {
+            toolbarSubtitle.setText(getString(R.string.premium_discovery_subtitle));
+        }
     }
 
+    private void hideKeyboard() {
+        View view = getActivity() != null ? getActivity().getCurrentFocus() : null;
+        if (view != null) {
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
     @Override
     public void onResume() {
         super.onResume();
-        // Database sync check (Optional but good for data consistency)
-        if (!mediaList.isEmpty()) {
+
+        if (!isNetworkAvailable()) {
+            showEmptyState(true,
+                    getString(R.string.empty_title_no_connection),
+                    getString(R.string.empty_desc_no_connection),
+                    R.drawable.ic_wifi_off,
+                    true);
+        } else {
+            if (tvNoStatus.getVisibility() == View.VISIBLE && mediaList.isEmpty()) {
+                initDiscovery();
+            } else {
+                showEmptyState(false, "", "", 0, false);
+            }
+        }
+
+        if (mediaList != null && !mediaList.isEmpty()) {
             MediaStatusUtils.executor.execute(() -> {
-                AppDatabase db = AppDatabase.getInstance(getContext());
+                AppDatabase db = AppDatabase.getInstance(requireContext());
                 boolean changed = false;
+
                 for (MediaItem item : mediaList) {
                     if (!item.isDownloaded()) {
                         String url = item.isVideo() ? item.getVideoUrl() : item.getUrl();
+                        if (url == null) continue;
+
                         String fileName = "Pexels_" + Math.abs(url.hashCode()) + (item.isVideo() ? ".mp4" : ".jpg");
+
                         if (db.imageDao().isImageExists(fileName) || db.videoDao().isVideoExists(fileName)) {
                             item.setDownloaded(true);
                             changed = true;
                         }
                     }
                 }
-                if (changed) {
-                    getActivity().runOnUiThread(() -> viewModel.setMediaList(new ArrayList<>(mediaList)));
+
+                if (changed && isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        if (adapter != null) adapter.notifyDataSetChanged();
+                    });
                 }
             });
         }

@@ -1,0 +1,4 @@
+<ad-services-config>
+    <attribution allowAllToAccess="true"/>
+    <attest-ad-id-for-ad-selection enabled="true" />
+</ad-services-config>

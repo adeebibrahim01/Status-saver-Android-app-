@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">حافظ الحالات</string>
+    <string name="navigation_drawer_open">فتح قائمة التنقل</string>
+    <string name="navigation_drawer_close">إغلاق قائمة التنقل</string>
+    <string name="nav_header_title">تنزيل الحالات بلس</string>
+    <string name="nav_header_subtitle">mariaadeeb982@gmail.com</string>
+    <string name="nav_header_desc">رأس قائمة التنقل</string>
+    <string name="action_settings">الإعدادات</string>
+    <string name="menu_home">الرئيسية</string>
+    <string name="menu_gallery">الحالات</string>
+    <string name="Download">تنزيل</string>
+    <string name="app_icon">s</string>
+    <string name="permission_icon">أيقونة الإذن</string>
+    <string name="storage_access">إضافي\n</string>
+    <string name="notification_access">إضافي2\n</string>
+
+    <string name="whatsapp_folder_path_line1">المسار المعتاد لمجلد وسائط واتساب:</string>
+    <string name="whatsapp_folder_path_line2">Android/media/com.whatsapp/WhatsApp/Media/.Statuses</string>
+
+    <string name="hidden_folder_guide_line1">إذا كان مجلد .Statuses داخل وسائط واتساب غير ظاهر:</string>
+    <string name="hidden_folder_guide_line2">1. اضغط على قائمة الثلاث نقاط</string>
+    <string name="hidden_folder_guide_line3">2. قم بتفعيل إظهار الملفات المخفية</string>
+    <string name="hidden_folder_guide_line4">3. انتقل إلى مجلد .Statuses</string>
+    <string name="hidden_folder_guide_line5">4. اختر "استخدام هذا المجلد" لمنح الإذن الصحيح.</string>
+
+    <string name="privacy_title">سياسة الخصوصية – حافظ الحالات</string>
+    <string name="privacy_last_updated">آخر تحديث: 04 مايو 2026</string>
+
+    <string name="privacy_section_1_heading">1. الخصوصية وجمع البيانات</string>
+    <string name="privacy_section_1">
+خصوصيتك هي أولويتنا. لا يقوم تطبيقنا بجمع أو تخزين أو مشاركة أي معلومات شخصية أو رسائل خاصة أو تفاصيل جهات الاتصال. جميع وظائف التطبيق تعمل محليًا على جهازك لضمان أقصى درجات الأمان.
+</string>
+
+    <string name="privacy_section_2_heading">2. التخزين والوصول إلى المجلدات</string>
+    <string name="privacy_section_2">
+يستخدم هذا التطبيق نظام Android Storage Access Framework القياسي. نقوم فقط بالوصول إلى مجلدات الوسائط التي تقوم باختيارها والسماح بها يدويًا. لا نمتلك صلاحية الوصول إلى ملفاتك الخاصة أو مستنداتك أو معرض الصور الشخصي خارج المسارات المصرح بها.
+</string>
+
+    <string name="privacy_section_3_heading">3. الأذونات الأساسية</string>
+    <string name="privacy_section_3">
+لضمان عمل التطبيق بشكل صحيح، نحتاج إلى الأذونات التالية:\n\n
+• الوصول إلى المجلدات: لإدارة وحفظ ملفات الوسائط محليًا.\n
+• الوصول إلى الإنترنت: لتوفير المحتوى عبر الإنترنت وتحسين استقرار التطبيق.\n
+• الإشعارات: لتقديم تحديثات حول الوسائط المحفوظة (اختياري).\n\n
+نحن لا نطلب الوصول إلى الكاميرا أو الميكروفون أو الموقع.
+</string>
+
+    <string name="privacy_section_4_heading">4. خدمات المحتوى عبر الإنترنت</string>
+    <string name="privacy_section_4">
+يتضمن التطبيق ميزة استكشاف تسمح لك بتصفح الوسائط العامة. أي عملية بحث تتم داخل التطبيق تُستخدم فقط لعرض النتائج المناسبة في الوقت الفعلي. نحن لا نربط عمليات البحث الخاصة بك بأي ملف شخصي.
+</string>
+
+    <string name="privacy_section_5_heading">5. الإعلانات والتحليلات</string>
+    <string name="privacy_section_5">
+قد نقوم بعرض إعلانات مقدمة من شبكات إعلانية خارجية موثوقة. قد تستخدم هذه الجهات معرفات تقنية غير شخصية مثل معرّف الإعلانات فقط لعرض وقياس أداء الإعلانات. لا تتم مشاركة أي وسائط خاصة أو بيانات المستخدم مع هذه الجهات.
+</string>
+
+    <string name="privacy_section_6_heading">6. الأمان والعمل دون اتصال</string>
+    <string name="privacy_section_6">
+تعمل معظم ميزات التطبيق بدون اتصال بالإنترنت. وبما أن الوسائط الخاصة بك لا يتم رفعها إلى أي خوادم خارجية، فإن ملفاتك تبقى بالكامل تحت سيطرتك وملكيتك.
+</string>
+
+    <string name="privacy_section_7_heading">7. خصوصية الأطفال</string>
+    <string name="privacy_section_7">
+خدمتنا موجهة للجميع. نحن لا نستهدف أو نجمع بيانات من الأطفال دون سن 13 عامًا بشكل متعمد. نحن ملتزمون بجميع قوانين حماية الأطفال.
+</string>
+
+    <string name="privacy_section_8_heading">8. الدعم والاستفسارات</string>
+    <string name="privacy_section_8">
+إذا كانت لديك أي أسئلة حول هذه السياسة أو طريقة التعامل مع بياناتك، يمكنك التواصل معنا:\n\n
+البريد الإلكتروني: mariaadeeb982@gmail.com
+</string>
+
+    <string name="disclaimer_heading">إخلاء المسؤولية القانونية</string>
+
+    <string name="disclaimer_text">
+<b>1. عدم الارتباط:</b>\n
+هذا التطبيق أداة خارجية وليس تابعًا أو مدعومًا أو معتمدًا من أي منصة مراسلة أو شركة تواصل اجتماعي.\n\n
+
+<b>2. حقوق العلامات التجارية:</b>\n
+جميع أسماء المنتجات والشعارات والعلامات التجارية هي ملك لأصحابها. استخدامها داخل التطبيق يهدف فقط للتعريف والتوافق.\n\n
+
+<b>3. سياسة الاستخدام:</b>\n
+هذه الأداة مخصصة للاستخدام الشخصي للوسائط المخزنة محليًا. يتحمل المستخدم مسؤولية التأكد من امتلاكه الحق القانوني أو الإذن من أصحاب المحتوى قبل حفظ أو إعادة نشر أي وسائط.\n\n
+
+<b>4. المسؤولية:</b>\n
+المطور غير مسؤول عن أي سوء استخدام للتطبيق أو أي انتهاك لحقوق النشر يرتكبه المستخدم.
+</string>
+
+    <string name="STATUS_ENGINE">محرك الحالات</string>
+    <string name="hello_blank_fragment">مرحبا أيها الجزء الفارغ</string>
+    <string name="accessibility_service_description">خدمة إمكانية الوصول للإشعارات</string>
+    <string name="download_drawer">تنزيل</string>
+    <string name="_0">0</string>
+    <string name="privacy_protected">الخصوصية محمية</string>
+    <string name="statuses">الحالات</string>
+    <string name="downloads">التنزيلات</string>
+    <string name="lifetime">مدى الحياة</string>
+    <string name="available">مباشر</string>
+    <string name="today_s">اليوم</string>
+    <string name="saved">تم الحفظ</string>
+    <string name="lock_secure">قفل آمن</string>
+    <string name="active_session">مباشر</string>
+    <string name="since_2019">منذ 2019</string>
+    <string name="v1_0_16">الإصدار 1.0.16</string>
+    <string name="app_logo">شعار التطبيق</string>
+    <string name="float_btn">زر عائم</string>
+    <string name="logo">الشعار</string>
+    <string name="images">الصور</string>
+    <string name="videos">الفيديوهات</string>
+    <string name="_saved">محفوظ</string>
+    <string name="recent_downloads">أحدث التنزيلات</string>
+    <string name="no_downloads_yet">لا توجد تنزيلات بعد</string>
+    <string name="fast_amp_secure_downloader"><![CDATA[تنزيل سريع وآمن]]></string>
+
+    <string name="custom_video_trim">تخصيص قص الفيديو</string>
+    <string name="total_duration_0s">المدة الكلية: 0 ثانية</string>
+    <string name="start_sec">البداية (ثانية)</string>
+    <string name="end_sec">النهاية (ثانية)</string>
+    <string name="_30">30</string>
+    <string name="trim_amp_preview"><![CDATA[قص ومعاينة]]></string>
+    <string name="media_details">تفاصيل الوسائط</string>
+    <string name="type_image">النوع: صورة</string>
+    <string name="name_example_jpg">الاسم: example.jpg</string>
+    <string name="size_1024_kb">الحجم: 1024 كيلوبايت</string>
+    <string name="resolution_1080_x_1920">الدقة: 1080 × 1920</string>
+    <string name="duration_0h_0m_0s">المدة: 0س 0د 0ث</string>
+    <string name="close">إغلاق</string>
+    <string name="saved_media_images_videos">الوسائط المحفوظة • صور • فيديوهات</string>
+    <string name="no_downloads_available">لا توجد تنزيلات متاحة</string>
+    <string name="no_files_found">لم يتم العثور على ملفات</string>
+    <string name="media">الوسائط</string>
+
+    <string name="save">حفظ</string>
+    <string name="share">مشاركة</string>
+    <string name="crop">اقتصاص</string>
+    <string name="edit">تعديل</string>
+    <string name="trim">قص</string>
+    <string name="info">معلومات</string>
+    <string name="back">رجوع</string>
+    <string name="next">التالي</string>
+    <string name="refreshing">جارٍ التحديث…</string>
+    <string name="delete">حذف</string>
+
+    <string name="action_successful">تمت العملية بنجاح!</string>
+    <string name="enjoying_the_app">هل تستمتع بالتطبيق؟</string>
+    <string name="your_review_helps_us_improve_it_only_takes_a_minute_to_support_us_on_the_play_store">مراجعتك تساعدنا على التحسين. لن يستغرق الأمر سوى دقيقة لدعمنا على متجر Play.</string>
+    <string name="rate_on_play_store">قيّمنا على متجر Play</string>
+
+    <string name="ultimate_troubleshooting_guide">دليل استكشاف الأخطاء الكامل</string>
+    <string name="step_1_android_11_12_13_14_users">الخطوة 1: لمستخدمي أندرويد 11 و12 و13 و14</string>
+    <string name="navigate_to_nandroid_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[انتقل إلى:\nAndroid > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
+
+    <string name="step_2_android_10">الخطوة 2: أندرويد 10</string>
+    <string name="if_you_don_t_see_android_media_look_directly_for_nwhatsapp_media_statuses"><![CDATA[إذا لم تجد Android/media فابحث مباشرة عن:\nWhatsApp > Media > .Statuses]]></string>
+
+    <string name="step_3_whatsapp_business">الخطوة 3: واتساب للأعمال</string>
+    <string name="look_for_nandroid_media_com_whatsapp_w4b_whatsapp_business_media_statuses"><![CDATA[ابحث عن:\nAndroid > media > com.whatsapp.w4b > WhatsApp Business > Media > .Statuses]]></string>
+
+    <string name="step_4_folder_is_missing_or_hidden">الخطوة 4: المجلد مفقود أو مخفي؟</string>
+    <string name="click_the_menu_in_the_top_right_and_tap_show_hidden_files_without_this_you_cannot_see_the_statuses_folder">اضغط على قائمة (⋮) في الأعلى ثم اختر إظهار الملفات المخفية. بدون ذلك لن تتمكن من رؤية مجلد .Statuses.</string>
+
+    <string name="step_5_folder_is_empty">الخطوة 5: المجلد فارغ؟</string>
+    <string name="first_open_whatsapp_and_watch_some_statuses_if_you_haven_t_viewed_any_status_in_the_last_24_hours_the_folder_will_appear_empty">افتح واتساب أولاً وشاهد بعض الحالات. إذا لم تشاهد أي حالة خلال آخر 24 ساعة فسيظهر المجلد فارغًا.</string>
+
+    <string name="step_6_dual_apps_parallel_space">الخطوة 6: التطبيقات المزدوجة / Parallel Space</string>
+    <string name="search_for_a_folder_named_dual_or_999_or_parallel_in_your_main_storage_root">ابحث عن مجلد باسم Dual أو 999 أو Parallel في وحدة التخزين الرئيسية.</string>
+
+    <string name="important_after_selecting_the_folder_tap_use_this_folder_and_then_allow">مهم: بعد تحديد المجلد اضغط على استخدام هذا المجلد ثم سماح.</string>
+
+    <string name="everything_is_clear">كل شيء واضح!</string>
+
+    <string name="permissions_required">الأذونات مطلوبة</string>
+    <string name="grant_access_to_save_your_favorite_status">امنح الإذن لحفظ حالاتك المفضلة</string>
+
+    <string name="status_folder">مجلد الحالات</string>
+    <string name="allow">سماح</string>
+    <string name="how_to_set_path_view_guide">كيفية تحديد المسار؟ عرض الدليل</string>
+
+    <string name="need_help_contact_us_at_nmariaadeeb982_gmail_com">تحتاج مساعدة؟ تواصل معنا عبر\nmariaadeeb982@gmail.com</string>
+
+    <string name="to_fetch_recent_status">لجلب أحدث الحالات</string>
+    <string name="status_downloader">منزل الحالات</string>
+    <string name="select_app">اختر التطبيق</string>
+    <string name="choose_whatsapp_to_scan_media">اختر واتساب لفحص الوسائط</string>
+
+    <string name="official_messenger">الرسول الرسمي</string>
+
+    <string name="rate_app">قيّم التطبيق</string>
+    <string name="send_feedback">إرسال ملاحظات</string>
+    <string name="share_app">مشاركة التطبيق</string>
+    <string name="privacy_policy">سياسة الخصوصية</string>
+    <string name="stats">الإحصائيات</string>
+    <string name="explorer">المستكشف</string>
+    <string name="history">السجل</string>
+    <string name="settings">الإعدادات</string>
+    <string name="Dashboard">لوحة التحكم</string>
+    <string-array name="trending_tags">
+        <item>إضاءة سينمائية فائقة الواقعية بدقة 8K</item>
+        <item>لقطة بورتريه سينمائية بأسلوب IMAX</item>
+        <item>جمالية مشهد فيلم هوليوودي</item>
+        <item>أسلوب تصوير فوتوغرافي حائز على جوائز</item>
+        <item>مشهد الساعة الذهبية السينمائي الدرامي</item>
+        <item>أسلوب حياة فاخر للمليارديرات</item>
+        <item>جمالية داخلية لطائرة خاصة فاخرة</item>
+        <item>أجواء يخت فاخر عند غروب الشمس</item>
+        <item>إطلالة بنتهاوس فاخرة ليلية على المدينة</item>
+        <item>جمالية أسلوب الحياة الراقية بدقة 8K</item>
+        <item>بوغاتي سينمائية بطريق ليلي نيون</item>
+        <item>لامبورغيني سايبربانك تحت المطر النيون</item>
+        <item>رولز رويس فانتوم بأسلوب سينمائي فاخر</item>
+        <item>فيراري داخل نفق مع تأثير ضباب الحركة</item>
+        <item>لقطة سينمائية لانجراف سيارة خارقة</item>
+        <item>زقاق طوكيو سايبربانك تحت المطر بدقة 8K</item>
+        <item>مدينة خيال علمي مستقبلية بأجواء Blade Runner</item>
+        <item>عالم سايبري هولوغرافي نيون</item>
+        <item>واجهة تقنية مستقبلية متوهجة</item>
+        <item>جمالية الكون الرقمي والواقع الافتراضي</item>
+        <item>ستايل إنستغرام مظلم وجذاب</item>
+        <item>خلفية سينمائية رائجة لتيك توك</item>
+        <item>أجواء ريلز بالحركة البطيئة</item>
+        <item>خلفية جمالية متوهجة رائجة</item>
+        <item>حركة خلفية منومة لليوتيوب شورتس</item>
+        <item>عقلية الهيمنة والثقة للرجل القوي</item>
+        <item>أسلوب حياة النجاح والانضباط العالي</item>
+        <item>التحفيز الفاخر وعقلية المال</item>
+        <item>ستايل ملياردير عصامي</item>
+        <item>إعدادات إنتاجية داكنة للتركيز</item>
+        <item>لقطة درون سينمائية لبركان آيسلندا</item>
+        <item>مضايق النرويج الضبابية بدقة 8K</item>
+        <item>الشفق القطبي في السماء الليلية</item>
+        <item>منظر جوي لمياه المالديف الكريستالية</item>
+        <item>عاصفة جبلية سينمائية فائقة الدقة</item>
+        <item>مساحة عمل فاخرة وبسيطة بدقة 4K</item>
+        <item>مكتب جمالي نظيف بأسلوب Apple</item>
+        <item>تصميم معماري زجاجي فاخر</item>
+        <item>جمالية التباين الأبيض والأسود</item>
+        <item>أجواء عمل هادئة بأسلوب Zen</item>
+        <item>فن سريالي تجريدي مولد بالذكاء الاصطناعي</item>
+        <item>فن حركة نيون متدرج وانسيابي</item>
+        <item>تصور طاقة كونية فراكتالية</item>
+        <item>عالم سريالي رقمي خيالي</item>
+        <item>أشكال ثلاثية الأبعاد متحولة</item>
+        <item>رسوم متحركة حلقية مريحة ومنومة</item>
+        <item>خلفية حركة لا نهائية سلسة</item>
+        <item>حركة موجية متدرجة ناعمة بدقة 8K</item>
+        <item>حركة حلزونية جمالية منومة</item>
+        <item>حركة تجريدية سينمائية قابلة للتكرار</item>
+    </string-array>
+
+    <string name="whatsapp_icon">أيقونة واتساب</string>
+    <string name="_1">1</string>
+    <string name="overlay">تراكب</string>
+    <string name="videoicon">أيقونة الفيديو</string>
+    <string name="downloadicon">أيقونة التنزيل</string>
+    <string name="downloadstatus">حالة التنزيل</string>
+    <string name="snackicon">أيقونة الإشعار</string>
+    <string name="star_visual">نجمة بصرية</string>
+    <string name="folder_security">أمان المجلد</string>
+    <string name="whatsapp">واتساب</string>
+    <string name="thumbicon">أيقونة المصغّر</string>
+    <string name="_Downloads">التنزيلات</string>
+    <string name="_7days">آخر 7 أيام</string>
+
+    <string name="role_admin_name">أديب إبراهيم</string>
+    <string name="role_developer_name">عمر سامي</string>
+
+    <string name="trending">الرائج</string>
+    <string name="search">بحث</string>
+    <string name="support">الدعم</string>
+    <string name="recent_downloads_s">أحدث التنزيلات</string>
+
+    <string name="premium_vault">✧ الخزنة المميزة ✧</string>
+
+    <string name="gallery">المعرض</string>
+    <string name="downloadss">التنزيلات</string>
+    <string name="dashboard">لوحة التحكم</string>
+
+    <string name="community_amp_feedback"><![CDATA[المجتمع والملاحظات]]></string>
+    <string name="recommend_us">رشّحنا</string>
+    <string name="invite_friends">دعوة الأصدقاء</string>
+    <string name="join_whatsapp_channel">انضم إلى قناة واتساب</string>
+    <string name="app_information">معلومات التطبيق</string>
+
+    <string name="privacy_amp_terms"><![CDATA[الخصوصية والشروط]]></string>
+
+    <string name="unlock_pro_experience">افتح التجربة الاحترافية</string>
+
+    <string name="status_gallery">معرض الحالات</string>
+    <string name="status_downloads">تنزيلات الحالات</string>
+
+    <string name="global_trending">✧ الترند العالمي ✧</string>
+    <string name="trending_status">الحالات الرائجة</string>
+
+    <string name="global_search">✧ البحث العالمي ✧</string>
+    <string name="status_discovery">اكتشاف الحالات</string>
+
+    <string name="explore_premium_content">استكشف المحتوى المميز</string>
+    <string name="find_the_best_status_and_wallpapers_for_you">اعثر على أفضل الحالات والخلفيات لك</string>
+
+    <string name="search_premium_status">ابحث عن حالة مميزة</string>
+
+    <string name="please_wait">يرجى الانتظار</string>
+
+    <string name="explain_your_issue">اشرح مشكلتك</string>
+
+    <string name="new_ticket">تذكرة جديدة</string>
+    <string name="re_open">إعادة فتح</string>
+
+    <string name="this_ticket_is_closed_do_you_need_more_help">تم إغلاق هذه التذكرة. هل تحتاج إلى المزيد من المساعدة؟</string>
+
+    <string name="our_developers_are_ready_to_assist_you_tell_us_your_issue_and_we_ll_get_back_to_you_shortly">مطورو التطبيق جاهزون لمساعدتك. أخبرنا بمشكلتك وسنرد عليك قريبًا.</string>
+
+    <string name="welcome_to_vip_support">مرحبًا بك في الدعم VIP</string>
+
+    <string name="typical_response_time_within_24_hours">متوسط وقت الرد: خلال 24 ساعة</string>
+
+    <string name="connected_to_support">متصل بالدعم</string>
+
+    <string name="ref">المرجع: #-------</string>
+
+    <string name="media_preview">معاينة الوسائط</string>
+
+    <string name="magic_lab">مختبر السحر</string>
+
+    <string name="processing">جارٍ المعالجة</string>
+
+    <string name="saved_media">الوسائط المحفوظة</string>
+
+    <string name="repost">إعادة نشر</string>
+
+    <string name="set_as_status">تعيين كحالة</string>
+
+    <string name="timer_expired">منتهي</string>
+
+    <string name="premium_status">حالة مميزة</string>
+
+    <string name="timer_expires_in">ينتهي خلال %1$02d:%2$02d:%3$02d</string>
+
+    <string name="magic_lab_pro">✧ مختبر السحر برو ✧</string>
+
+    <string name="denoise">إزالة الضوضاء</string>
+    <string name="vivid_hdr">ألوان HDR حيوية</string>
+    <string name="exposure">التعريض</string>
+    <string name="smooth">تنعيم</string>
+    <string name="exposures">التعريض</string>
+    <string name="highlights">الإضاءات</string>
+    <string name="shadows">الظلال</string>
+    <string name="contrast">التباين</string>
+    <string name="bright">السطوع</string>
+    <string name="vibrance">الحيوية</string>
+    <string name="warmth">الدفء</string>
+    <string name="color">اللون</string>
+    <string name="tint">الصبغة</string>
+    <string name="clarity">الوضوح</string>
+    <string name="sharpen">الحدة</string>
+    <string name="vignette">التظليل</string>
+
+    <string name="original">الأصلي</string>
+
+    <string name="export">تصدير</string>
+
+    <string name="tab_images">الصور</string>
+    <string name="tab_videos">الفيديوهات</string>
+
+    <string name="toast_already_saved">تم الحفظ بالفعل!</string>
+
+    <string name="error_permission_denied">لم يتم منح الإذن!</string>
+
+    <string name="empty_videos_title">لم يتم العثور على فيديوهات</string>
+    <string name="empty_images_title">لم يتم العثور على صور</string>
+
+    <string name="empty_whatsapp_desc">شاهد الحالات أولاً من واتساب\nثم قم بتنزيلها من هنا.</string>
+
+    <string name="toast_whatsapp_not_installed">واتساب غير مثبت</string>
+
+    <string name="error_open_preview">تعذر فتح المعاينة.</string>
+
+    <string name="error_item_unavailable">العنصر لم يعد متاحًا</string>
+
+    <string name="error_process_interrupted">تمت مقاطعة العملية. حاول مرة أخرى.</string>
+
+    <string name="error_media_not_found">الوسائط غير موجودة</string>
+
+    <string name="error_could_not_open_media">تعذر فتح الوسائط.</string>
+
+    <string name="error_system_permission_failed">فشل إذن النظام.</string>
+
+    <string name="empty_saved_media_title">لا توجد وسائط محفوظة</string>
+
+    <string name="empty_saved_media_desc">احفظ حالاتك المفضلة لعرضها هنا في أي وقت.</string>
+
+    <string name="default_app_version">v1.0.1</string>
+
+    <string name="joined_since_date">منذ %s</string>
+
+    <string name="error_delete_failed">فشل الحذف. حاول مرة أخرى.</string>
+
+    <string name="error_file_not_ready_share">الملف غير جاهز للمشاركة</string>
+
+    <string name="error_path_not_found">مسار الملف غير موجود</string>
+
+    <string name="error_share_failed">تعذر تنفيذ طلب المشاركة.</string>
+
+    <string name="share_chooser_title">مشاركة عبر:</string>
+    <string name="tool_smooth_label">تنعيم الملمس</string>
+    <string name="tool_exposure_label">تعديل الإضاءة بالذكاء الاصطناعي</string>
+    <string name="tool_contrast_label">تباين ديناميكي</string>
+    <string name="tool_brightness_label">الإضاءة (السطوع)</string>
+    <string name="tool_saturation_label">تشبع الألوان</string>
+    <string name="tool_warmth_label">درجة حرارة اللون</string>
+    <string name="tool_tint_label">صبغة اللون</string>
+    <string name="tool_detail_label">تفاصيل 4K</string>
+    <string name="tool_clarity_label">وضوح بالذكاء الاصطناعي</string>
+    <string name="tool_vibrance_label">حيوية الألوان</string>
+    <string name="tool_highlights_label">الإضاءات</string>
+    <string name="tool_shadows_label">الظلال</string>
+    <string name="tool_vignette_label">تظليل الحواف</string>
+
+    <string name="error_failed_process_4k">فشل في معالجة صورة 4K</string>
+    <string name="error_oom_processing">خطأ في المعالجة: نفاد الذاكرة</string>
+    <string name="error_failed_load_image">فشل في تحميل الصورة</string>
+    <string name="error_image_too_large">الصورة كبيرة جداً للعرض</string>
+
+    <string name="notify_already_saved">تم حفظ الحالة بالفعل! ✅</string>
+    <string name="notify_gallery_already">موجود بالفعل في المعرض! ✅</string>
+    <string name="notify_magic_lab_unavailable">Magic Lab غير متاح بعد التحميل!</string>
+    <string name="notify_video_ai_soon">سيتم قريباً إطلاق الجيل الجديد من ذكاء الفيديو 🔥</string>
+
+    <string name="error_magic_lab_lost">فقدان بيانات Magic Lab!</string>
+    <string name="error_invalid_uri">رابط وسائط غير صالح</string>
+    <string name="error_oom_or_file">محرك الوسائط: خطأ ذاكرة أو ملف</string>
+    <string name="error_low_memory">ذاكرة الجهاز منخفضة: حاول الحفظ العادي</string>
+    <string name="error_media_missing">مسار الوسائط مفقود!</string>
+    <string name="error_no_media">لا توجد وسائط للعرض</string>
+    <string name="error_download_failed">فشل التحميل!</string>
+
+    <string name="progress_saving_masterpiece">جارٍ حفظ التحفة…</string>
+    <string name="progress_init_ai">تهيئة محرك الذكاء الاصطناعي…</string>
+    <string name="progress_saving_video">جارٍ حفظ الفيديو…</string>
+    <string name="progress_finalizing">جارٍ إنهاء العمل…</string>
+    <string name="progress_fetching">جلب الصورة…</string>
+    <string name="progress_decoding">فك ترميز الصورة…</string>
+    <string name="progress_saving_gallery">الحفظ في المعرض…</string>
+    <string name="progress_pro_filters">تطبيق الفلاتر الاحترافية…</string>
+    <string name="progress_success_saved">تم حفظ الحالة بنجاح!</string>
+
+    <string name="info_name_format">الاسم: %s</string>
+    <string name="info_type_format">النوع: %s</string>
+    <string name="info_status_downloaded">الحالة: تم التحميل</string>
+    <string name="info_status_pending">الحالة: قيد الانتظار</string>
+    <string name="info_path_wa">واتساب: %s</string>
+    <string name="info_path_gallery">المعرض: %s</string>
+    <string name="info_captured_on">تاريخ الالتقاط: %s</string>
+    <string name="info_date_not_available">التاريخ: غير متوفر</string>
+
+    <string name="default_premium_status_title">حالة مميزة</string>
+    <string name="default_wallpaper_title">خلفيات</string>
+
+    <string name="error_something_went_wrong">حدث خطأ ما</string>
+    <string name="toast_title_copied">✧ تم نسخ العنوان ✧</string>
+    <string name="toast_already_gallery">✧ موجود بالفعل في المعرض ✧</string>
+
+    <string name="action_save">حفظ</string>
+    <string name="action_saved">تم الحفظ</string>
+
+    <string name="progress_initial_percent">0%</string>
+
+    <string name="error_no_internet">لا يوجد اتصال بالإنترنت. يرجى الاتصال والمحاولة مرة أخرى.</string>
+    <string name="error_internet_unstable">الاتصال غير مستقر. حاول مرة أخرى.</string>
+    <string name="error_unable_to_download">تعذر التحميل. تحقق من التخزين أو الاتصال.</string>
+
+    <string name="empty_title_no_connection">لا يوجد اتصال</string>
+    <string name="empty_desc_no_connection">يرجى التحقق من الإنترنت للبحث.</string>
+    <string name="empty_title_server_error">خطأ في الخادم</string>
+    <string name="empty_desc_server_error">تعذر الوصول إلى الخادم. حاول لاحقاً.</string>
+    <string name="empty_title_no_results">لا توجد نتائج</string>
+    <string name="empty_desc_no_results">حاول البحث عن شيء آخر.</string>
+
+    <string name="toast_failed_load_more">فشل تحميل المزيد من العناصر.</string>
+
+    <string name="premium_discovery_subtitle">اكتشاف مميز</string>
+
+    <string name="mood_night">ليل</string>
+    <string name="mood_morning">صباح</string>
+    <string name="mood_day">نهار</string>
+    <string name="mood_evening">مساء</string>
+
+    <string name="fallback_nature_query">طبيعة</string>
+    <string name="fallback_premium_query">خلفيات طبيعية جديدة</string>
+
+    <string name="ticket_default_subject">طلب دعم</string>
+    <string name="ticket_status_open">مفتوح</string>
+    <string name="ticket_status_closed">مغلق</string>
+    <string name="ticket_date_na">غير متوفر</string>
+
+    <string name="ticket_id_prefix">تذكرة: #</string>
+    <string name="status_ticket_closed">تم إغلاق التذكرة</string>
+    <string name="status_connected_support">متصل بالدعم</string>
+    <string name="status_start_conversation">ابدأ محادثة</string>
+
+    <string name="error_connection_failed">خطأ في الاتصال: %s</string>
+    <string name="error_ticket_id_generation">خطأ في النظام: تعذر إنشاء رقم التذكرة</string>
+    <string name="error_network_failed_ticket">خطأ في الشبكة: فشل إنشاء التذكرة</string>
+    <string name="error_session_expired">انتهت جلسة التذكرة. حاول مرة أخرى.</string>
+    <string name="error_message_send_failed">فشل إرسال الرسالة</string>
+    <string name="error_status_update_failed">فشل تحديث الحالة</string>
+    <string name="error_database_failed">خطأ في قاعدة البيانات: %s</string>
+
+    <string name="toast_ticket_reopened">تم إعادة فتح التذكرة بنجاح</string>
+    <string name="toast_ticket_closed_feedback">تم إغلاق التذكرة</string>
+    <string name="toast_no_tickets_found">لا توجد تذاكر سابقة</string>
+
+    <string name="dialog_history_title">سجل الدعم</string>
+    <string name="dialog_btn_close">إغلاق</string>
+
+    <string name="auto_admin_initial_reply">تم إنشاء التذكرة #%s بنجاح. سيتواصل معك فريق الدعم قريباً.</string>
+
+    <string name="auto_admin_reopen_reply">تم إعادة فتح هذه التذكرة. كيف يمكننا مساعدتك؟</string>
+    <string name="identity_admin_system">المسؤول</string>
+    <string name="identity_admin_adeeb">أديب إبراهيم</string>
+
+    <string name="error_invalid_url">رابط غير صالح</string>
+    <string name="error_mediastore_entry_failed">تعذر إنشاء إدخال في MediaStore</string>
+    <string name="error_server_response_code">خطأ في الخادم: %d</string>
+    <string name="error_output_stream_failed">فشل فتح مجرى الإخراج</string>
+
+    <string name="chooser_title_whatsapp_status">تعيين الحالة عبر:</string>
+    <string name="chooser_title_share_status">مشاركة الحالة</string>
+    <string name="toast_no_sharing_app_found">لا يوجد تطبيق للمشاركة!</string>
+
+    <string name="trend_fallback_global">عالمي</string>
+
+    <string name="error_no_internet_toast">لا يوجد اتصال بالإنترنت!</string>
+
+    <string name="trend_region_global">عالمي</string>
+
+    <string name="progress_percentage_format">%d%%</string>
+
+    <string name="empty_title_no_records">لا توجد سجلات</string>
+    <string name="empty_desc_no_records">حالياً لا توجد صور رائجة.</string>
+
+    <string name="toast_download_failed_internet">فشل التحميل. تحقق من الإنترنت.</string>
+
+    <string name="fallback_trending_status">حالة رائجة</string>
+
+    <string name="error_download_failed_network">خطأ في الشبكة. حاول مرة أخرى.</string>
+
+    <string name="progress_percentage_format_preview">%d%%</string>
+
+    <string name="toast_preparing_media">جارٍ تجهيز الوسائط ✧</string>
+    <string name="toast_preparing_repost">جارٍ التحضير لإعادة النشر ✧</string>
+    <string name="error_repost_failed">فشل إعادة النشر، حاول مرة أخرى</string>
+
+    <string name="chooser_title_share_via">مشاركة عبر</string>
+    <string name="chooser_title_repost_via">إعادة النشر عبر</string>
+
+    <string name="notification_title_status_saver">حافظ الحالة</string>
+    <string name="notification_desc_saved_success">تم حفظ الحالة بنجاح!</string>
+
+    <string name="error_billing_play_not_ready">Google Play غير جاهز. تحقق من الإنترنت.</string>
+    <string name="error_billing_store_busy">متجر Play مشغول حالياً. حاول لاحقاً.</string>
+
+    <string name="feedback_title_question">هل أعجبك التطبيق؟</string>
+    <string name="toast_feedback_thank_you">شكراً لتقييمك!</string>
+
+    <string name="tag_fragment_home">الرئيسية</string>
+    <string name="tag_fragment_gallery">المعرض</string>
+    <string name="tag_fragment_trending">الرائج</string>
+
+    <string name="premium_state_active">نشط</string>
+
+    <string name="error_billing_cancelled">تم إلغاء الشراء.</string>
+    <string name="error_billing_already_owned">أنت تملك هذه النسخة المميزة بالفعل!</string>
+    <string name="error_billing_network_lost">انقطع الاتصال. تحقق من الإنترنت.</string>
+    <string name="error_billing_play_store_busy">متجر Play مشغول. حاول لاحقاً.</string>
+
+    <string name="fallback_not_available">غير متوفر</string>
+
+    <string name="progress_verifying_google">جاري التحقق عبر Google</string>
+
+    <string name="success_elite_welcome">✧ أهلاً بك في النخبة ✧\nتم إزالة الإعلانات نهائياً.</string>
+
+    <string name="notif_channel_name_expiry">تنبيهات انتهاء الحالة</string>
+    <string name="notif_channel_desc_expiry">تنبيهات مهمة لحفظ الحالات قبل انتهاء صلاحيتها.</string>
+
+    <string name="splash_status_premium_member">⭐ عضو مميز</string>
+    <string name="splash_status_loading_ad">جارٍ تحميل الإعلان…</string>
+
+    <string name="perm_dialog_title_notif">مطلوب إذن</string>
+    <string name="perm_dialog_desc_notif">فعّل الإشعارات لتلقي تنبيهات قبل انتهاء الحالات.</string>
+
+    <string name="perm_action_allow">السماح</string>
+    <string name="perm_action_later">لاحقاً</string>
+
+    <string name="toast_all_alerts_active">جميع التنبيهات مفعّلة!</string>
+    <string name="toast_view_statuses_first">يرجى مشاهدة الحالات في واتساب أولاً!</string>
+    <string name="toast_whatsapp_not_found">واتساب غير موجود!</string>
+
+    <string name="perm_warning_checkbox_first">يرجى تحديد المربع أولاً للمتابعة 🚀</string>
+    <string name="perm_warning_selection_required">التحديد مطلوب! ⚠️</string>
+    <string name="perm_error_grant_access">خطأ في الإذن! يرجى السماح ⚠️</string>
+    <string name="perm_warning_select_statuses_folder">اختر مجلد .Statuses للمتابعة 📁</string>
+
+    <string name="status_saver">حافظ الحالة</string>
+
+    <string name="premium_access">وصول مميز</string>
+
+    <string name="early_bird_special_step_1">عرض مبكر خاص: الخطوة 1</string>
+
+    <string name="smart_ai_media_engine">محرك الوسائط الذكي</string>
+
+    <string name="advanced_scanning_for_better_media_quality">• مسح متقدم لتحسين جودة الوسائط.</string>
+    <string name="faster_downloads_with_every_new_update">• تنزيل أسرع مع كل تحديث جديد.</string>
+    <string name="join_now_for_exclusive_future_rewards">• انضم الآن لمكافآت حصرية مستقبلية.</string>
+
+    <string name="start_setup">[ ابدأ الإعداد ]</string>
+
+    <string name="note_please_keep_the_app_installed_to_maintain_your_premium_rewards_and_future_updates">ملاحظة: يرجى إبقاء التطبيق مثبتاً للحفاظ على المميزات والتحديثات.</string>
+
+    <string name="storage_permission">إذن التخزين</string>
+
+    <string name="to_show_your_latest_statuses_we_need_access_to_your_status_folder">لعرض أحدث الحالات نحتاج الوصول إلى مجلد الحالات.</string>
+
+    <string name="step_2">الخطوة 2</string>
+
+    <string name="select_folder">اختر المجلد</string>
+
+    <string name="please_select_the_statuses_folder_to_automatically_sync_your_media">يرجى اختيار مجلد .Statuses لمزامنة الوسائط تلقائياً.</string>
+
+    <string name="allow_access">السماح بالوصول</string>
+
+    <string name="need_help_view_guide">تحتاج مساعدة؟ عرض الدليل</string>
+
+    <string name="status_folder_setup_guide">دليل إعداد مجلد الحالات</string>
+
+    <string name="follow_these_simple_steps_to_see_statuses">اتبع هذه الخطوات البسيطة لعرض الحالات</string>
+
+    <string name="for_new_android_11_14">لأندرويد الجديد (11 14)</string>
+
+    <string name="go_to_android_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[اذهب إلى: Android > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
+
+    <string name="for_old_android_10_amp_below"><![CDATA[لأندرويد القديم (10 وأقل)]]></string>
+
+    <string name="look_for_whatsapp_media_statuses_folder_in_your_internal_storage"><![CDATA[ابحث عن: WhatsApp > Media > .Statuses في التخزين الداخلي]]></string>
+
+    <string name="important_if_folder_is_empty">مهم: إذا كان المجلد فارغاً</string>
+
+    <string name="tap_the_3_dots_top_right_and_choose_show_hidden_files_this_is_required_to_find_the_status_folder">اضغط على الثلاث نقاط واختر إظهار الملفات المخفية.</string>
+
+    <string name="select_statuses_folder_and_click_use_this_folder_button_at_the_bottom">اختر مجلد.Statuses ثم اضغط استخدام هذا المجلد.</string>
+
+    <string name="i_understand">أفهم</string>
+
+    <string name="we_are_working_hard_to_make_your_experience_better_a_quick_review_would_mean_the_world_to_us">نعمل بجد لتحسين تجربتك، تقييمك يهمنا كثيراً.</string>
+
+    <string name="tap_to_rate">اضغط للتقييم</string>
+
+    <string name="it_only_takes_5_seconds">يستغرق 5 ثوانٍ فقط</string>
+
+    <string name="no_status_found">لا توجد حالات</string>
+
+    <string name="first_watch_status_from_whatsapp_nthen_download_from_here">شاهد الحالات أولاً في واتساب ثم قم بالتحميل هنا.</string>
+
+    <string name="get_expiry_alerts">الحصول على تنبيهات الانتهاء ⏳</string>
+
+    <string name="to_prevent_notification_delays_caused_by_android_battery_saving_please_complete_the_following_steps">لتجنب تأخير الإشعارات اتبع الخطوات التالية:</string>
+
+    <string name="open_battery_settings">افتح إعدادات البطارية</string>
+
+    <string name="_2">2</string>
+
+    <string name="select_unrestricted_don_t_optimize">اختر "غير مقيد" / "عدم التحسين"</string>
+
+    <string name="_3">3</string>
+
+    <string name="maybe_later">لاحقاً</string>
+
+    <string name="go_to_settings">اذهب إلى الإعدادات</string>
+
+    <string name="loading">جارٍ التحميل</string>
+
+    <string name="admin">المسؤول</string>
+
+    <string name="deleting">جارٍ الحذف</string>
+    <string name="world">🌐</string>
+    <string name="customize_your_app_interface">تخصيص واجهة التطبيق</string>
+    <string name="language_settings">إعدادات اللغة</string>
+    <string name="use_system_language">استخدام اللغة الافتراضية (English)</string>
+    <string name="region_amp_preferences"><![CDATA[المنطقة والتفضيلات]]></string>
+    <string name="world_s">🌍</string>
+    <string name="preview">معاينة</string>
+    <string name="current_english">الحالية: الإنجليزية</string>
+    <string name="apply_changes">تطبيق التغييرات</string>
+    <string name="need_help_contact_support">هل تحتاج إلى مساعدة؟ اتصل بالدعم</string>
+    <string name="app_interface_will_be_updated_to">سيتم تحديث واجهة التطبيق إلى: %s</string>
+
+    <!-- Status and Preview Messages -->
+    <string name="status_system_default">الحالة: استخدام لغة النظام</string>
+    <string name="preview_system_default">سيتبع التطبيق لغة النظام.</string>
+
+    <string name="status_selected">المحدد: %s</string>
+    <string name="preview_selected">سيتم تحديث واجهة التطبيق إلى: %s</string>
+
+    <string name="status_current">الحالية: %s</string>
+    <string name="preview_current">سيتم تحديث واجهة التطبيق إلى: %s</string>
+    <string name="select_language_step_1">اختر اللغة الخطوة 1</string>
+    <string name="elite_upgrade">ترقية النخبة</string>
+    <string name="supreme_features">✦ ميزات مميزة ✦</string>
+    <string name="zero_disruptive_ads">لا توجد إعلانات</string>
+    <string name="multi_threaded_downloader">محمل سريع</string>
+    <string name="quality_content_access">وصول للمحتوى</string>
+    <string name="choose_your_elite_pass">اختر باقة النخبة</string>
+    <string name="monthly">شهري</string>
+    <string name="active">نشط</string>
+    <string name="premium_benefits">مزايا مميزة</string>
+    <string name="lifetime_access">وصول مدى الحياة</string>
+    <string name="one_time_luxury_pass">باقة فاخرة لمرة واحدة</string>
+    <string name="verified_by_google_play_security">موثق من جوجل بلاي</string>
+    <string name="don_t_show_for_this_version">لا تظهر لهذا الإصدار</string>
+    <string name="experience_now">جرب الآن</string>
+    <string name="what_s_new">ما الجديد</string>
+    <string name="multi_language_support">دعم لغات متعددة</string>
+    <string name="change_app_language_as_you_prefer">غير لغة التطبيق</string>
+    <string name="export_quality">جودة التصدير</string>
+    <string name="select_your_preference_magic_lab_ai_enhances_clarity_and_detail_automatically">حدد تفضيلاتك. يقوم Magic Lab AI بتحسين الجودة تلقائياً.</string>
+    <string name="magic_lab_ai">Magic Lab AI</string>
+    <string name="ultra_hd_noise_reduction">Ultra HD + Noise Reduction</string>
+    <string name="original_quality">الجودة الأصلية</string>
+    <string name="set_as_default_for_future_exports">تعيين كافتراضي</string>
+    <string name="select_language">اختر اللغة</string>
+    <string name="language">اللغة</string>
+    <string name="file_details">تفاصيل الملف</string>
+    <string name="below_are_the_technical_details_and_storage_paths_for_the_selected_status_file">فيما يلي التفاصيل الفنية ومسارات التخزين لملف الحالة المحدد.</string>
+    <string name="dismiss">إغلاق</string>
+    <string name="splash_ad_disclaimer">هذه الشاشة تحتوي على إعلانات</string>
+    <string name="last_sync">آخر مزامنة</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="elite_features_coming_soon">ميزات النخبة قريباً</string>
+    <string name="confirm_logout">تأكيد تسجيل الخروج</string>
+    <string name="are_you_sure_you_want_to_logout_you_will_need_to_sign_in_again_to_access_your_account">هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.</string>
+    <string name="cancel">إلغاء</string>
+    <string name="peek_mode">وضع التصفح الخفي </string>
+    <string name="intelligence_being_fine_tuned">جاري ضبط الذكاء الاصطناعي</string>
+    <string name="analyze_moods_and_patterns_in_real_time">تحليل الحالة المزاجية والأنماط في الوقت الفعلي.</string>
+    <string name="peek_title_enable_access">تفعيل معاينة التصفح</string>
+    <string name="peek_desc_enable_access">قم بتفعيل الوصول إلى الإشعارات حتى يتمكن التطبيق من تصنيف تنبيهاتك الواردة بشكل آمن.</string>
+
+    <string name="peek_title_no_alerts">لا توجد تنبيهات حديثة</string>
+    <string name="peek_desc_no_alerts">بمجرد وصول إشعارات جديدة، ستظهر هنا تلقائياً.</string>
+
+    <string name="ai_stealth_status">جاري ضبط الذكاء الاصطناعي</string>
+    <string name="profile">الملف الشخصي</string>
+
+    <string name="messages">الرسائل</string>
+    <string name="avg_reply">متوسط الرد</string>
+    <string name="New_media">الوسائط</string>
+    <string name="ai_behavioral_analysis">تحليل السلوك بالذكاء الاصطناعي</string>
+    <string name="ai_calculating_behavior_patterns">جاري حساب أنماط السلوك</string>
+    <string name="status_na">غير متاح</string>
+    <string name="mood_analyzing">المزاج: جاري التحليل</string>
+    <string name="type_analyzing">النوع: جاري التحليل</string>
+    <string name="vibe_analyzing">النمط: جاري التحليل</string>
+    <string name="typenew_analyzing">النوع: جاري التحليل</string>
+    <string name="peak_analyzing">الذروة: جاري التحليل</string>
+    <string name="fav_analyzing">المفضل: جاري التحليل</string>
+    <string name="label_type">النوع: %s</string>
+    <string name="label_vibe">النمط: %s</string>
+    <string name="label_trend"> | الاتجاه: %s</string>
+    <string name="ai_status_high">عالي</string>
+    <string name="ai_status_delayed">متأخر</string>
+    <string name="mood_neutral">المزاج: محايد</string>
+    <string name="mood_happy">المزاج: سعيد</string>
+    <string name="mood_distant">المزاج: متباعد</string>
+    <string name="type_new_connection">النوع: اتصال جديد</string>
+    <string name="type_intense_duo">النوع: ثنائي مكثف</string>
+    <string name="type_heavy_chatter">النوع: ثرثار</string>
+    <string name="type_casual">النوع: عرضي</string>
+    <string name="type_low_profile">النوع: هادئ</string>
+    <string name="peak_na">الذروة: غير متاح</string>
+    <string name="peak_format">الذروة: %1$d%2$s</string>
+    <string name="fav_na">المفضل: غير متاح</string>
+    <string name="fav_format">المفضل: \'%s\'</string>
+    <string name="archetype_observer">مراقب</string>
+    <string name="archetype_storyteller">راوي قصص</string>
+    <string name="archetype_short_reply">ملك الرد القصير</string>
+    <string name="archetype_balanced">متوازن</string>
+    <string name="vibe_neutral">محايد</string>
+    <string name="vibe_curious">فضولي</string>
+    <string name="vibe_friendly">ودود</string>
+    <string name="vibe_straightforward">صريح</string>
+    <string name="status_ready">جاهز للدردشة</string>
+    <string name="status_active">نشط - الرد في ~%d دقيقة</string>
+    <string name="status_soon">متوقع قريباً</string>
+    <string name="status_low">فرصة منخفضة للرد</string>
+    <string name="status_high">فرصة عالية للرد</string>
+    <string name="cons_building">بناء علاقة</string>
+    <string name="cons_rising">اهتمام متزايد</string>
+    <string name="cons_declining">اهتمام متناقص</string>
+    <string name="cons_consistent">متسق</string>
+</resources>

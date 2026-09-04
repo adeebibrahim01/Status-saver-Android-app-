@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">اسٹیٹس سیور</string>
+
+    <string name="navigation_drawer_open">نیویگیشن ڈرائر کھولیں</string>
+    <string name="navigation_drawer_close">نیویگیشن ڈرائر بند کریں</string>
+    <string name="nav_header_title">Status Downloader plus</string>
+    <string name="nav_header_subtitle">mariaadeeb982@gmail.com</string>
+    <string name="nav_header_desc">نیویگیشن ہیڈر</string>
+    <string name="action_settings">سیٹنگز</string>
+    <string name="menu_home">ہوم</string>
+    <string name="menu_gallery">اسٹیٹس</string>
+    <string name="Download">ڈاؤن لوڈ</string>
+    <string name="app_icon">s</string>
+    <string name="permission_icon">اجازت کا آئیکن</string>
+    <string name="storage_access">extra\n</string>
+    <string name="notification_access">extra2\n</string>
+
+     <string name="whatsapp_folder_path_line2">Android/media/com.whatsapp/WhatsApp/Media/.Statuses</string>
+
+    <string name="statuses">اسٹیٹس</string>
+    <string name="downloads">ڈاؤن لوڈز</string>
+    <string name="lifetime">لائف ٹائم</string>
+    <string name="available">لائیو</string>
+    <string name="today_s">آج کے</string>
+    <string name="saved">محفوظ کردہ</string>
+    <string name="images">تصاویر</string>
+    <string name="videos">ویڈیوز</string>
+    <string name="_saved">محفوظ کردہ</string>
+    <string name="recent_downloads">حالیہ ڈاؤن لوڈز</string>
+    <string name="no_downloads_yet">ابھی تک کوئی ڈاؤن لوڈ نہیں ہوا</string>
+    <string name="fast_amp_secure_downloader"><![CDATA[تیز اور محفوظ ڈاؤن لوڈر]]></string>
+    <string name="custom_video_trim">ویڈیو ٹرم کریں</string>
+    <string name="total_duration_0s">کل دورانیہ: 0 سیکنڈ</string>
+    <string name="start_sec">شروع (سیکنڈ)</string>
+    <string name="end_sec">خاتمہ (سیکنڈ)</string>
+    <string name="trim_amp_preview"><![CDATA[ٹرم اور پریویو]]></string>
+
+    <string name="media_details">میڈیا کی تفصیلات</string>
+    <string name="type_image">قسم: تصویر</string>
+    <string name="name_example_jpg">نام: example.jpg</string>
+    <string name="size_1024_kb">سائز: 1024 KB</string>
+    <string name="resolution_1080_x_1920">ریزولیوشن: 1080 x 1920</string>
+    <string name="duration_0h_0m_0s">دورانیہ: 0h 0m 0s</string>
+    <string name="close">بند کریں</string>
+    <string name="saved_media_images_videos">محفوظ کردہ میڈیا • تصاویر • ویڈیوز</string>
+    <string name="no_downloads_available">کوئی ڈاؤن لوڈ دستیاب نہیں ہے</string>
+    <string name="no_files_found">کوئی فائل نہیں ملی</string>
+    <string name="media">میڈیا</string>
+    <string name="save">محفوظ کریں</string>
+    <string name="share">شیئر کریں</string>
+    <string name="crop">کراپ کریں</string>
+    <string name="edit">ایڈٹ کریں</string>
+    <string name="trim">ٹرم کریں</string>
+    <string name="info">معلومات</string>
+    <string name="back">واپس</string>
+    <string name="next">آگے</string>
+    <string name="delete">ڈیلیٹ کریں</string>
+    <string name="refreshing">ریفریش ہو رہا ہے…</string>
+    <string name="action_successful">عمل کامیاب رہا!</string>
+    <string name="STATUS_ENGINE">اسٹیٹس انجن</string>
+    <string name="hello_blank_fragment">ہیلو بلینک فریگمنٹ</string>
+    <string name="accessibility_service_description">نوٹیفکیشن ایکسیسبیلٹی سروس</string>
+    <string name="download_drawer">ڈاؤن لوڈ</string>
+    <string name="_0">0</string>
+    <string name="privacy_protected">پرائیویسی محفوظ ہے</string>
+    <string name="lock_secure">محفوظ لاک</string>
+    <string name="active_session">لائیو</string>
+    <string name="since_2019">2019 سے</string>
+    <string name="v1_0_16">V1.0.16</string>
+    <string name="app_logo">ایپ لوگو</string>
+    <string name="float_btn">float btn</string>
+    <string name="logo">لوگو</string>
+    <string name="_30">۳۰</string>
+    <string name="whatsapp_icon">واٹس ایپ آئیکن</string>
+    <string name="_1">1</string>
+    <string name="overlay">اوورلے</string>
+    <string name="videoicon">ویڈیو آئیکن</string>
+    <string name="downloadicon">ڈاؤن لوڈ آئیکن</string>
+    <string name="downloadstatus">ڈاؤن لوڈ اسٹیٹس</string>
+    <string name="snackicon">سنیک آئیکن</string>
+    <string name="star_visual">اسٹار ویژول</string>
+    <string name="folder_security">فولڈر سیکیورٹی</string>
+    <string name="whatsapp">WhatsApp</string>
+    <string name="thumbicon">تھمب آئیکن</string>
+    <string name="_Downloads">ڈاؤن لوڈز</string>
+    <string name="_7days">آخری 7 دن</string>
+    <string name="role_admin_name">Adeeb Ibrahim</string>
+    <string name="role_developer_name">OmarSamy</string>
+    <string name="whatsapp_folder_path_line1">عام واٹس ایپ میڈیا فولڈر کا پاتھ:</string>
+    <string name="hidden_folder_guide_line1">اگر واٹس ایپ میڈیا کے اندر .Statuses فولڈر نظر نہیں آ رہا:</string>
+    <string name="hidden_folder_guide_line2">1. اوپر تھری ڈاٹ (3-dot) مینو پر ٹیپ کریں۔</string>
+    <string name="hidden_folder_guide_line3">2. \'Show hidden files\' کو آن کریں۔</string>
+    <string name="hidden_folder_guide_line4">3. دوبارہ .Statuses فولڈر میں جائیں۔</string>
+    <string name="hidden_folder_guide_line5">4. مناسب اجازت دینے کے لیے \'Use this folder\' کو منتخب کریں۔</string>
+    <string name="to_fetch_recent_status">حالیہ اسٹیٹس حاصل کرنے کے لیے</string>
+    <string name="status_downloader">اسٹیٹس ڈاؤن لوڈر</string>
+    <string name="select_app">ایپ منتخب کریں</string>
+    <string name="choose_whatsapp_to_scan_media">میڈیا اسکین کرنے کے لیے واٹس ایپ کا انتخاب کریں</string>
+    <string name="official_messenger">آفیشل میسنجر</string>
+
+    <string name="enjoying_the_app">کیا آپ ایپ سے لطف اندوز ہو رہے ہیں؟</string>
+    <string name="your_review_helps_us_improve_it_only_takes_a_minute_to_support_us_on_the_play_store">آپ کا ریویو ہماری ایپ کو بہتر بنانے میں مدد کرتا ہے۔ پلے اسٹور پر ہمیں سپورٹ کرنے کے لیے صرف ایک منٹ لگتا ہے۔</string>
+    <string name="rate_on_play_store">پلے اسٹور پر ریٹ کریں</string>
+    <string name="rate_app">ایپ کو ریٹ کریں</string>
+    <string name="send_feedback">فیڈ بیک بھیجیں</string>
+    <string name="share_app">ایپ شیئر کریں</string>
+
+    <string name="privacy_policy">پرائیویسی پالیسی</string>
+    <string name="stats">اعداد و شمار</string>
+    <string name="explorer">ایکسپلورر</string>
+    <string name="history">ہسٹری</string>
+    <string name="settings">سیٹنگز</string>
+    <string name="Dashboard">ڈیش بورڈ</string>
+
+    <string name="ultimate_troubleshooting_guide">مسائل حل کرنے کی گائیڈ</string>
+    <string name="step_1_android_11_12_13_14_users">مرحلہ 1: اینڈرائیڈ 11، 12، 13، 14 کے صارفین</string>
+    <string name="navigate_to_nandroid_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[یہاں جائیں:\nAndroid > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
+    <string name="step_2_android_10">مرحلہ 2: اینڈرائیڈ 10</string>
+    <string name="if_you_don_t_see_android_media_look_directly_for_nwhatsapp_media_statuses"><![CDATA[اگر آپ کو \'Android/media\' نظر نہ آئے، تو براہ راست یہاں تلاش کریں:\nWhatsApp > Media > .Statuses]]></string>
+    <string name="step_3_whatsapp_business">مرحلہ 3: واٹس ایپ بزنس</string>
+    <string name="look_for_nandroid_media_com_whatsapp_w4b_whatsapp_business_media_statuses"><![CDATA[یہاں تلاش کریں:\nAndroid > media > com.whatsapp.w4b > WhatsApp Business > Media > .Statuses]]></string>
+    <string name="step_4_folder_is_missing_or_hidden">مرحلہ 4: فولڈر غائب یا چھپا ہوا ہے؟</string>
+    <string name="click_the_menu_in_the_top_right_and_tap_show_hidden_files_without_this_you_cannot_see_the_statuses_folder">اوپر دائیں کونے میں (⋮) مینو پر کلک کریں اور \'Show Hidden Files\' پر ٹیپ کریں۔ اس کے بغیر، آپ \'.Statuses\' فولڈر نہیں دیکھ سکتے۔</string>
+    <string name="step_5_folder_is_empty">مرحلہ 5: فولڈر خالی ہے؟</string>
+    <string name="first_open_whatsapp_and_watch_some_statuses_if_you_haven_t_viewed_any_status_in_the_last_24_hours_the_folder_will_appear_empty">سب سے پہلے، واٹس ایپ کھولیں اور کچھ اسٹیٹس دیکھیں۔ اگر آپ نے پچھلے 24 گھنٹوں میں کوئی اسٹیٹس نہیں دیکھا، تو فولڈر خالی نظر آئے گا۔</string>
+    <string name="step_6_dual_apps_parallel_space">مرحلہ 6: ڈوئل ایپس / پیرلل اسپیس</string>
+    <string name="search_for_a_folder_named_dual_or_999_or_parallel_in_your_main_storage_root">اپنی مین اسٹوریج روٹ میں \'Dual\' یا \'999\' یا \'Parallel\' نامی فولڈر تلاش کریں۔</string>
+    <string name="important_after_selecting_the_folder_tap_use_this_folder_and_then_allow">اہم: فولڈر منتخب کرنے کے بعد، \'USE THIS FOLDER\' پر ٹیپ کریں اور پھر \'ALLOW\' کریں۔</string>
+    <string name="everything_is_clear">سب کچھ واضح ہے!</string>
+    <string name="permissions_required">اجازت درکار ہے</string>
+    <string name="grant_access_to_save_your_favorite_status">اپنے پسندیدہ اسٹیٹس کو محفوظ کرنے کے لیے رسائی دیں</string>
+    <string name="status_folder">اسٹیٹس فولڈر</string>
+    <string name="allow">اجازت دیں</string>
+    <string name="how_to_set_path_view_guide">پاتھ کیسے سیٹ کریں؟ گائیڈ دیکھیں</string>
+    <string name="need_help_contact_us_at_nmariaadeeb982_gmail_com">مدد کی ضرورت ہے؟ ہم سے رابطہ کریں\nmariaadeeb982@gmail.com</string>
+
+    <string name="privacy_title">پرائیویسی پالیسی – اسٹیٹس سیور</string>
+    <string name="privacy_last_updated">آخری اپ ڈیٹ: 04 مئی، 2026</string>
+    <string name="privacy_section_1_heading">1. ڈیٹا پرائیویسی اور کلیکشن</string>
+    <string name="privacy_section_1">آپ کی پرائیویسی ہماری اولین ترجیح ہے۔ ہماری ایپلیکیشن کسی بھی قسم کی ذاتی شناختی معلومات، نجی پیغامات، یا رابطے کی تفصیلات جمع، اسٹور یا شیئر نہیں کرتی ہے۔ ایپ کے تمام بنیادی فنکشنز آپ کے آلے پر مقامی طور پر کام کرنے کے لیے ڈیزائن کیے گئے ہیں تاکہ زیادہ سے زیادہ سیکیورٹی کو یقینی بنایا جا سکے۔</string>
+    <string name="privacy_section_2_heading">2. اسٹوریج اور فولڈر تک رسائی</string>
+    <string name="privacy_section_2">یہ ایپلیکیشن اینڈرائیڈ کے معیاری اسٹوریج ایکسیس فریم ورک کا استعمال کرتی ہے۔ ہم صرف ان مخصوص میڈیا ڈائریکٹریز تک رسائی حاصل کرتے ہیں جنہیں آپ خود منتخب اور مجاز کرتے ہیں۔ ہمارے پاس مجاز پاتھس کے علاوہ آپ کی نجی فائلوں، دستاویزات، یا ذاتی گیلری کی اشیاء تک رسائی کی اجازت نہیں ہے۔</string>
+    <string name="privacy_section_3_heading">3. ضروری اجازتیں</string>
+    <string name="privacy_section_3">ایپ کے درست کام کو یقینی بنانے کے لیے، ہمیں مندرجہ ذیل کی ضرورت ہے:\n\n• ڈائریکٹری تک رسائی: مقامی طور پر اسٹور کردہ میڈیا فائلوں کو مینیج اور محفوظ کرنے کے لیے۔\n• نیٹ ورک تک رسائی: آن لائن مواد کی دریافت اور ایپ کے استحکام کو فراہم کرنے کے لیے۔\n• نوٹیفیکیشنز: آپ کے محفوظ کردہ میڈیا کے بارے میں اسٹیٹس اپ ڈیٹس فراہم کرنے کے لیے (اختیاری)۔\n\nہم آپ کے کیمرہ، مائیکروفون، یا لوکیشن تک رسائی کی درخواست نہیں کرتے ہیں۔</string>
+    <string name="privacy_section_4_heading">4. آن لائن کنٹینٹ سروسز</string>
+    <string name="privacy_section_4">ایپلیکیشن میں ایک ڈسکوری فیچر شامل ہے جو آپ کو پبلک ڈومین میڈیا براؤز کرنے کی اجازت دیتا ہے۔ ایپ کے اندر کی جانے والی کوئی بھی سرچ صرف حقیقی وقت میں متعلقہ مواد کے نتائج فراہم کرنے کے لیے استعمال ہوتی ہے۔ ہم آپ کی تلاش کو کسی ذاتی پروفائل سے لنک نہیں کرتے ہیں۔</string>
+    <string name="privacy_section_5_heading">5. ایڈورٹائزنگ اور اینالیٹکس</string>
+    <string name="privacy_section_5">ہم ریگولیٹڈ تھرڈ پارٹی ایڈورٹائزنگ نیٹ ورکس کے فراہم کردہ اشتہارات دکھا سکتے ہیں۔ یہ پارٹنرز غیر ذاتی، تکنیکی شناخت کنندگان (جیسے ایڈورٹائزنگ ID) کا استعمال صرف اشتہارات کی کارکردگی کی پیمائش اور فراہمی کے لیے کر سکتے ہیں۔ کوئی بھی نجی میڈیا یا صارف کا تیار کردہ ڈیٹا کبھی بھی ان فراہم کنندگان کے ساتھ شیئر نہیں کیا جاتا۔</string>
+    <string name="privacy_section_6_heading">6. سیکیورٹی اور آف لائن سالمیت</string>
+    <string name="privacy_section_6">اس ایپ کے زیادہ تر فیچرز آف لائن ماحول میں کام کرتے ہیں۔ چونکہ آپ کا میڈیا کسی ریموٹ سرور پر اپ لوڈ نہیں ہوتا ہے، اس لیے آپ کی فائلیں مکمل طور پر آپ کے اپنے کنٹرول اور ملکیت میں رہتی ہیں۔</string>
+    <string name="privacy_section_7_heading">7. بچوں کی پرائیویسی</string>
+    <string name="privacy_section_7">ہماری سروس عام عوام کے لیے ڈیزائن کی گئی ہے۔ ہم جان بوجھ کر 13 سال سے کم عمر کے افراد سے ڈیٹا اکٹھا نہیں کرتے ہیں۔ ہم بچوں کے تحفظ کے تمام قوانین کی تعمیل کرنے کے لیے پرعزم ہیں۔</string>
+    <string name="privacy_section_8_heading">8. سپورٹ اور انکوائری</string>
+    <string name="privacy_section_8">اگر آپ کے پاس اس پالیسی یا اپنے ڈیٹا کو ہینڈل کرنے کے بارے میں کوئی سوالات ہیں، تو بلا جھجھک ہم سے رابطہ کریں:\n\nای میل: mariaadeeb982@gmail.com</string>
+
+    <string name="disclaimer_heading">قانونی ڈس کلیمر</string>
+    <string name="disclaimer_text">
+    <b>1. غیر وابستگی:</b> \n
+    یہ ایپ ایک تھرڈ پارٹی یوٹیلیٹی ٹول ہے اور یہ کسی بھی میسجنگ پلیٹ فارم یا سوشل میڈیا کارپوریشن کے ساتھ منسلک، اسپانسر شدہ یا تصدیق شدہ <b>نہیں</b> ہے۔ \n\n
+
+    <b>2. ٹریڈ مارک کا اعتراف:</b> \n
+    تمام پروڈکٹ کے نام، لوگو اور برانڈز ان کے متعلقہ مالکان کی ملکیت ہیں۔ اس ایپ میں ان کا استعمال صرف شناخت اور مطابقت کے مقاصد کے لیے ہے۔ \n\n
+
+    <b>3. استعمال کی پالیسی:</b> \n
+    یہ ٹول مقامی طور پر اسٹور کردہ میڈیا کے ذاتی استعمال کے لیے ہے۔ صارفین کسی بھی میڈیا کو محفوظ کرنے یا دوبارہ شیئر کرنے سے پہلے اصل مواد کے مالکان سے قانونی حق یا اجازت حاصل کرنے کے ذمہ دار ہیں۔ \n\n
+
+    <b>4. ذمہ داری:</b> \n
+    ایپلیکیشن کے کسی بھی غلط استعمال یا صارف کی طرف سے کاپی رائٹ کی خلاف ورزی کی صورت میں ڈویلپر کو ذمہ دار نہیں ٹھہرایا جائے گا۔
+    </string>
+
+    <string name="trending">ٹرینڈنگ</string>
+    <string name="search">تلاش کریں</string>
+    <string name="support">سپورٹ</string>
+    <string name="recent_downloads_s">حالیہ ڈاؤن لوڈز</string>
+    <string name="premium_vault">✧ پریمیم وولٹ ✧</string>
+    <string name="gallery">گیلری</string>
+    <string name="downloadss">ڈاؤن لوڈز</string>
+    <string name="dashboard">ڈیش بورڈ</string>
+    <string name="community_amp_feedback"><![CDATA[کمیونٹی اور فیڈ بیک]]></string>
+    <string name="recommend_us">ہماری سفارش کریں</string>
+    <string name="invite_friends">دوستوں کو مدعو کریں</string>
+    <string name="join_whatsapp_channel">واٹس ایپ چینل جوائن کریں</string>
+    <string name="app_information">ایپ کی معلومات</string>
+    <string name="privacy_amp_terms"><![CDATA[پرائیویسی اور شرائط]]></string>
+    <string name="unlock_pro_experience">پرو تجربہ انلاک کریں</string>
+    <string name="status_gallery">اسٹیٹس گیلری</string>
+    <string name="status_downloads">اسٹیٹس ڈاؤن لوڈز</string>
+
+    <string name="global_trending">✧ گلوبل ٹرینڈنگ ✧</string>
+    <string name="trending_status">ٹرینڈنگ اسٹیٹس</string>
+    <string name="global_search">✧ گلوبل سرچ ✧</string>
+    <string name="status_discovery">اسٹیٹس ڈسکوری</string>
+    <string name="explore_premium_content">پریمیم کنٹینٹ ایکسپلور کریں</string>
+    <string name="find_the_best_status_and_wallpapers_for_you">اپنے لیے بہترین اسٹیٹس اور وال پیپرز تلاش کریں</string>
+    <string name="search_premium_status">پریمیم اسٹیٹس تلاش کریں</string>
+    <string name="please_wait">براہ کرم انتظار کریں</string>
+    <string name="explain_your_issue">اپنا مسئلہ بیان کریں</string>
+    <string name="new_ticket">نیا ٹکٹ</string>
+    <string name="re_open">دوبارہ کھولیں</string>
+    <string name="this_ticket_is_closed_do_you_need_more_help">یہ ٹکٹ بند ہو چکا ہے۔ کیا آپ کو مزید مدد کی ضرورت ہے؟</string>
+    <string name="our_developers_are_ready_to_assist_you_tell_us_your_issue_and_we_ll_get_back_to_you_shortly">ہمارے ڈیولپرز آپ کی مدد کے لیے تیار ہیں۔ ہمیں اپنا مسئلہ بتائیں اور ہم جلد ہی آپ سے رابطہ کریں گے۔</string>
+    <string name="welcome_to_vip_support">وی آئی پی سپورٹ میں خوش آمدید</string>
+    <string name="typical_response_time_within_24_hours">عام طور پر جواب کا وقت: 24 گھنٹوں کے اندر</string>
+    <string name="connected_to_support">سپورٹ سے منسلک ہو گئے</string>
+    <string name="ref">Ref: #-------</string>
+    <string name="media_preview">میڈیا پریویو</string>
+    <string name="magic_lab">میجک لیب</string>
+    <string name="processing">پروسیسنگ ہو رہی ہے</string>
+    <string name="saved_media">محفوظ کردہ میڈیا</string>
+    <string name="repost">دوبارہ پوسٹ کریں</string>
+    <string name="set_as_status">اسٹیٹس لگائیں</string>
+    <string name="timer_expired">میعاد ختم</string>
+    <string name="premium_status">پریمیم اسٹیٹس</string>
+    <string name="timer_expires_in"> ختم: %1$02d:%2$02d:%3$02d</string>
+    <string name="magic_lab_pro">✧ میجک لیب پرو ✧</string>
+    <string name="denoise">شور کم کریں</string>
+    <string name="vivid_hdr">ویوڈ HDR</string>
+    <string name="exposure">ایکسپوزر</string>
+    <string name="smooth">ہموار</string>
+    <string name="exposures">ایکسپوزر</string>
+    <string name="highlights">ہائی لائٹس</string>
+    <string name="shadows">شیڈوز</string>
+    <string name="contrast">کونٹراسٹ</string>
+    <string name="bright">برائٹنس</string>
+    <string name="vibrance">وائبیرنس</string>
+    <string name="warmth">وارمتھ</string>
+    <string name="color">رنگ</string>
+    <string name="tint">ٹنٹ</string>
+    <string name="clarity">کلیئرٹی</string>
+    <string name="sharpen">شارپ کریں</string>
+    <string name="vignette">وینیٹ</string>
+    <string name="original">اصل</string>
+    <string name="export">ایکسپورٹ</string>
+    <string name="tab_images">تصاویر</string>
+    <string name="tab_videos">ویڈیوز</string>
+    <string name="toast_already_saved">پہلے سے محفوظ ہے!</string>
+    <string name="error_permission_denied">اجازت نہیں دی گئی!</string>
+    <string name="empty_videos_title">کوئی ویڈیو نہیں ملی</string>
+    <string name="empty_images_title">کوئی تصویر نہیں ملی</string>
+    <string name="empty_whatsapp_desc">پہلے واٹس ایپ پر اسٹیٹس دیکھیں\nپھر یہاں سے ڈاؤن لوڈ کریں۔</string>
+    <string name="toast_whatsapp_not_installed">واٹس ایپ انسٹال نہیں ہے</string>
+    <string name="error_open_preview">پریویو نہیں کھولا جا سکا۔</string>
+    <string name="error_item_unavailable">یہ آئٹم اب دستیاب نہیں ہے</string>
+    <string name="error_process_interrupted">عمل میں رکاوٹ آئی۔ دوبارہ کوشش کریں۔</string>
+    <string name="error_media_not_found">میڈیا نہیں ملا</string>
+    <string name="error_could_not_open_media">میڈیا نہیں کھولا جا سکا۔</string>
+    <string name="error_system_permission_failed">سسٹم کی اجازت ناکام ہو گئی۔</string>
+    <string name="empty_saved_media_title">کوئی محفوظ میڈیا نہیں ہے</string>
+    <string name="empty_saved_media_desc">اپنے پسندیدہ اسٹیٹس کو یہاں کسی بھی وقت دیکھنے کے لیے محفوظ کریں۔</string>
+    <string name="default_app_version">v1.0.1</string>
+    <string name="joined_since_date">%s سے شامل ہوئے</string>
+    <string name="error_delete_failed">ڈیلیٹ ناکام ہو گیا۔ دوبارہ کوشش کریں۔</string>
+    <string name="error_file_not_ready_share">فائل شیئرنگ کے لیے تیار نہیں ہے</string>
+    <string name="error_path_not_found">فائل کا پاتھ نہیں ملا</string>
+    <string name="error_share_failed">شیئر کی درخواست پر عمل نہیں ہو سکا۔</string>
+    <string name="share_chooser_title">اس کے ذریعے شیئر کریں:</string>
+
+    <string name="tool_smooth_label">ٹیکسچر اسموتھ</string>
+    <string name="tool_exposure_label">ایکسپوژر AI</string>
+    <string name="tool_contrast_label">ڈائنامک کنٹراسٹ</string>
+    <string name="tool_brightness_label">لوومنینس</string>
+    <string name="tool_saturation_label">سیچوریشن</string>
+    <string name="tool_warmth_label">کلر ٹمپریچر</string>
+    <string name="tool_tint_label">ٹنٹ</string>
+    <string name="tool_detail_label">4K ڈیٹیل</string>
+    <string name="tool_clarity_label">کلیریٹی AI</string>
+    <string name="tool_vibrance_label">وائبرنس</string>
+    <string name="tool_highlights_label">ہائی لائٹس</string>
+    <string name="tool_shadows_label">شیڈوز</string>
+    <string name="tool_vignette_label">وینیٹ</string>
+
+    <string name="error_failed_process_4k">4K امیج پروسیس کرنے میں ناکامی</string>
+    <string name="error_oom_processing">پروسیسنگ خرابی: آؤٹ آف میموری</string>
+    <string name="error_failed_load_image">تصویر لوڈ کرنے میں ناکامی</string>
+    <string name="error_image_too_large">تصویر پریویو کے لیے بہت بڑی ہے</string>
+
+    <string name="notify_already_saved">اسٹیٹس پہلے ہی محفوظ ہو چکا ہے! ✅</string>
+    <string name="notify_gallery_already">پہلے ہی گیلری میں موجود ہے! ✅</string>
+    <string name="notify_magic_lab_unavailable">ڈاؤن لوڈ کے بعد میجک لیب دستیاب نہیں ہے!</string>
+    <string name="notify_video_ai_soon">اگلی نسل کا ویڈیو AI جلد ہی انلاک ہو رہا ہے۔ 🔥</string>
+    <string name="error_magic_lab_lost">میجک لیب کا ڈیٹا ضائع ہو گیا!</string>
+    <string name="error_invalid_uri">میڈیا کا URI غلط ہے</string>
+    <string name="error_oom_or_file">میڈیا انجن: آؤٹ آف میموری یا فائل کی خرابی</string>
+    <string name="error_low_memory">ڈیوائس میموری کم ہے: اسٹینڈرڈ سیو آزمائیں</string>
+    <string name="error_media_missing">میڈیا پاتھ موجود نہیں ہے!</string>
+    <string name="error_no_media">دکھانے کے لیے کوئی میڈیا نہیں ہے</string>
+    <string name="error_download_failed">ڈاؤن لوڈ ناکام ہو گیا!</string>
+
+    <string name="progress_saving_masterpiece">شاہکار محفوظ کیا جا رہا ہے…</string>
+    <string name="progress_init_ai">AI انجن شروع کیا جا رہا ہے…</string>
+    <string name="progress_saving_video">ویڈیو محفوظ کی جا رہی ہے…</string>
+    <string name="progress_finalizing">شاہکار کو حتمی شکل دی جا رہی ہے…</string>
+    <string name="progress_fetching">تصویر حاصل کی جا رہی ہے…</string>
+    <string name="progress_decoding">تصویر ڈی کوڈ کی جا رہی ہے…</string>
+    <string name="progress_saving_gallery">گیلری میں محفوظ کیا جا رہا ہے…</string>
+    <string name="progress_pro_filters">پرو فلٹرز اپلائی کیے جا رہے ہیں…</string>
+    <string name="progress_success_saved">اسٹیٹس کامیابی سے محفوظ ہو گیا!</string>
+
+    <string name="info_name_format">نام: %s</string>
+    <string name="info_type_format">قسم: %s</string>
+    <string name="info_status_downloaded">اسٹیٹس: ڈاؤن لوڈ ہو گیا</string>
+    <string name="info_status_pending">اسٹیٹس: پینڈنگ</string>
+    <string name="info_path_wa">واٹس ایپ: %s</string>
+    <string name="info_path_gallery">گیلری: %s</string>
+    <string name="info_captured_on">کیپچر کیا گیا: %s</string>
+    <string name="info_date_not_available">تاریخ: دستیاب نہیں ہے</string>
+    <string name="default_premium_status_title">پریمیم اسٹیٹس</string>
+    <string name="default_wallpaper_title">وال پیپرز</string>
+
+    <string name="error_something_went_wrong">کچھ غلط ہو گیا</string>
+    <string name="toast_title_copied">✧ ٹائٹل کلپ بورڈ پر کاپی ہو گیا ✧</string>
+    <string name="toast_already_gallery">✧ پہلے ہی گیلری میں موجود ہے ✧</string>
+
+    <string name="action_save">محفوظ کریں</string>
+    <string name="action_saved">محفوظ ہو گیا</string>
+
+    <string name="progress_initial_percent">0%</string>
+
+    <string name="error_no_internet">انٹرنیٹ کنکشن نہیں ہے۔ براہ کرم کنیکٹ کر کے دوبارہ کوشش کریں۔</string>
+    <string name="error_internet_unstable">انٹرنیٹ کنکشن غیر مستحکم ہے۔ براہ کرم دوبارہ کوشش کریں۔</string>
+    <string name="error_unable_to_download">ڈاؤن لوڈ کرنے میں ناکامی۔ اپنی اسٹوریج یا کنکشن چیک کریں۔</string>
+
+    <string name="empty_title_no_connection">کوئی کنکشن نہیں ہے</string>
+    <string name="empty_title_server_error">سرور کی خرابی</string>
+    <string name="empty_desc_server_error">ہم سرور تک نہیں پہنچ سکے۔ براہ کرم تھوڑی دیر میں دوبارہ کوشش کریں۔</string>
+    <string name="empty_title_no_results">کوئی رزلٹ نہیں ملا</string>
+    <string name="empty_desc_no_results">کچھ اور سرچ کرنے کی کوشش کریں۔</string>
+
+    <string name="toast_failed_load_more">مزید آئٹمز لوڈ کرنے میں ناکامی۔</string>
+
+    <string name="premium_discovery_subtitle">پریمیم ڈسکوری</string>
+
+    <string name="mood_night">رات</string>
+    <string name="mood_morning">صبح</string>
+    <string name="mood_day">دن</string>
+    <string name="mood_evening">شام</string>
+
+    <string name="fallback_nature_query">قدرت</string>
+    <string name="fallback_premium_query">نئے نیچر وال پیپرز</string>
+
+    <string-array name="trends_pk">
+        <item>صوفی آرٹ</item>
+        <item>اردو شاعری</item>
+        <item>ٹرک آرٹ</item>
+        <item>شمالی پاکستان</item>
+        <item>کوک اسٹوڈیو</item>
+    </string-array>
+
+    <string-array name="trends_default">
+        <item>سائبر پنک</item>
+        <item>قدرت</item>
+        <item>ایبسٹریکٹ</item>
+        <item>خلائی</item>
+        <item>منیمال</item>
+    </string-array>
+
+    <string name="ticket_default_subject">سپورٹ کی درخواست</string>
+    <string name="ticket_status_open">اوپن</string>
+    <string name="ticket_status_closed">کلوزڈ</string>
+    <string name="ticket_date_na">دستیاب نہیں</string>
+
+    <string name="ticket_id_prefix">ٹکٹ: #</string>
+    <string name="status_ticket_closed">ٹکٹ بند ہو گیا</string>
+    <string name="status_connected_support">سپورٹ سے منسلک ہو گئے</string>
+    <string name="status_start_conversation">گفتگو شروع کریں</string>
+
+    <string name="error_connection_failed">کنکشن کی خرابی: %s</string>
+    <string name="error_ticket_id_generation">سسٹم کی خرابی: ٹکٹ ID جنریٹ نہیں ہو سکی</string>
+    <string name="error_network_failed_ticket">نیٹ ورک کی خرابی: ٹکٹ شروع کرنے میں ناکامی</string>
+    <string name="error_session_expired">ٹکٹ سیشن ختم ہو گیا۔ دوبارہ کوشش کریں۔</string>
+    <string name="error_message_send_failed">پیغام بھیجنے میں ناکامی</string>
+    <string name="error_status_update_failed">اسٹیٹس اپ ڈیٹ کرنے میں ناکامی</string>
+    <string name="error_database_failed">ڈیٹا بیس کی خرابی: %s</string>
+
+    <string name="toast_ticket_reopened">ٹکٹ کامیابی سے دوبارہ کھول دیا گیا</string>
+    <string name="toast_ticket_closed_feedback">ٹکٹ بند ہو گیا</string>
+    <string name="toast_no_tickets_found">کوئی پرانا ٹکٹ نہیں ملا</string>
+
+    <string name="dialog_history_title">سپورٹ ہسٹری</string>
+    <string name="dialog_btn_close">بند کریں</string>
+    <string name="auto_admin_initial_reply">آپ کا ٹکٹ نمبر #%s کامیابی سے جنریٹ ہو گیا ہے۔ ہماری سپورٹ ٹیم جلد ہی آپ سے رابطہ کرے گی۔</string>
+    <string name="auto_admin_reopen_reply">یہ ٹکٹ دوبارہ کھول دیا گیا ہے۔ ہم آپ کی مزید کیا مدد کر سکتے ہیں؟</string>
+
+    <string name="identity_admin_system">ایڈمن</string>
+    <string name="identity_admin_adeeb">ادیب ابراہیم</string>
+
+    <string name="error_invalid_url">غلط URL</string>
+    <string name="error_mediastore_entry_failed">MediaStore انٹری نہیں بنائی جا سکی</string>
+    <string name="error_server_response_code">سرور کی خرابی: %d</string>
+    <string name="error_output_stream_failed">آؤٹ پٹ اسٹریم کھولنے میں ناکامی</string>
+
+    <string name="chooser_title_whatsapp_status">اسٹیٹس سیٹ کریں بذریعہ:</string>
+    <string name="chooser_title_share_status">اسٹیٹس شیئر کریں</string>
+    <string name="toast_no_sharing_app_found">شیئر کرنے کے لیے کوئی ایپ نہیں ملی!</string>
+
+    <string name="trend_fallback_global">گلوبل</string>
+    <string name="error_no_internet_toast">انٹرنیٹ کنکشن نہیں ہے!</string>
+    <string name="trend_region_global">عالمی</string>
+    <string name="progress_percentage_format">%d%%</string>
+
+    <string name="empty_desc_no_connection">وائرل اسٹیٹس دیکھنے کے لیے براہ کرم اپنا انٹرنیٹ چیک کریں۔</string>
+    <string name="empty_title_no_records">کوئی ریکارڈ نہیں ملا</string>
+    <string name="empty_desc_no_records">فلحال، کوئی وائرل تصاویر نہیں ہیں۔</string>
+    <string name="toast_download_failed_internet">ڈاؤن لوڈ ناکام ہو گیا۔ انٹرنیٹ چیک کریں۔</string>
+    <string name="fallback_trending_status">ٹرینڈنگ اسٹیٹس</string>
+    <string name="error_download_failed_network">نیٹ ورک کی خرابی۔ دوبارہ کوشش کریں۔</string>
+    <string name="progress_percentage_format_preview">%d%%</string>
+
+    <string name="toast_preparing_media">میڈیا تیار کیا جا رہا ہے… ✧</string>
+    <string name="toast_preparing_repost">دوبارہ پوسٹ کرنے کی تیاری ہو رہی ہے… ✧</string>
+    <string name="error_repost_failed">دوبارہ پوسٹ ناکام ہو گئی، دوبارہ کوشش کریں</string>
+
+    <string name="chooser_title_share_via">اس کے ذریعے شیئر کریں</string>
+    <string name="chooser_title_repost_via">اس کے ذریعے دوبارہ پوسٹ کریں</string>
+
+    <string name="notification_title_status_saver">اسٹیٹس سیور</string>
+    <string name="notification_desc_saved_success">اسٹیٹس کامیابی سے محفوظ ہو گیا!</string>
+    <string name="error_billing_play_not_ready">گوگل پلے تیار نہیں ہے۔ انٹرنیٹ چیک کریں۔</string>
+    <string name="error_billing_store_busy">پلے اسٹور اس وقت بہت سی درخواستوں میں مصروف ہے۔ براہ کرم تھوڑی دیر بعد کوشش کریں۔</string>
+    <string name="feedback_title_question">کیا آپ کو ہماری ایپ پسند آئی؟</string>
+    <string name="toast_feedback_thank_you">ریٹنگ دینے کا شکریہ!</string>
+    <string name="tag_fragment_home">ہوم</string>
+    <string name="tag_fragment_gallery">گیلری</string>
+    <string name="tag_fragment_trending">ٹرینڈنگ</string>
+
+    <string name="premium_state_active">ایکٹو</string>
+
+    <string name="error_billing_cancelled">خریداری منسوخ کر دی گئی۔</string>
+    <string name="error_billing_already_owned">آپ کے پاس پہلے ہی یہ پریمیم پاس موجود ہے!</string>
+    <string name="error_billing_network_lost">کنکشن منقطع ہو گیا۔ براہ کرم انٹرنیٹ چیک کریں۔</string>
+    <string name="error_billing_play_store_busy">پلے اسٹور مصروف ہے۔ براہ کرم بعد میں کوشش کریں۔</string>
+    <string name="fallback_not_available">دستیاب نہیں</string>
+
+    <string name="progress_verifying_google">گوگل سے تصدیق کی جا رہی ہے…</string>
+    <string name="success_elite_welcome">✧ الیٹ میں خوش آمدید ✧\nاشتہارات مستقل طور پر ہٹا دیے گئے۔</string>
+    <string name="notif_channel_name_expiry">اسٹیٹس ختم ہونے کے الرٹس</string>
+    <string name="notif_channel_desc_expiry">اسٹیٹس ختم ہونے سے پہلے محفوظ کرنے کے اہم الرٹس۔</string>
+    <string name="splash_status_premium_member">⭐ پریمیم ممبر</string>
+    <string name="splash_status_loading_ad">اشتہار لوڈ ہو رہا ہے…</string>
+
+    <string name="perm_dialog_title_notif">اجازت درکار ہے</string>
+    <string name="perm_dialog_desc_notif">اسٹیٹس ختم ہونے سے پہلے الرٹس حاصل کرنے کے لیے نوٹیفیکیشنز کو آن کریں۔</string>
+    <string name="perm_action_allow">اجازت دیں</string>
+    <string name="perm_action_later">بعد میں</string>
+
+    <string name="toast_all_alerts_active">تمام الرٹس ایکٹو ہیں! ✅</string>
+    <string name="toast_view_statuses_first">براہ کرم پہلے واٹس ایپ پر اسٹیٹس دیکھیں!</string>
+    <string name="toast_whatsapp_not_found">واٹس ایپ نہیں ملا!</string>
+    <string name="perm_warning_checkbox_first">آگے بڑھنے کے لیے پہلے چیک باکس پر کلک کریں۔ 🚀</string>
+    <string name="perm_warning_selection_required">انتخاب لازمی ہے! ⚠️</string>
+    <string name="perm_error_grant_access">اجازت کی خرابی! براہ کرم رسائی دیں۔ ⚠️</string>
+    <string name="perm_warning_select_statuses_folder">آگے بڑھنے کے لیے \'.Statuses\' فولڈر منتخب کریں! 📁</string>
+    <string name="status_saver">اسٹیٹس سیور</string>
+    <string name="premium_access">پریمیم رسائی</string>
+    <string name="early_bird_special_step_1">ارلی برڈ اسپیشل: مرحلہ 1</string>
+    <string name="smart_ai_media_engine">اسمارٹ AI میڈیا انجن</string>
+    <string name="advanced_scanning_for_better_media_quality">• بہتر میڈیا کوالٹی کے لیے جدید اسکیننگ۔</string>
+    <string name="faster_downloads_with_every_new_update">• ہر نئے اپ ڈیٹ کے ساتھ تیز رفتار ڈاؤن لوڈز۔</string>
+    <string name="join_now_for_exclusive_future_rewards">• مستقبل کے خصوصی انعامات کے لیے ابھی شامل ہوں۔</string>
+    <string name="start_setup">[ سیٹ اپ شروع کریں ]</string>
+    <string name="note_please_keep_the_app_installed_to_maintain_your_premium_rewards_and_future_updates">نوٹ: پریمیم انعامات اور مستقبل کے اپ ڈیٹس برقرار رکھنے کے لیے ایپ کو انسٹال رکھیں۔</string>
+    <string name="storage_permission">اسٹوریج کی اجازت</string>
+    <string name="to_show_your_latest_statuses_we_need_access_to_your_status_folder">آپ کے تازہ ترین اسٹیٹس دکھانے کے لیے، ہمیں آپ کے اسٹیٹس فولڈر تک رسائی درکار ہے۔</string>
+    <string name="step_2">مرحلہ 2</string>
+    <string name="select_folder">فولڈر منتخب کریں</string>
+    <string name="allow_access">رسائی دیں</string>
+    <string name="need_help_view_guide">مدد درکار ہے؟ گائیڈ دیکھیں</string>
+    <string name="status_folder_setup_guide">اسٹیٹس فولڈر سیٹ اپ گائیڈ</string>
+    <string name="follow_these_simple_steps_to_see_statuses">اسٹیٹس دیکھنے کے لیے یہ آسان اقدامات فالو کریں</string>
+    <string name="for_new_android_11_14">نئے اینڈرائیڈ (11 – 14) کے لیے</string>
+    <string name="go_to_android_media_com_whatsapp_whatsapp_media_statuses"><![CDATA[یہاں جائیں: Android > media > com.whatsapp > WhatsApp > Media > .Statuses]]></string>
+    <string name="for_old_android_10_amp_below"><![CDATA[پرانے اینڈرائیڈ (10 اور اس سے نیچے) کے لیے]]></string>
+    <string name="look_for_whatsapp_media_statuses_folder_in_your_internal_storage"><![CDATA[اپنی انٹرنل اسٹوریج میں تلاش کریں: WhatsApp > Media > .Statuses فولڈر۔]]></string>
+    <string name="important_if_folder_is_empty">اہم: اگر فولڈر خالی ہے</string>
+    <string name="i_understand">میں سمجھ گیا</string>
+    <string name="we_are_working_hard_to_make_your_experience_better_a_quick_review_would_mean_the_world_to_us">ہم آپ کے تجربے کو بہتر بنانے کے لیے سخت محنت کر رہے ہیں۔ ایک مختصر ریویو ہمارے لیے بہت اہمیت رکھتا ہے!</string>
+    <string name="tap_to_rate">ریٹ کرنے کے لیے ٹیپ کریں</string>
+    <string name="it_only_takes_5_seconds">اس میں صرف 5 سیکنڈ لگتے ہیں</string>
+    <string name="no_status_found">کوئی اسٹیٹس نہیں ملا</string>
+    <string name="first_watch_status_from_whatsapp_nthen_download_from_here">پہلے WhatsApp سے اسٹیٹس دیکھیں\nپھر یہاں سے ڈاؤن لوڈ کریں۔</string>
+    <string name="get_expiry_alerts">اسٹیٹس ایکسپائری الرٹس حاصل کریں ⏳</string>
+    <string name="to_prevent_notification_delays_caused_by_android_battery_saving_please_complete_the_following_steps">اینڈرائیڈ بیٹری سیونگ کی وجہ سے نوٹیفکیشن میں تاخیر سے بچنے کے لیے، براہ کرم درج ذیل مراحل مکمل کریں:</string>
+
+    <string name="open_battery_settings">\'بیٹری\' سیٹنگز کھولیں</string>
+    <string name="please_select_the_statuses_folder_to_automatically_sync_your_media">اپنے میڈیا کو خودکار سنک (sync) کرنے کے لیے براہ کرم \'.Statuses\' فولڈر منتخب کریں۔</string>
+    <string name="select_statuses_folder_and_click_use_this_folder_button_at_the_bottom">\'.Statuses\' فولڈر منتخب کریں اور نیچے موجود \'USE THIS FOLDER\' بٹن پر کلک کریں۔</string>
+    <string name="select_unrestricted_don_t_optimize">\'Unrestricted\' / \'Don\'t Optimize\' منتخب کریں</string>
+    <string name="tap_the_3_dots_top_right_and_choose_show_hidden_files_this_is_required_to_find_the_status_folder">اوپر دائیں کونے میں 3 نقطوں پر ٹیپ کریں اور \'Show Hidden Files\' منتخب کریں۔ اسٹیٹس فولڈر تلاش کرنے کے لیے یہ ضروری ہے۔</string>
+    <string name="_2">2</string>
+    <string name="_3">3</string>
+    <string name="maybe_later">شاید بعد میں</string>
+    <string name="go_to_settings">سیٹنگز میں جائیں</string>
+    <string name="loading">لوڈ ہو رہا ہے</string>
+    <string name="admin">ایڈمن</string>
+    <string name="deleting">ڈیلیٹ ہو رہا ہے</string>
+    <string name="world">🌐</string>
+    <string name="customize_your_app_interface">اپنی ایپ کا انٹرفیس حسب ضرورت بنائیں</string>
+    <string name="language_settings">زبان کی ترتیبات</string>
+    <string name="use_system_language">پہلے سے طے شدہ زبان استعمال کریں (English)</string>
+    <string name="region_amp_preferences"><![CDATA[علاقہ اور ترجیحات]]></string>
+    <string name="world_s">🌍</string>
+    <string name="preview">پیش منظر (Preview)</string>
+    <string name="current_english">موجودہ: انگلش</string>
+    <string name="apply_changes">تبدیلیاں لاگو کریں</string>
+    <string name="need_help_contact_support">مدد درکار ہے؟ سپورٹ سے رابطہ کریں</string>
+    <string name="app_interface_will_be_updated_to">ایپ کا انٹرفیس اس میں تبدیل ہو جائے گا: %s</string>
+    <!-- Status and Preview Messages -->
+    <string name="status_system_default">اسٹیٹس: سسٹم ڈیفالٹ استعمال ہو رہا ہے</string>
+    <string name="preview_system_default">ایپ سسٹم کی زبان کو فالو کرے گی۔</string>
+
+    <string name="status_selected">منتخب کردہ: %s</string>
+    <string name="preview_selected">ایپ کا انٹرفیس اس زبان میں تبدیل ہو جائے گا: %s</string>
+
+    <string name="status_current">موجودہ: %s</string>
+    <string name="preview_current">ایپ کا انٹرفیس اس زبان میں تبدیل ہو جائے گا: %s</string>
+
+        <string name="select_language_step_1">زبان منتخب کریں مرحلہ 1</string>
+        <string name="elite_upgrade">ایلیٹ اپ گریڈ</string>
+        <string name="supreme_features">✦ بہترین خصوصیات ✦</string>
+        <string name="zero_disruptive_ads">کوئی اشتہار نہیں</string>
+        <string name="multi_threaded_downloader">فاسٹ ڈاؤن لوڈر</string>
+        <string name="quality_content_access">معیاری مواد تک رسائی</string>
+        <string name="choose_your_elite_pass">ایلیٹ پاس منتخب کریں</string>
+        <string name="monthly">ماہانہ</string>
+        <string name="active">فعال</string>
+        <string name="premium_benefits">پریمیم فوائد</string>
+        <string name="lifetime_access">لائف ٹائم رسائی</string>
+        <string name="one_time_luxury_pass">ون ٹائم لگژری پاس</string>
+        <string name="verified_by_google_play_security">گوگل پلے سے تصدیق شدہ</string>
+        <string name="don_t_show_for_this_version">اس ورژن کے لیے نہ دکھائیں</string>
+        <string name="experience_now">ابھی تجربہ کریں</string>
+        <string name="what_s_new">نیا کیا ہے</string>
+        <string name="multi_language_support">ملٹی لینگویج سپورٹ</string>
+        <string name="change_app_language_as_you_prefer">اپنی پسند کی زبان منتخب کریں</string>
+        <string name="export_quality">ایکسپورٹ کوالٹی</string>
+        <string name="select_your_preference_magic_lab_ai_enhances_clarity_and_detail_automatically">اپنی ترجیح منتخب کریں۔ میجک لیب اے آئی خود بخود کلیئرٹی بہتر بناتا ہے۔</string>
+        <string name="magic_lab_ai">میجک لیب اے آئی</string>
+        <string name="ultra_hd_noise_reduction">الٹرا ایچ ڈی + نوائز ریڈکشن</string>
+        <string name="original_quality">اصل کوالٹی</string>
+        <string name="set_as_default_for_future_exports">مستقبل کے لیے ڈیفالٹ بنائیں</string>
+    <string name="select_language">زبان منتخب کریں</string>
+    <string name="language">زبان</string>
+    <string name="file_details">فائل کی تفصیلات</string>
+    <string name="below_are_the_technical_details_and_storage_paths_for_the_selected_status_file">منتخب کردہ اسٹیٹس فائل کی تکنیکی تفصیلات اور اسٹوریج کے راستے نیچے دیے گئے ہیں۔</string>
+    <string name="dismiss">ختم کریں</string>
+    <string name="splash_ad_disclaimer">اس اسکرین میں اشتہارات شامل ہیں</string>
+
+    <string name="last_sync">آخری مطابقت </string>
+    <string name="logout">لاگ آؤٹ</string>
+    <string name="elite_features_coming_soon">ایلیٹ فیچرز جلد آ رہے ہیں</string>
+    <string name="confirm_logout">لاگ آؤٹ کی تصدیق کریں</string>
+    <string name="are_you_sure_you_want_to_logout_you_will_need_to_sign_in_again_to_access_your_account">کیا آپ واقعی لاگ آؤٹ کرنا چاہتے ہیں؟ اپنے اکاؤنٹ تک رسائی کے لیے آپ کو دوبارہ سائن ان کرنا ہوگا۔</string>
+    <string name="cancel">منسوخ کریں</string>
+    <string name="peek_mode">پیک موڈ </string>
+    <string name="intelligence_being_fine_tuned">انٹیلی جنس کو بہتر بنایا جا رہا ہے</string>
+    <string name="analyze_moods_and_patterns_in_real_time">موڈز اور پیٹرنز کا حقیقی وقت میں تجزیہ کریں۔</string>
+    <string name="peek_title_enable_access">پیک پروویو فعال کریں</string>
+    <string name="peek_desc_enable_access">نوٹیفکیشن تک رسائی کو فعال کریں تاکہ ایپ آپ کے آنے والے الرٹس کو محفوظ طریقے سے درجہ بندی کر سکے۔</string>
+
+    <string name="peek_title_no_alerts">کوئی حالیہ الرٹ نہیں</string>
+    <string name="peek_desc_no_alerts">جیسے ہی نئے نوٹیفکیشن آئیں گے، وہ یہاں خود بخود ظاہر ہو جائیں گے۔</string>
+
+    <string name="ai_stealth_status">انٹیلی جنس کو بہتر بنایا جا رہا ہے</string>
+    <string name="profile">پروفائل</string>
+
+    <string name="messages">پیغامات</string>
+    <string name="avg_reply">اوسط جواب</string>
+    <string name="New_media">میڈیا</string>
+    <string name="ai_behavioral_analysis">AI رویے کا تجزیہ</string>
+    <string name="ai_calculating_behavior_patterns">رویے کے پیٹرنز کا حساب لگا رہا ہے</string>
+    <string name="status_na">لاگو نہیں</string>
+    <string name="mood_analyzing">موڈ: تجزیہ ہو رہا ہے</string>
+    <string name="type_analyzing">قسم: تجزیہ ہو رہا ہے</string>
+    <string name="vibe_analyzing">وائب: تجزیہ ہو رہا ہے</string>
+    <string name="typenew_analyzing">قسم: تجزیہ ہو رہا ہے</string>
+    <string name="peak_analyzing">پیک: تجزیہ ہو رہا ہے</string>
+    <string name="fav_analyzing">پسندیدہ: تجزیہ ہو رہا ہے</string>
+    <string name="label_type">قسم: %s</string>
+    <string name="label_vibe">وائب: %s</string>
+    <string name="label_trend"> | رجحان: %s</string>
+    <string name="ai_status_high">اعلیٰ</string>
+    <string name="ai_status_delayed">تاخیر</string>
+    <string name="mood_neutral">موڈ: نیوٹرل</string>
+    <string name="mood_happy">موڈ: خوش</string>
+    <string name="mood_distant">موڈ: دور</string>
+    <string name="type_new_connection">قسم: نیا رابطہ</string>
+    <string name="type_intense_duo">قسم: شدید جوڑی</string>
+    <string name="type_heavy_chatter">قسم: بھاری چیٹر</string>
+    <string name="type_casual">قسم: آرام دہ</string>
+    <string name="type_low_profile">قسم: لو پروفائل</string>
+    <string name="peak_na">پیک: لاگو نہیں</string>
+    <string name="peak_format">پیک: %1$d%2$s</string>
+    <string name="fav_na">پسندیدہ: لاگو نہیں</string>
+    <string name="fav_format">پسندیدہ: \'%s\'</string>
+    <string name="archetype_observer">مشاہدہ کرنے والا</string>
+    <string name="archetype_storyteller">کہانی سنانے والا</string>
+    <string name="archetype_short_reply">مختصر جواب کا بادشاہ</string>
+    <string name="archetype_balanced">متوازن</string>
+    <string name="vibe_neutral">نیوٹرل</string>
+    <string name="vibe_curious">متجسس</string>
+    <string name="vibe_friendly">دوستانہ</string>
+    <string name="vibe_straightforward">سیدھا</string>
+    <string name="status_ready">چیٹ کے لیے تیار</string>
+    <string name="status_active">ایکٹو - جواب ~%d منٹ میں</string>
+    <string name="status_soon">جلد متوقع</string>
+    <string name="status_low">جواب کا کم امکان</string>
+    <string name="status_high">جواب کا زیادہ امکان</string>
+    <string name="cons_building">تعلقات بن رہے ہیں</string>
+    <string name="cons_rising">بڑھتی ہوئی دلچسپی</string>
+    <string name="cons_declining">کم ہوتی ہوئی دلچسپی</string>
+    <string name="cons_consistent">مستقل</string>
+</resources>

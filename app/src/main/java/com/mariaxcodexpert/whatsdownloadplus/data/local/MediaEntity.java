@@ -34,7 +34,7 @@ public class MediaEntity implements Parcelable {
     public boolean isDownloaded;
     public long expiryTime;
 
-    // Standard Constructor for Room
+
     public MediaEntity(@NonNull String fileName, String whatsapp_path, String gallery_path,
                        boolean isVideo, long timestamp, boolean isDownloaded, long expiryTime) {
         this.fileName = fileName;
@@ -46,16 +46,12 @@ public class MediaEntity implements Parcelable {
         this.expiryTime = expiryTime;
     }
 
-    // --- Getters ---
-
     public String getGalleryPath() {
-        // Safe check: return gallery_path if available, otherwise fallback to whatsapp_path
         return (isDownloaded && gallery_path != null && !gallery_path.isEmpty())
                 ? gallery_path
                 : whatsapp_path;
     }
 
-    // Is method ka naam same rakhein jo adapter call kar raha hai
     public boolean isVideo() {
         return isVideo;
     }
@@ -71,16 +67,9 @@ public class MediaEntity implements Parcelable {
         }
     }
 
+
+
     @Ignore
-    public void markAsDownloaded(String savedGalleryPath) {
-        this.isDownloaded = true;
-        this.gallery_path = savedGalleryPath;
-        this.timestamp = System.currentTimeMillis();
-    }
-
-    // --- Parcelable Implementation ---
-
-    @Ignore // 🔥 Room should ignore this constructor
     protected MediaEntity(Parcel in) {
         fileName = Objects.requireNonNull(in.readString());
         whatsapp_path = in.readString();
@@ -111,8 +100,6 @@ public class MediaEntity implements Parcelable {
         @Override
         public MediaEntity[] newArray(int size) { return new MediaEntity[size]; }
     };
-
-    // --- Logic ---
 
     @Override
     public boolean equals(@Nullable Object o) {
